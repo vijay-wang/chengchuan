@@ -1,0 +1,56 @@
+{
+  "as_of": "2026-10-23",
+  "currency_unit": "CNY_100_million",
+  "method": "行业历史收入为基数；客户资本开支、项目和政策用于限制情景；未来收入、毛利率及费用均为分析假设，不是逐客户订单加总或统计回归结果。",
+  "observed": {
+    "2026H1_revenue": 38.8404678934,
+    "2026H1_parent_profit": 3.9263719648,
+    "2026H1_adjusted_parent_profit": 1.572905757,
+    "2026H1_operating_expenses": 6.028878175,
+    "2025Q3_parent_profit": 4.3409004125,
+    "2025_9M_parent_profit": 12.616221578,
+    "2025FY_revenue_rounded": 120.59,
+    "2025FY_parent_profit_rounded": 15.09,
+    "2026H1_industries": [
+      {"industry": "石油化工天然气", "revenue": 19.6812343959, "gross_margin": 0.2415},
+      {"industry": "电力设备制造", "revenue": 6.6809761719, "gross_margin": 0.2708},
+      {"industry": "其他机械制造", "revenue": 6.3036097242, "gross_margin": 0.1805},
+      {"industry": "其他不可分行业", "revenue": 6.1746476014, "gross_margin": 0.0887}
+    ],
+    "source_2026H1": "https://static.cninfo.com.cn/finalpage/2026-08-25/1225499949.PDF",
+    "source_2025Q3": "https://disc.static.szse.cn/disc/disk03/finalpage/2025-10-28/6f49dd9b-6eac-4f75-a015-02c183aa0042.PDF"
+  },
+  "industry_order": ["石油化工天然气", "电力设备制造", "其他机械制造", "其他不可分行业"],
+  "assumptions_note": "以下每一个未来数值都是主观情景输入。中东本地化率是客户全部采购的指标，不等于久立可服务市场的损失率。新能源和核聚变业务不在行业预测外重复相加。",
+  "scenarios": {
+    "承压": {
+      "2026Q3": {"revenues": [9.5, 3.4, 3.0, 3.0], "gross_margins": [0.20, 0.26, 0.17, 0.09], "operating_expenses": 3.25, "taxes_and_surcharges": 0.14, "other_net_pretax_including_impairments": 0.05, "income_tax_rate": 0.18, "minority_profit": 0.02, "nonrecurring_parent_profit": 0.05},
+      "2026Q4": {"revenues": [10.5, 3.7, 3.1, 3.1], "gross_margins": [0.22, 0.27, 0.18, 0.09], "operating_expenses": 3.3, "taxes_and_surcharges": 0.15, "other_net_pretax_including_impairments": 0.05, "income_tax_rate": 0.18, "minority_profit": 0.02, "nonrecurring_parent_profit": 0.05},
+      "2027FY": {"revenues": [44.0, 15.0, 13.0, 12.0], "gross_margins": [0.22, 0.28, 0.18, 0.09], "operating_expenses": 12.5, "taxes_and_surcharges": 0.65, "other_net_pretax_including_impairments": 0.4, "income_tax_rate": 0.18, "minority_profit": 0.08, "nonrecurring_parent_profit": 0.1}
+    },
+    "基准": {
+      "2026Q3": {"revenues": [11.5, 3.8, 3.3, 3.1], "gross_margins": [0.24, 0.28, 0.18, 0.09], "operating_expenses": 3.1, "taxes_and_surcharges": 0.15, "other_net_pretax_including_impairments": 0.25, "income_tax_rate": 0.18, "minority_profit": 0.02, "nonrecurring_parent_profit": 0.15},
+      "2026Q4": {"revenues": [13.5, 4.2, 3.6, 3.2], "gross_margins": [0.25, 0.29, 0.19, 0.09], "operating_expenses": 3.2, "taxes_and_surcharges": 0.17, "other_net_pretax_including_impairments": 0.2, "income_tax_rate": 0.18, "minority_profit": 0.02, "nonrecurring_parent_profit": 0.15},
+      "2027FY": {"revenues": [55.0, 18.0, 15.0, 13.0], "gross_margins": [0.265, 0.30, 0.19, 0.09], "operating_expenses": 13.0, "taxes_and_surcharges": 0.7, "other_net_pretax_including_impairments": 1.0, "income_tax_rate": 0.18, "minority_profit": 0.08, "nonrecurring_parent_profit": 0.3}
+    },
+    "较强恢复": {
+      "2026Q3": {"revenues": [14.0, 4.2, 3.5, 3.2], "gross_margins": [0.26, 0.30, 0.19, 0.09], "operating_expenses": 3.1, "taxes_and_surcharges": 0.17, "other_net_pretax_including_impairments": 0.3, "income_tax_rate": 0.18, "minority_profit": 0.02, "nonrecurring_parent_profit": 0.15},
+      "2026Q4": {"revenues": [16.0, 4.8, 3.8, 3.3], "gross_margins": [0.27, 0.31, 0.20, 0.09], "operating_expenses": 3.3, "taxes_and_surcharges": 0.19, "other_net_pretax_including_impairments": 0.3, "income_tax_rate": 0.18, "minority_profit": 0.02, "nonrecurring_parent_profit": 0.15},
+      "2027FY": {"revenues": [65.0, 21.0, 17.0, 13.0], "gross_margins": [0.28, 0.32, 0.20, 0.10], "operating_expenses": 14.0, "taxes_and_surcharges": 0.85, "other_net_pretax_including_impairments": 1.0, "income_tax_rate": 0.18, "minority_profit": 0.1, "nonrecurring_parent_profit": 0.5}
+    }
+  },
+  "formula": {
+    "gross_profit": "sum(industry_revenue * industry_gross_margin)",
+    "pretax_profit": "gross_profit - operating_expenses - taxes_and_surcharges + other_net_pretax_including_impairments",
+    "parent_profit": "pretax_profit - max(pretax_profit, 0) * income_tax_rate - minority_profit",
+    "adjusted_parent_profit": "parent_profit - nonrecurring_parent_profit",
+    "2026FY": "observed_2026H1 + modeled_2026Q3 + modeled_2026Q4"
+  },
+  "limits": [
+    "客户采购额及久立的供应份额未完整披露，不能给客户级精确权重。",
+    "未知新订单和验收节奏会显著改变单季收入；情景范围并非统计置信区间或损失边界。",
+    "2027数值用于说明恢复条件，不能视为已拿到订单的年度盈利预测。",
+    "不使用2026-10-23之后披露的业绩，未以事后数据回填。",
+    "不同公司资本开支口径不同，未将其简单相加或按增速直接预测久立。"
+  ]
+}

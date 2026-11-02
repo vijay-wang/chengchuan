@@ -1,0 +1,539 @@
+{
+  "valuation_basis": "A股价格×全部股本的A价等价估值；A+H实际交易市值不同。两年约数，12%回报，不计股息/未来稀释。",
+  "weight_labels": [
+    "估值与安全边际30",
+    "可持续增量25",
+    "壁垒20",
+    "现金流15",
+    "证据10"
+  ],
+  "primary": [
+    {
+      "code": "688008",
+      "name": "澜起科技",
+      "status": "观察/等待价格回落",
+      "score": [
+        8,
+        21,
+        19,
+        8,
+        8
+      ],
+      "period": "2026H1正式+2026Q3预告",
+      "actual": {
+        "revenue_h1_yi": 33.354975,
+        "profit_h1_yi": 19.973745,
+        "core_profit_h1_yi": 13.224785,
+        "ocf_h1_yi": 13.28028,
+        "capex_h1_yi": 2.552935,
+        "core_profit_q3_forecast_yi": [
+          9.5,
+          10.5
+        ],
+        "revenue_q3_forecast_yi": 20.79
+      },
+      "sources": [
+        "montage_h1",
+        "montage_q3pre"
+      ],
+      "base_exit_pe": 35,
+      "cases": [
+        {
+          "label": "承压",
+          "revenue_2027_yi": 90,
+          "normalized_profit_2027_yi": 35,
+          "revenue_2028_yi": 100,
+          "normalized_profit_2028_yi": 38,
+          "exit_pe": 28,
+          "terminal_mcap_yi": 1064,
+          "total_price_return_pct": -50.100362053764044,
+          "cagr_pct": -29.360324217734444
+        },
+        {
+          "label": "基准",
+          "revenue_2027_yi": 115,
+          "normalized_profit_2027_yi": 48,
+          "revenue_2028_yi": 145,
+          "normalized_profit_2028_yi": 62,
+          "exit_pe": 35,
+          "terminal_mcap_yi": 2170,
+          "total_price_return_pct": 1.7689984429812178,
+          "cagr_pct": 0.8806217481738265
+        },
+        {
+          "label": "较强",
+          "revenue_2027_yi": 135,
+          "normalized_profit_2027_yi": 61,
+          "revenue_2028_yi": 180,
+          "normalized_profit_2028_yi": 82,
+          "exit_pe": 40,
+          "terminal_mcap_yi": 3280,
+          "total_price_return_pct": 53.825951563584496,
+          "cagr_pct": 24.026590521381543
+        }
+      ],
+      "quote": {
+        "name": "澜起科技",
+        "code": "688008",
+        "price": 174.7,
+        "previous_close": 164.5,
+        "quote_timestamp": "20261028161228",
+        "pe_ttm_provider": "69.37",
+        "market_cap_yi_provider": 2132.28,
+        "pb_provider": "10.12",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 12.205381
+      },
+      "score_total": 64,
+      "profit_required_flat_2028_yi": 60.92228571428572,
+      "profit_required_12pct_2y_yi": 76.42091520000002,
+      "base_12pct_discounted_value_price": 141.73345047822716,
+      "base_20pct_mos_price": 113.38676038258173
+    },
+    {
+      "code": "300604",
+      "name": "长川科技",
+      "status": "观察/等待价格回落",
+      "score": [
+        8,
+        22,
+        17,
+        8,
+        9
+      ],
+      "period": "2026Q1-3正式",
+      "actual": {
+        "revenue_9m_yi": 59.42232,
+        "profit_9m_yi": 17.647262,
+        "core_profit_9m_yi": 17.168274,
+        "core_profit_q3_yi": 7.949172,
+        "ocf_9m_yi": 10.386924,
+        "capex_9m_yi": 5.260429,
+        "inventory_yi": 61.796104,
+        "receivables_yi": 27.007094,
+        "contract_liabilities_yi": 1.798568,
+        "financing_equity_cash_9m_yi": 32.977951
+      },
+      "sources": [
+        "cc_q3",
+        "cc_h1"
+      ],
+      "base_exit_pe": 30,
+      "cases": [
+        {
+          "label": "承压",
+          "revenue_2027_yi": 88,
+          "normalized_profit_2027_yi": 24,
+          "revenue_2028_yi": 90,
+          "normalized_profit_2028_yi": 23,
+          "exit_pe": 25,
+          "terminal_mcap_yi": 575,
+          "total_price_return_pct": -53.53835711630764,
+          "cagr_pct": -31.837222119625753
+        },
+        {
+          "label": "基准",
+          "revenue_2027_yi": 105,
+          "normalized_profit_2027_yi": 32,
+          "revenue_2028_yi": 135,
+          "normalized_profit_2028_yi": 42,
+          "exit_pe": 30,
+          "terminal_mcap_yi": 1260,
+          "total_price_return_pct": 1.8116000581780645,
+          "cagr_pct": 0.9017344044085718
+        },
+        {
+          "label": "较强",
+          "revenue_2027_yi": 135,
+          "normalized_profit_2027_yi": 44,
+          "revenue_2028_yi": 180,
+          "normalized_profit_2028_yi": 60,
+          "exit_pe": 35,
+          "terminal_mcap_yi": 2100,
+          "total_price_return_pct": 69.68600009696344,
+          "cagr_pct": 30.263578983906104
+        }
+      ],
+      "quote": {
+        "name": "长川科技",
+        "code": "300604",
+        "price": 190.71,
+        "previous_close": 174.56,
+        "quote_timestamp": "20261028161200",
+        "pe_ttm_provider": "55.48",
+        "market_cap_yi_provider": 1237.58,
+        "pb_provider": "13.11",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 6.489329
+      },
+      "score_total": 64,
+      "profit_required_flat_2028_yi": 41.25266666666666,
+      "profit_required_12pct_2y_yi": 51.74734506666667,
+      "base_12pct_discounted_value_price": 154.7870714851334,
+      "base_20pct_mos_price": 123.82965718810672
+    },
+    {
+      "code": "688123",
+      "name": "聚辰股份",
+      "status": "条件等价/等待价格回落",
+      "score": [
+        14,
+        18,
+        16,
+        10,
+        8
+      ],
+      "period": "2026Q1-3正式",
+      "actual": {
+        "revenue_9m_yi": 10.526203,
+        "profit_9m_yi": 4.859776,
+        "core_profit_9m_yi": 2.338041,
+        "profit_q3_yi": -0.393565,
+        "core_profit_q3_yi": 1.403329,
+        "nonrecurring_9m_yi": 2.521736,
+        "ocf_9m_yi": 1.293499,
+        "capex_9m_yi": 0.483871,
+        "inventory_yi": 3.730933,
+        "receivables_yi": 1.999484
+      },
+      "sources": [
+        "gc_q3",
+        "gc_h1"
+      ],
+      "base_exit_pe": 28,
+      "cases": [
+        {
+          "label": "承压",
+          "revenue_2027_yi": 15.5,
+          "normalized_profit_2027_yi": 3.7,
+          "revenue_2028_yi": 16.5,
+          "normalized_profit_2028_yi": 4,
+          "exit_pe": 23,
+          "terminal_mcap_yi": 92,
+          "total_price_return_pct": -50.59872201041722,
+          "cagr_pct": -29.713957296215078
+        },
+        {
+          "label": "基准",
+          "revenue_2027_yi": 20,
+          "normalized_profit_2027_yi": 5.8,
+          "revenue_2028_yi": 24,
+          "normalized_profit_2028_yi": 7.2,
+          "exit_pe": 28,
+          "terminal_mcap_yi": 201.6,
+          "total_price_return_pct": 8.253235246737912,
+          "cagr_pct": 4.044814982169065
+        },
+        {
+          "label": "较强",
+          "revenue_2027_yi": 24,
+          "normalized_profit_2027_yi": 7.7,
+          "revenue_2028_yi": 31,
+          "normalized_profit_2028_yi": 10.2,
+          "exit_pe": 33,
+          "terminal_mcap_yi": 336.59999999999997,
+          "total_price_return_pct": 80.74424099232131,
+          "cagr_pct": 34.44115478242564
+        }
+      ],
+      "quote": {
+        "name": "聚辰股份",
+        "code": "688123",
+        "price": 117.15,
+        "previous_close": 108.71,
+        "quote_timestamp": "20261028161236",
+        "pe_ttm_provider": "35.16",
+        "market_cap_yi_provider": 186.23,
+        "pb_provider": "5.99",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 1.589671
+      },
+      "score_total": 66,
+      "profit_required_flat_2028_yi": 6.651071428571428,
+      "profit_required_12pct_2y_yi": 8.343104,
+      "base_12pct_discounted_value_price": 101.09906337017972,
+      "base_20pct_mos_price": 80.87925069614379
+    }
+  ],
+  "others": [
+    {
+      "code": "688041",
+      "name": "海光信息",
+      "status": "估值透支剔除",
+      "score_total": null,
+      "reason": "2026Q1-3扣非25.84亿、经营现金-24.43亿；A价等价市值4479亿。即使用35倍退出PE，两年12%回报需要2028利润160.53亿，是前三季年化扣非的4.66倍；CPU/DCU未拆分且现金占用高。不能用Agent需求直接填补利润缺口。",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-20/1225611145.PDF"
+      ],
+      "quote": {
+        "name": "海光信息",
+        "code": "688041",
+        "price": 192.7,
+        "previous_close": 187.03,
+        "quote_timestamp": "20261028161237",
+        "pe_ttm_provider": "130.58",
+        "market_cap_yi_provider": 4479.0,
+        "pb_provider": "16.95",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 23.243383
+      }
+    },
+    {
+      "code": "688498",
+      "name": "源杰科技",
+      "status": "估值透支剔除",
+      "score_total": null,
+      "reason": "Q3预告扣非4.0—4.5亿，按这一高景气季度年化16—18亿仍约58—65倍。35倍退出PE、两年12%需要2028扣非37.48亿，是Q3年化2.08—2.34倍；还需产能、良率、光源路线和毛利均兑现。排除是严格安全边际筛选，不断言技术或增长为假。 本轮检得10月13日预告、10月23日经营公告均仍为预计数；未取得正式Q3；第三方日历预约10月31日，不能据此断言届时前一定没有新披露。",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-13/1225602284.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-10-23/1225617693.PDF",
+        "https://basic.10jqka.com.cn/144/688498/event.html"
+      ],
+      "quote": {
+        "name": "源杰科技",
+        "code": "688498",
+        "price": 840.0,
+        "previous_close": 833.58,
+        "quote_timestamp": "20261028161229",
+        "pe_ttm_provider": "139.12",
+        "market_cap_yi_provider": 1045.8,
+        "pb_provider": "34.66",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 1.245
+      },
+      "disclosure_status": "本轮检得2026-10-13业绩预告及2026-10-23生产经营公告仍使用预计口径；未取得正式Q3。第三方日历显示预约2026-10-31，预约不等于实际披露。"
+    },
+    {
+      "code": "300394",
+      "name": "天孚通信",
+      "status": "估值透支剔除",
+      "score_total": null,
+      "reason": "H1扣非11.86亿、现金10.01亿，经营优质；2197.25亿市值相当于H1扣非简单年化92.6倍。35倍退出PE、两年12%要求2028利润78.75亿，较H1年化3.32倍；现有证据不足支撑同时高增与高估值。本轮检得并复核的最新正式财报为H1，公司官网当时列H1；东方财富预约日历显示Q3预约10月29日。预约不是实际披露，不能排除报告抓取后更新。",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-19/1225480327.PDF",
+        "https://data.eastmoney.com/stockcalendar/300394.html"
+      ],
+      "quote": {
+        "name": "天孚通信",
+        "code": "300394",
+        "price": 201.43,
+        "previous_close": 188.62,
+        "quote_timestamp": "20261028161200",
+        "pe_ttm_provider": "94.61",
+        "market_cap_yi_provider": 2197.25,
+        "pb_provider": "38.53",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 10.908256
+      },
+      "disclosure_status": "本轮检得并复核的最新正式财报为H1；第三方预约日历显示Q3预约2026-10-29，不等于已实际披露；不能排除抓取后更新。"
+    },
+    {
+      "code": "688627",
+      "name": "精智达",
+      "status": "估值透支剔除",
+      "score_total": null,
+      "reason": "H1扣非0.445亿、经营现金-3.50亿；279.8亿市值/半年年化扣非314倍。35倍退出PE、两年12%要求2028利润10.03亿，约H1年化11.27倍；算力测试仍研发、显示/存储业务混合，新定增不等于经营回款。 本轮检得并复核的最新正式财报为H1；同花顺、东方财富显示Q3预约10月29日。预约不是实际披露，不能排除抓取后更新。",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-19/1225480779.PDF",
+        "https://basic.10jqka.com.cn/688627/event.html"
+      ],
+      "quote": {
+        "name": "精智达",
+        "code": "688627",
+        "price": 275.0,
+        "previous_close": 263.5,
+        "quote_timestamp": "20261028161221",
+        "pe_ttm_provider": "334.11",
+        "market_cap_yi_provider": 279.8,
+        "pb_provider": "6.04",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 1.017455
+      },
+      "disclosure_status": "本轮检得并复核的最新正式财报为H1；同花顺/东方财富日历显示Q3预约2026-10-29，不等于已实际披露；不能排除抓取后更新。"
+    },
+    {
+      "code": "301308",
+      "name": "江波龙",
+      "status": "周期利润正常化不足，暂不纳入",
+      "score_total": 53,
+      "reason": "原PDF单位已复核：H1收入240.88亿、扣非100.47亿确是亿元；经营现金-31.51亿，企业级收入21.4亿仅占8.88%。前三季预告扣非138—148亿，公司明确涨价盈利边际趋缓。当前1099.5亿市值按20倍、两年12%需要2028正常利润68.96亿；若约400亿收入基数，要求17.2%可持续净利率。无法把目前周期超额毛利永久化，因此不是极端泡沫结论而是现金与正常利润待核实。",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-11/1225467150.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-10-15/1225607002.PDF"
+      ],
+      "quote": {
+        "name": "江波龙",
+        "code": "301308",
+        "price": 239.2,
+        "previous_close": 228.09,
+        "quote_timestamp": "20261028161212",
+        "pe_ttm_provider": "9.17",
+        "market_cap_yi_provider": 1099.5,
+        "pb_provider": "4.94",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 4.596572
+      },
+      "score": [
+        14,
+        15,
+        13,
+        5,
+        6
+      ]
+    },
+    {
+      "code": "002156",
+      "name": "通富微电",
+      "status": "观察，当前不列优先",
+      "score_total": 56,
+      "reason": "H1归母17.17亿但扣非7.47亿，非经常接近一半。经营现金29.33亿、购建长期资产51.99亿，简化FCF-22.66亿。按H1扣非年化约48.3倍；28倍退出PE、两年12%要求2028正常利润32.30亿，约年化2.16倍。HPC/AMD客户机会真实但需JV归属和折旧/资本回报兑现。未检得截至时点正式Q3，维持H1。",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-29/1225527099.PDF"
+      ],
+      "quote": {
+        "name": "通富微电",
+        "code": "002156",
+        "price": 45.24,
+        "previous_close": 42.75,
+        "quote_timestamp": "20261028161215",
+        "pe_ttm_provider": "28.57",
+        "market_cap_yi_provider": 721.03,
+        "pb_provider": "3.43",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 15.937887
+      },
+      "score": [
+        10,
+        17,
+        16,
+        6,
+        7
+      ]
+    },
+    {
+      "code": "600584",
+      "name": "长电科技",
+      "status": "观察，当前不列优先",
+      "score_total": 57,
+      "reason": "Q1-3扣非15.61亿、经营现金43.00亿、购建长期资产88.91亿，简化FCF-45.91亿。当前市值约47.6倍前三季扣非年化；28倍退出PE、两年12%要求2028正常利润44.42亿，约前三季年化2.13倍。先进封装真增长，但现金投资、折旧、利用率和新平台导入约束显著。",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-23/1225617213.PDF"
+      ],
+      "quote": {
+        "name": "长电科技",
+        "code": "600584",
+        "price": 55.41,
+        "previous_close": 53.29,
+        "quote_timestamp": "20261028161236",
+        "pe_ttm_provider": "44.49",
+        "market_cap_yi_provider": 991.51,
+        "pb_provider": "3.36",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 17.894062
+      },
+      "score": [
+        11,
+        17,
+        17,
+        5,
+        7
+      ]
+    },
+    {
+      "code": "300408",
+      "name": "三环集团",
+      "status": "观察，当前不列优先",
+      "score_total": 61,
+      "reason": "H1扣非18.09亿、经营现金12.97亿、购建长期资产4.76亿，简化FCF8.21亿。H股已发行且挂牌，非仅申请：7月9日首发7136.43万股，8月部分超配885.69万股，合计8022.12万股；A+H总股本19.96718571亿，需用A价等价口径，现1737.15亿约48倍H1扣非年化。28倍退出PE、两年12%需2028正常利润77.82亿，为H1年化2.15倍。MLCC与光通信增长和材料工艺壁垒真实，但涨价/结构/AI份额未拆、回报要求偏高。",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-28/1225516992.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-07-09/1225417597.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-06/1225461867.PDF"
+      ],
+      "quote": {
+        "name": "三环集团",
+        "code": "300408",
+        "price": 87.0,
+        "previous_close": 81.5,
+        "quote_timestamp": "20261028161230",
+        "pe_ttm_provider": "52.43",
+        "market_cap_yi_provider": 1737.15,
+        "pb_provider": "7.67",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 19.967241
+      },
+      "score": [
+        11,
+        18,
+        18,
+        8,
+        6
+      ],
+      "h_share_verification": {
+        "h_listed_date": "2026-07-09",
+        "h_shares_first_issue": 71364300,
+        "overallot_shares": 8856900,
+        "h_shares_total_after_partial_overallot": 80221200,
+        "total_shares_after_partial_overallot": 1996718571,
+        "evidence": "H1报告第25页及证券发行部分、期后事项；7月9日上市公告与8月6日部分行使超额配售公告交叉核验。",
+        "source_urls": [
+          "https://static.cninfo.com.cn/finalpage/2026-07-09/1225417597.PDF",
+          "https://static.cninfo.com.cn/finalpage/2026-08-06/1225461867.PDF"
+        ]
+      }
+    },
+    {
+      "code": "000636",
+      "name": "风华高科",
+      "status": "观察，当前不列优先",
+      "score_total": 55,
+      "reason": "Q1-3扣非6.365亿、经营现金6.229亿；Q3扣非3.489亿已显著加速，不能只写AI占比低就剔除。当前423.42亿市值约30.3倍Q3简单年化，25倍退出PE、两年12%需2028正常利润21.25亿（Q3年化1.52倍）。相比海光/精智达远非同级泡沫；但价格修复、正常毛利及高端AI占比不清，不直接入优先。",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-24/1225621037.PDF"
+      ],
+      "quote": {
+        "name": "风华高科",
+        "code": "000636",
+        "price": 36.9,
+        "previous_close": 35.92,
+        "quote_timestamp": "20261028161151",
+        "pe_ttm_provider": "60.78",
+        "market_cap_yi_provider": 423.42,
+        "pb_provider": "3.30",
+        "raw_field_count": 88,
+        "implied_total_shares_yi": 11.474797
+      },
+      "score": [
+        11,
+        16,
+        13,
+        9,
+        6
+      ]
+    }
+  ],
+  "sources": {
+    "montage_h1": "https://static.cninfo.com.cn/finalpage/2026-08-29/1225530486.PDF",
+    "montage_q3pre": "https://static.cninfo.com.cn/finalpage/2026-10-21/1225612915.PDF",
+    "cc_q3": "https://static.cninfo.com.cn/finalpage/2026-10-27/1225627248.PDF",
+    "cc_h1": "https://static.cninfo.com.cn/finalpage/2026-08-28/1225523202.PDF",
+    "gc_q3": "https://static.cninfo.com.cn/finalpage/2026-10-24/1225620951.PDF",
+    "gc_h1": "https://static.cninfo.com.cn/finalpage/2026-08-15/1225475815.PDF",
+    "hag_q3": "https://static.cninfo.com.cn/finalpage/2026-10-20/1225611145.PDF",
+    "gbl_h1": "https://static.cninfo.com.cn/finalpage/2026-08-11/1225467150.PDF",
+    "gbl_q3pre": "https://static.cninfo.com.cn/finalpage/2026-10-15/1225607002.PDF",
+    "yj_pre": "https://static.cninfo.com.cn/finalpage/2026-10-13/1225602284.PDF",
+    "yj_op": "https://static.cninfo.com.cn/finalpage/2026-10-23/1225617693.PDF",
+    "jzd_h1": "https://static.cninfo.com.cn/finalpage/2026-08-19/1225480779.PDF",
+    "tf_h1": "https://static.cninfo.com.cn/finalpage/2026-08-29/1225527099.PDF",
+    "jc_q3": "https://static.cninfo.com.cn/finalpage/2026-10-23/1225617213.PDF",
+    "three_h1": "https://static.cninfo.com.cn/finalpage/2026-08-28/1225516992.PDF",
+    "fh_q3": "https://static.cninfo.com.cn/finalpage/2026-10-24/1225621037.PDF",
+    "tianfu_h1": "https://static.cninfo.com.cn/finalpage/2026-08-19/1225480327.PDF",
+    "three_h_listing": "https://static.cninfo.com.cn/finalpage/2026-07-09/1225417597.PDF",
+    "three_h_overallot": "https://static.cninfo.com.cn/finalpage/2026-08-06/1225461867.PDF",
+    "tianfu_calendar": "https://data.eastmoney.com/stockcalendar/300394.html",
+    "jzd_calendar": "https://basic.10jqka.com.cn/688627/event.html",
+    "yj_calendar": "https://basic.10jqka.com.cn/144/688498/event.html"
+  }
+}

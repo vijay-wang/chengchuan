@@ -1,0 +1,231 @@
+{
+  "schema_version": "0.1",
+  "model_version": "heuristic-v0.1-unvalidated",
+  "symbol": "sz002318",
+  "name": "久立特材",
+  "interval": "day",
+  "requested_window": {
+    "start": "2026-10-19T00:00:00",
+    "end": "2026-11-02T23:59:59"
+  },
+  "actual_window": {
+    "start": "2026-10-19T15:00:00",
+    "end": "2026-11-02T15:00:00"
+  },
+  "observations": 11,
+  "metrics": {
+    "return_pct": -6.06407322654462,
+    "last_price": 16.42,
+    "reference_price": 17.48,
+    "reference_definition": "区间前一条日线收盘价",
+    "volume_shares": 103767300.0,
+    "amount_yuan": null,
+    "vwap": null,
+    "close_vs_vwap_pct": null,
+    "close_location": 0.27131782945736477,
+    "close_series_max_drawdown_pct": -13.391877058177826,
+    "path_efficiency": 0.1965217391304346,
+    "up_bar_volume_share": 0.5250613632618368,
+    "realized_volatility_pct": 13.254428245274422,
+    "volume_ratio_to_prior": 1.6103116632382446,
+    "baseline_days": 20,
+    "benchmark_return_pct": -2.105600223879789,
+    "relative_return_pct": -3.958473002664831,
+    "flow_coverage": 1.0,
+    "platform_flow_yuan": {
+      "main_yuan": 21016517.0,
+      "super_yuan": 36825608.0,
+      "large_yuan": -15809091.0,
+      "medium_yuan": 27629838.0,
+      "small_yuan": -48646355.0
+    },
+    "main_classified_net_to_turnover": null
+  },
+  "stages": [
+    {
+      "name": "卖压／疑似派发",
+      "evidence_score": 50,
+      "evidence": [
+        "区间价格下跌至少2%",
+        "显著跑输基准",
+        "下跌伴随成交增加"
+      ],
+      "calibrated_probability": null
+    },
+    {
+      "name": "拉升／趋势上行",
+      "evidence_score": 10,
+      "evidence": [
+        "成交量高于此前可比区间"
+      ],
+      "calibrated_probability": null
+    },
+    {
+      "name": "回撤承接／洗盘候选",
+      "evidence_score": 0,
+      "evidence": [
+        "未同时满足此前上行、区间回撤和回收条件，不启用洗盘候选。"
+      ],
+      "calibrated_probability": null
+    },
+    {
+      "name": "承接／疑似吸筹",
+      "evidence_score": 0,
+      "evidence": [],
+      "calibrated_probability": null
+    }
+  ],
+  "summary": "证据不足／混合交易",
+  "institutional_net_purchase_estimate": {
+    "low_yuan": null,
+    "high_yuan": null,
+    "status": "not_identifiable",
+    "reason": "公开数据缺少投资者或母单标识；尚无经验证的金额估计模型，不能编造机构净买入区间。"
+  },
+  "execution_model_identification": {
+    "status": "insufficient_order_level_data",
+    "candidates": [
+      "随机TWAP",
+      "VWAP",
+      "POV",
+      "限价执行",
+      "分散投资者共同交易"
+    ],
+    "reason": "分钟行情和大小单净额不是某个参与者的成交轨迹，暂不输出算法匹配概率。"
+  },
+  "counter_hypotheses": [
+    "行情和订单金额分类不揭示真实账户；无法据此认定机构净增持。",
+    "指数跟随、多人追涨、回补及被动调仓也可能造成类似价格路径。",
+    "吸筹和建仓并非互斥；洗盘含交易动机，实时分析只能给出候选解释。"
+  ],
+  "quality_notes": [
+    "002318主日线接口不可用，已改用腾讯日线；该回退源不含成交额，未用收盘价乘成交量冒充成交额。原因：Remote end closed connection without response",
+    "sh000001主日线接口不可用，已改用腾讯日线；该回退源不含成交额，未用收盘价乘成交量冒充成交额。原因：Remote end closed connection without response",
+    "阶段评分为未校准的研究规则分数，不能读作准确率或概率。",
+    "当前公开日线使用未复权价格；跨除权除息区间应另行核查公司行为。"
+  ],
+  "provenance": [
+    {
+      "url": "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=sz002318%2Cday%2C2026-07-21%2C2026-11-02%2C1000%2C",
+      "retrieved_at_utc": "2026-11-02T09:40:10.894641+00:00",
+      "raw_cache": ".flowradar/cache/9c5a5a6d968f5e20a6c01dbd0a06c95931bb7ce1f58858cf757afc5f073e4fb4.json",
+      "sha256": "9c5a5a6d968f5e20a6c01dbd0a06c95931bb7ce1f58858cf757afc5f073e4fb4",
+      "cached": false
+    },
+    {
+      "url": "https://push2his.eastmoney.com/api/qt/stock/fflow/daykline/get?secid=0.002318&lmt=1000&klt=101&fields1=f1%2Cf2%2Cf3%2Cf7&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56",
+      "retrieved_at_utc": "2026-11-02T09:40:11.031601+00:00",
+      "raw_cache": ".flowradar/cache/e990d95a711ceb45ce9d6215bfd5dcfcb93e4e2ac3005e6775fd966d8f7b6157.json",
+      "sha256": "e990d95a711ceb45ce9d6215bfd5dcfcb93e4e2ac3005e6775fd966d8f7b6157",
+      "cached": false
+    },
+    {
+      "url": "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=sh000001%2Cday%2C2026-07-21%2C2026-11-02%2C1000%2C",
+      "retrieved_at_utc": "2026-11-02T09:40:11.320840+00:00",
+      "raw_cache": ".flowradar/cache/4300cc05e1d387c64085590d2bdc38a5202af57bff5d7e9dc8280385c09cec96.json",
+      "sha256": "4300cc05e1d387c64085590d2bdc38a5202af57bff5d7e9dc8280385c09cec96",
+      "cached": false
+    }
+  ],
+  "chart_bars": [
+    {
+      "timestamp": "2026-10-19T15:00:00",
+      "open": 17.55,
+      "high": 18.12,
+      "low": 17.4,
+      "close": 18.04,
+      "volume_shares": 5710200.0,
+      "amount_yuan": null
+    },
+    {
+      "timestamp": "2026-10-20T15:00:00",
+      "open": 18.01,
+      "high": 18.26,
+      "low": 17.7,
+      "close": 18.22,
+      "volume_shares": 6780600.0,
+      "amount_yuan": null
+    },
+    {
+      "timestamp": "2026-10-21T15:00:00",
+      "open": 18.18,
+      "high": 18.3,
+      "low": 17.08,
+      "close": 17.33,
+      "volume_shares": 10869100.0,
+      "amount_yuan": null
+    },
+    {
+      "timestamp": "2026-10-22T15:00:00",
+      "open": 17.29,
+      "high": 17.67,
+      "low": 17.11,
+      "close": 17.35,
+      "volume_shares": 8055600.0,
+      "amount_yuan": null
+    },
+    {
+      "timestamp": "2026-10-23T15:00:00",
+      "open": 17.44,
+      "high": 17.94,
+      "low": 17.06,
+      "close": 17.91,
+      "volume_shares": 6863000.0,
+      "amount_yuan": null
+    },
+    {
+      "timestamp": "2026-10-26T15:00:00",
+      "open": 17.95,
+      "high": 18.28,
+      "low": 17.65,
+      "close": 18.2,
+      "volume_shares": 8239900.0,
+      "amount_yuan": null
+    },
+    {
+      "timestamp": "2026-10-27T15:00:00",
+      "open": 17.85,
+      "high": 17.99,
+      "low": 16.41,
+      "close": 16.43,
+      "volume_shares": 18710100.0,
+      "amount_yuan": null
+    },
+    {
+      "timestamp": "2026-10-28T15:00:00",
+      "open": 16.32,
+      "high": 16.55,
+      "low": 16.02,
+      "close": 16.12,
+      "volume_shares": 11464200.0,
+      "amount_yuan": null
+    },
+    {
+      "timestamp": "2026-10-29T15:00:00",
+      "open": 16.14,
+      "high": 16.31,
+      "low": 16.02,
+      "close": 16.25,
+      "volume_shares": 7645200.0,
+      "amount_yuan": null
+    },
+    {
+      "timestamp": "2026-10-30T15:00:00",
+      "open": 16.13,
+      "high": 16.2,
+      "low": 15.72,
+      "close": 15.78,
+      "volume_shares": 8239700.0,
+      "amount_yuan": null
+    },
+    {
+      "timestamp": "2026-11-02T15:00:00",
+      "open": 15.78,
+      "high": 16.49,
+      "low": 15.78,
+      "close": 16.42,
+      "volume_shares": 11189700.0,
+      "amount_yuan": null
+    }
+  ]
+}

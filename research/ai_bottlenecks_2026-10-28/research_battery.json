@@ -1,0 +1,422 @@
+[
+  {
+    "code": "300073",
+    "name": "当升科技",
+    "hard_excluded": false,
+    "score_components": [
+      20,
+      16,
+      15,
+      4,
+      7
+    ],
+    "score": 62,
+    "quote": {
+      "name": "当升科技",
+      "code": "300073",
+      "price": 33.64,
+      "previous_close": 33.83,
+      "quote_timestamp": "20261028161224",
+      "pe_ttm_provider": "23.70",
+      "market_cap_yi_provider": 183.1,
+      "pb_provider": "1.21",
+      "raw_field_count": 88,
+      "implied_total_shares_yi": 5.442925
+    },
+    "facts": {
+      "period": "2026Q1-3",
+      "revenue_yi": 174.5483,
+      "core_profit_yi": 5.84904,
+      "core_profit_q3_yi": 1.21725,
+      "ocf_yi": -1.49803,
+      "capex_yi": 28.8746,
+      "opportunity": "固态正极已有分阶段供货，成熟正极客户与新增技术升级",
+      "risk": "Q3利润承压；扩产和应收存货占款，不能把收入随原料涨价当净利增长"
+    },
+    "sources": [
+      {
+        "period": "Q3",
+        "title": "2026年三季度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-10-27/1225624902.PDF"
+      },
+      {
+        "period": "H1",
+        "title": "2026年半年度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-08-26/1225502782.PDF"
+      }
+    ]
+  },
+  {
+    "code": "688116",
+    "name": "天奈科技",
+    "hard_excluded": false,
+    "score_components": [
+      15,
+      18,
+      16,
+      6,
+      7
+    ],
+    "score": 62,
+    "quote": {
+      "name": "天奈科技",
+      "code": "688116",
+      "price": 32.97,
+      "previous_close": 31.45,
+      "quote_timestamp": "20261028161228",
+      "pe_ttm_provider": "46.99",
+      "market_cap_yi_provider": 120.85,
+      "pb_provider": "3.13",
+      "raw_field_count": 88,
+      "implied_total_shares_yi": 3.665453
+    },
+    "facts": {
+      "period": "2026Q1-3",
+      "revenue_yi": 12.2207,
+      "core_profit_yi": 2.04327,
+      "core_profit_q3_yi": 0.84179,
+      "ocf_yi": 0.92502,
+      "capex_yi": 1.89813,
+      "opportunity": "单壁导电材料在快充、硅负极等路线渗透",
+      "risk": "现价仍需高增长；一般单壁量产不等于全固态专用放量；现金弱"
+    },
+    "sources": [
+      {
+        "period": "Q3",
+        "title": "天奈科技2026年第三季度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-10-27/1225625740.PDF"
+      },
+      {
+        "period": "H1",
+        "title": "天奈科技2026年半年度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-08-25/1225495086.PDF"
+      }
+    ]
+  },
+  {
+    "code": "300587",
+    "name": "天铁科技",
+    "hard_excluded": false,
+    "score_components": [
+      10,
+      8,
+      8,
+      3,
+      4
+    ],
+    "score": 33,
+    "quote": {
+      "name": "天铁科技",
+      "code": "300587",
+      "price": 3.84,
+      "previous_close": 3.84,
+      "quote_timestamp": "20261028161227",
+      "pe_ttm_provider": "-42.34",
+      "market_cap_yi_provider": 49.85,
+      "pb_provider": "2.19",
+      "raw_field_count": 88,
+      "implied_total_shares_yi": 12.981771
+    },
+    "facts": {
+      "period": "2026H1",
+      "revenue_yi": 10.07,
+      "core_profit_yi": 0.277,
+      "opportunity": "金属锂能力及原有减振业务",
+      "risk": "缺全固态合格供货与新增经营利润证据；2025经营亏损"
+    },
+    "sources": [
+      {
+        "period": "H1",
+        "title": "2026年半年度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-08-29/1225527045.PDF"
+      }
+    ]
+  },
+  {
+    "code": "603663",
+    "name": "三祥新材",
+    "hard_excluded": true,
+    "score_components": null,
+    "score": null,
+    "quote": {
+      "name": "三祥新材",
+      "code": "603663",
+      "price": 33.33,
+      "previous_close": 31.6,
+      "quote_timestamp": "20261028161228",
+      "pe_ttm_provider": "132.20",
+      "market_cap_yi_provider": 197.84,
+      "pb_provider": "14.08",
+      "raw_field_count": 88,
+      "implied_total_shares_yi": 5.935794
+    },
+    "facts": {
+      "period": "2026H1",
+      "revenue_yi": 5.63343,
+      "core_profit_yi": 0.73988,
+      "ocf_yi": 0.93243,
+      "opportunity": "核级海绵锆及锆材料",
+      "risk": "市值约134倍H1扣非年化；固态小批不能支持利润门槛",
+      "exit_pe": 25
+    },
+    "sources": [
+      {
+        "period": "H1",
+        "title": "三祥新材股份有限公司2026年半年度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-08-22/1225488603.PDF"
+      }
+    ]
+  },
+  {
+    "code": "002460",
+    "name": "赣锋锂业",
+    "hard_excluded": false,
+    "score_components": [
+      18,
+      11,
+      14,
+      7,
+      6
+    ],
+    "score": 56,
+    "quote": {
+      "name": "赣锋锂业",
+      "code": "002460",
+      "price": 36.46,
+      "previous_close": 36.45,
+      "quote_timestamp": "20261028161233",
+      "pe_ttm_provider": "11.58",
+      "market_cap_yi_provider": 764.45,
+      "pb_provider": "1.59",
+      "raw_field_count": 88,
+      "implied_total_shares_yi": 20.966813
+    },
+    "facts": {
+      "period": "2026Q1-3",
+      "revenue_yi": 361.58732,
+      "core_profit_yi": 46.35869,
+      "core_profit_q3_yi": 7.87644,
+      "ocf_yi": 22.94703,
+      "opportunity": "锂产业链资产及电池技术，锂价上行有弹性",
+      "risk": "Q3利润较H1均值回落；扣非不能去周期；固态不能解释集团利润"
+    },
+    "sources": [
+      {
+        "period": "Q3",
+        "title": "2026年三季度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-10-16/1225607211.PDF"
+      },
+      {
+        "period": "H1",
+        "title": "2026年半年度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-08-29/1225528829.PDF"
+      }
+    ]
+  },
+  {
+    "code": "002167",
+    "name": "东方锆业",
+    "hard_excluded": false,
+    "score_components": [
+      13,
+      13,
+      10,
+      10,
+      5
+    ],
+    "score": 51,
+    "quote": {
+      "name": "东方锆业",
+      "code": "002167",
+      "price": 14.1,
+      "previous_close": 13.6,
+      "quote_timestamp": "20261028161233",
+      "pe_ttm_provider": "60.46",
+      "market_cap_yi_provider": 109.23,
+      "pb_provider": "5.69",
+      "raw_field_count": 88,
+      "implied_total_shares_yi": 7.746809
+    },
+    "facts": {
+      "period": "2026Q1-3",
+      "revenue_yi": 11.25413,
+      "core_profit_yi": 1.65917,
+      "core_profit_q3_yi": 0.86175,
+      "ocf_yi": 2.53573,
+      "opportunity": "电池级氧化锆批供、现有锆业务盈利改善",
+      "risk": "全固态占比未单列；当前利润含价格周期，扩产与估值待消化"
+    },
+    "sources": [
+      {
+        "period": "Q3",
+        "title": "2026年三季度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-10-27/1225625247.PDF"
+      },
+      {
+        "period": "H1",
+        "title": "2026年半年度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-08-25/1225500047.PDF"
+      }
+    ]
+  },
+  {
+    "code": "002709",
+    "name": "天赐材料",
+    "hard_excluded": false,
+    "score_components": [
+      22,
+      15,
+      16,
+      4,
+      6
+    ],
+    "score": 63,
+    "quote": {
+      "name": "天赐材料",
+      "code": "002709",
+      "price": 26.89,
+      "previous_close": 26.6,
+      "quote_timestamp": "20261028161224",
+      "pe_ttm_provider": "13.86",
+      "market_cap_yi_provider": 548.17,
+      "pb_provider": "2.73",
+      "raw_field_count": 88,
+      "implied_total_shares_yi": 20.385645
+    },
+    "facts": {
+      "period": "2026H1",
+      "revenue_yi": 147.09501,
+      "core_profit_yi": 28.07473,
+      "ocf_yi": 3.97234,
+      "opportunity": "成熟电解液和锂盐主业修复，固态布局提供远期期权",
+      "risk": "周期高利润、107.36亿应收与回款压力；H股潜在摊薄；中试不等于量产订单"
+    },
+    "sources": [
+      {
+        "period": "H1",
+        "title": "2026年半年度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-08-21/1225486883.PDF"
+      }
+    ]
+  },
+  {
+    "code": "301238",
+    "name": "瑞泰新材",
+    "hard_excluded": false,
+    "score_components": [
+      10,
+      10,
+      11,
+      3,
+      5
+    ],
+    "score": 39,
+    "quote": {
+      "name": "瑞泰新材",
+      "code": "301238",
+      "price": 14.59,
+      "previous_close": 14.28,
+      "quote_timestamp": "20261028161145",
+      "pe_ttm_provider": "33.29",
+      "market_cap_yi_provider": 106.99,
+      "pb_provider": "1.50",
+      "raw_field_count": 88,
+      "implied_total_shares_yi": 7.333105
+    },
+    "facts": {
+      "period": "2026H1",
+      "revenue_yi": 14.59569,
+      "core_profit_yi": 0.65431,
+      "ocf_yi": -2.60476,
+      "opportunity": "新型锂盐已有销售，成熟材料可能修复",
+      "risk": "扣非同比下降、归母有卖股收益；现金负流出；新技术利润规模未明"
+    },
+    "sources": [
+      {
+        "period": "H1",
+        "title": "2026年半年度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-08-22/1225491487.PDF"
+      }
+    ]
+  },
+  {
+    "code": "688005",
+    "name": "容百科技",
+    "hard_excluded": false,
+    "score_components": [
+      12,
+      13,
+      13,
+      3,
+      5
+    ],
+    "score": 46,
+    "quote": {
+      "name": "容百科技",
+      "code": "688005",
+      "price": 19.65,
+      "previous_close": 19.77,
+      "quote_timestamp": "20261028161228",
+      "pe_ttm_provider": "-1455.17",
+      "market_cap_yi_provider": 140.42,
+      "pb_provider": "1.81",
+      "raw_field_count": 88,
+      "implied_total_shares_yi": 7.146056
+    },
+    "facts": {
+      "period": "2026H1",
+      "revenue_yi": 87.21031,
+      "core_profit_yi": 1.01669,
+      "ocf_yi": -1.72494,
+      "opportunity": "高镍与多元正极平台修复、固态正极十吨级交付",
+      "risk": "利润规模小、扩产和海外爬坡；硫化物仍早期；订单需验证"
+    },
+    "sources": [
+      {
+        "period": "H1",
+        "title": "2026年半年度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-07-23/1225437886.PDF"
+      }
+    ]
+  },
+  {
+    "code": "002971",
+    "name": "和远气体",
+    "hard_excluded": true,
+    "score_components": null,
+    "score": null,
+    "quote": {
+      "name": "和远气体",
+      "code": "002971",
+      "price": 33.9,
+      "previous_close": 31.87,
+      "quote_timestamp": "20261028161239",
+      "pe_ttm_provider": "160.72",
+      "market_cap_yi_provider": 71.39,
+      "pb_provider": "3.55",
+      "raw_field_count": 88,
+      "implied_total_shares_yi": 2.1059
+    },
+    "facts": {
+      "period": "2026Q1-3",
+      "revenue_yi": 13.2987,
+      "core_profit_yi": 0.38801,
+      "ocf_yi": 2.53226,
+      "opportunity": "硅烷销售及硅碳客户",
+      "risk": "利润同比下降且规模小，现价约138倍三季扣非年化",
+      "exit_pe": 25
+    },
+    "sources": [
+      {
+        "period": "Q3",
+        "title": "2026年三季度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-10-23/1225615274.PDF"
+      },
+      {
+        "period": "H1",
+        "title": "2026年半年度报告",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-08-21/1225486179.PDF"
+      }
+    ]
+  }
+]

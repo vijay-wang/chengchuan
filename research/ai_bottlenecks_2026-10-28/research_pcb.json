@@ -1,0 +1,925 @@
+{
+  "as_of": "2026-10-28",
+  "units": "亿元人民币、股价元；情景为研究假设",
+  "method": "两年12%回报门槛=当前A价等价估值×1.12^2/退出PE，不计分红、稀释。PE为估值纪律假设，非行业公允价事实。",
+  "sources": {
+    "hudian_q3": "https://static.cninfo.com.cn/finalpage/2026-10-28/1225627804.PDF",
+    "hudian_h1": "https://static.cninfo.com.cn/finalpage/2026-08-26/1225502252.PDF",
+    "fii_h1": "https://static.cninfo.com.cn/finalpage/2026-08-12/1225468066.PDF",
+    "fii_337": "https://static.cninfo.com.cn/finalpage/2026-10-12/1225600466.PDF",
+    "shenghong_h1": "https://static.cninfo.com.cn/finalpage/2026-08-28/1225522515.PDF",
+    "shennan_q3": "https://static.cninfo.com.cn/finalpage/2026-10-23/1225616402.PDF",
+    "shengyi_e_h1": "https://static.cninfo.com.cn/finalpage/2026-08-15/1225474834.PDF",
+    "shengyi_e_pre": "https://static.cninfo.com.cn/finalpage/2026-10-17/1225608856.PDF",
+    "shengyi_t_h1": "https://static.cninfo.com.cn/finalpage/2026-08-15/1225475783.PDF",
+    "shengyi_t_pre": "https://static.cninfo.com.cn/finalpage/2026-10-17/1225608514.PDF",
+    "nanya_q3": "https://static.cninfo.com.cn/finalpage/2026-10-28/1225630419.PDF",
+    "dongcai_q3": "https://static.cninfo.com.cn/finalpage/2026-10-28/1225629186.PDF",
+    "honghe_q3": "https://static.cninfo.com.cn/finalpage/2026-10-23/1225616229.PDF",
+    "defu_q3": "https://static.cninfo.com.cn/finalpage/2026-10-27/1225622911.PDF",
+    "tongguan_q3": "https://static.cninfo.com.cn/finalpage/2026-10-28/1225628605.PDF",
+    "shengquan_h1": "https://static.cninfo.com.cn/finalpage/2026-08-15/1225475121.PDF",
+    "guanghua_q3": "https://static.cninfo.com.cn/finalpage/2026-10-15/1225604517.PDF"
+  },
+  "companies": [
+    {
+      "code": "002463",
+      "name": "沪电股份",
+      "quote_price": 104.57,
+      "quote_a_price_equivalent_cap_yi": 2016.69,
+      "quote_timestamp": "20261028161154",
+      "provider_pe_ttm": "29.98",
+      "status": "优先",
+      "score_components": {
+        "valuation_30": 23,
+        "profit_increment_25": 23,
+        "moat_20": 18,
+        "cash_balance_15": 7,
+        "evidence_10": 9
+      },
+      "score": 80,
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 232.2544,
+        "attributable_profit_yi": 56.2194,
+        "deducted_profit_yi": 54.7419,
+        "q3_deducted_profit_yi": 26.7966,
+        "ocf_yi": 27.0385,
+        "capex_cash_yi": 52.77,
+        "simple_fcf_yi": -25.7315,
+        "receivables_yi": 96.497,
+        "inventory_yi": 71.3892,
+        "ocf_to_attributable_profit_pct": 48.1,
+        "deducted_profit_simple_annual_yi": 72.9892
+      },
+      "risks": [
+        "Q3扣非净利率28.1%不可永久外推；下游AI资本开支与大客户集中",
+        "应收较年初+75.2%，存货+68.1%；现金盈利转换落后",
+        "泰国及新产线良率、折旧、原材料与海外合规"
+      ],
+      "opportunities": [
+        "高速交换机、AI服务器、高性能计算需求与产品升级有正式利润支持",
+        "泰国从爬坡进入规模化并扭亏，新增合格产能有望贡献2027-28",
+        "当前价格约为前三季扣非简单年化27.6倍，优于材料泡沫组"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-28/1225627804.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-26/1225502252.PDF"
+      ],
+      "model_disclaimer": "以下均为独立研究假设；非公司预告，非一致预期。收入×扣非归母利润/合并收入比例，已总括费用、税与少数股东。无法取得产品级BOM与订单时不声称精确产品预测。未另行扣除尚未发生的股本稀释。",
+      "scenarios": {
+        "承压": {
+          "2027_revenue_yi": 340,
+          "2027_normalized_attributable_margin_pct": 20,
+          "2027_profit_yi": 68.0,
+          "2028_revenue_yi": 350,
+          "2028_normalized_attributable_margin_pct": 19,
+          "2028_profit_yi": 66.5,
+          "2028_terminal_pe": 20,
+          "2028_equity_value_yi": 1330.0,
+          "two_year_price_return_pct": -34.1,
+          "two_year_cagr_pct": -18.8
+        },
+        "基准": {
+          "2027_revenue_yi": 430,
+          "2027_normalized_attributable_margin_pct": 24,
+          "2027_profit_yi": 103.2,
+          "2028_revenue_yi": 520,
+          "2028_normalized_attributable_margin_pct": 24,
+          "2028_profit_yi": 124.8,
+          "2028_terminal_pe": 25,
+          "2028_equity_value_yi": 3120.0,
+          "two_year_price_return_pct": 54.7,
+          "two_year_cagr_pct": 24.4
+        },
+        "较强": {
+          "2027_revenue_yi": 520,
+          "2027_normalized_attributable_margin_pct": 26,
+          "2027_profit_yi": 135.2,
+          "2028_revenue_yi": 650,
+          "2028_normalized_attributable_margin_pct": 26,
+          "2028_profit_yi": 169.0,
+          "2028_terminal_pe": 30,
+          "2028_equity_value_yi": 5070.0,
+          "two_year_price_return_pct": 151.4,
+          "two_year_cagr_pct": 58.6
+        }
+      },
+      "hurdle_pe": 25,
+      "profit_2028_required_for_12pct_two_year_return_yi": 101.19,
+      "profit_for_flat_cap_yi": 80.67,
+      "reentry_evidence": [
+        "2027订单/产能释放使全年收入达到约430亿且正常扣非归母率24%",
+        "OCF/归母回到70%以上且应收增速不持续高于收入",
+        "泰国产能、新平台批量供货与客户份额保持"
+      ]
+    },
+    {
+      "code": "601138",
+      "name": "工业富联",
+      "quote_price": 48.64,
+      "quote_a_price_equivalent_cap_yi": 9652.17,
+      "quote_timestamp": "20261028161216",
+      "provider_pe_ttm": "20.57",
+      "status": "优先",
+      "score_components": {
+        "valuation_30": 21,
+        "profit_increment_25": 22,
+        "moat_20": 18,
+        "cash_balance_15": 6,
+        "evidence_10": 8
+      },
+      "score": 75,
+      "facts": {
+        "period": "2026H1正式报表；单位由千元换算亿元",
+        "revenue_yi": 5578.6065,
+        "attributable_profit_yi": 237.4046,
+        "deducted_profit_yi": 229.8412,
+        "ocf_yi": 73.9146,
+        "capex_cash_yi": 90.9188,
+        "simple_fcf_yi": -17.0042,
+        "receivables_yi": 1275.2246,
+        "inventory_yi": 1921.0912,
+        "ocf_to_attributable_profit_pct": 31.1,
+        "deducted_profit_simple_annual_yi": 459.6825,
+        "latest_q3_status": "截至10月28日未取得Q3正式报表；市场日历预约10月30日"
+      },
+      "risks": [
+        "高收入低利润率：H1扣非归母率约4.12%；0.5个百分点毛利变化在年收入1.6万亿时约影响税前80亿元",
+        "存货1921亿；现金净利比31%，增长大量占用供应链资金",
+        "10月12日337调查：Vicor垂直供电专利，涉及FII及鸿佰等；公司称当前涉案产品仅内部验证、目前无实质影响，未来裁决未知",
+        "不能把鸿海集团所有AI产能、订单和利润归入A股上市主体"
+      ],
+      "opportunities": [
+        "云计算H1收入+75.7%，云服务商AI服务器收入增长2.3倍；GPU/ASIC多路线覆盖",
+        "机柜交付、散热/电源集成和高速网络提高价值量",
+        "新价格对H1扣非简单年化约21倍，尚非极度泡沫；主要风险是盈利质量而非题材真实性"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-12/1225468066.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-10-12/1225600466.PDF"
+      ],
+      "model_disclaimer": "以下均为独立研究假设；非公司预告，非一致预期。收入×扣非归母利润/合并收入比例，已总括费用、税与少数股东。无法取得产品级BOM与订单时不声称精确产品预测。未另行扣除尚未发生的股本稀释。",
+      "scenarios": {
+        "承压": {
+          "2027_revenue_yi": 11000,
+          "2027_normalized_attributable_margin_pct": 3.7,
+          "2027_profit_yi": 407.0,
+          "2028_revenue_yi": 11000,
+          "2028_normalized_attributable_margin_pct": 3.5,
+          "2028_profit_yi": 385.0,
+          "2028_terminal_pe": 14,
+          "2028_equity_value_yi": 5390.0,
+          "two_year_price_return_pct": -44.2,
+          "two_year_cagr_pct": -25.3
+        },
+        "基准": {
+          "2027_revenue_yi": 14000,
+          "2027_normalized_attributable_margin_pct": 4.0,
+          "2027_profit_yi": 560.0,
+          "2028_revenue_yi": 16000,
+          "2028_normalized_attributable_margin_pct": 4.25,
+          "2028_profit_yi": 680.0,
+          "2028_terminal_pe": 18,
+          "2028_equity_value_yi": 12240.0,
+          "two_year_price_return_pct": 26.8,
+          "two_year_cagr_pct": 12.6
+        },
+        "较强": {
+          "2027_revenue_yi": 16000,
+          "2027_normalized_attributable_margin_pct": 4.4,
+          "2027_profit_yi": 704.0,
+          "2028_revenue_yi": 19500,
+          "2028_normalized_attributable_margin_pct": 4.5,
+          "2028_profit_yi": 877.5,
+          "2028_terminal_pe": 22,
+          "2028_equity_value_yi": 19305.0,
+          "two_year_price_return_pct": 100.0,
+          "two_year_cagr_pct": 41.4
+        }
+      },
+      "hurdle_pe": 18,
+      "profit_2028_required_for_12pct_two_year_return_yi": 672.65,
+      "profit_for_flat_cap_yi": 536.23,
+      "reentry_evidence": [
+        "Q3/全年正常化盈利与现金回流匹配，排除会计口径及低毛利硬件通胀",
+        "2028扣非归母至少约673亿方能在18倍退出时满足两年12%",
+        "337新进展、许可安排及量产架构受影响范围需持续跟踪"
+      ]
+    },
+    {
+      "code": "002916",
+      "name": "深南电路",
+      "quote_price": 280.04,
+      "quote_a_price_equivalent_cap_yi": 1907.45,
+      "quote_timestamp": "20261028161230",
+      "provider_pe_ttm": "37.55",
+      "status": "条件",
+      "score_components": {
+        "valuation_30": 17,
+        "profit_increment_25": 20,
+        "moat_20": 17,
+        "cash_balance_15": 5,
+        "evidence_10": 9
+      },
+      "score": 68,
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 257.7387,
+        "attributable_profit_yi": 41.2918,
+        "deducted_profit_yi": 40.9766,
+        "q3_deducted_profit_yi": 18.5849,
+        "ocf_yi": 19.5873,
+        "capex_cash_yi": 76.1298,
+        "simple_fcf_yi": -56.5425,
+        "deducted_profit_simple_annual_yi": 54.6355,
+        "ocf_to_attributable_profit_pct": 47.4,
+        "proposed_placement_yi": 48.8197
+      },
+      "risks": [
+        "PCB与封装基板利润来源、客户利用率不同，不可全部作为AI PCB收入",
+        "扩产Capex76.13亿远超经营现金19.59亿；折旧回报和融资稀释",
+        "拟定增48.82亿并非已发生稀释，发行价及最终股数未知；增加5%股本可把基准年化回报压至约10%"
+      ],
+      "opportunities": [
+        "Q3扣非同比+102.78%，业务订单与结构提升有正式报表支持",
+        "无锡等新产能与封装基板升级提供增量"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-23/1225616402.PDF"
+      ],
+      "model_disclaimer": "以下均为独立研究假设；非公司预告，非一致预期。收入×扣非归母利润/合并收入比例，已总括费用、税与少数股东。无法取得产品级BOM与订单时不声称精确产品预测。未另行扣除尚未发生的股本稀释。",
+      "scenarios": {
+        "承压": {
+          "2027_revenue_yi": 360,
+          "2027_normalized_attributable_margin_pct": 14,
+          "2027_profit_yi": 50.4,
+          "2028_revenue_yi": 360,
+          "2028_normalized_attributable_margin_pct": 13,
+          "2028_profit_yi": 46.8,
+          "2028_terminal_pe": 20,
+          "2028_equity_value_yi": 936.0,
+          "two_year_price_return_pct": -50.9,
+          "two_year_cagr_pct": -29.9
+        },
+        "基准": {
+          "2027_revenue_yi": 450,
+          "2027_normalized_attributable_margin_pct": 17,
+          "2027_profit_yi": 76.5,
+          "2028_revenue_yi": 540,
+          "2028_normalized_attributable_margin_pct": 18,
+          "2028_profit_yi": 97.2,
+          "2028_terminal_pe": 25,
+          "2028_equity_value_yi": 2430.0,
+          "two_year_price_return_pct": 27.4,
+          "two_year_cagr_pct": 12.9
+        },
+        "较强": {
+          "2027_revenue_yi": 540,
+          "2027_normalized_attributable_margin_pct": 19,
+          "2027_profit_yi": 102.6,
+          "2028_revenue_yi": 680,
+          "2028_normalized_attributable_margin_pct": 20,
+          "2028_profit_yi": 136.0,
+          "2028_terminal_pe": 30,
+          "2028_equity_value_yi": 4080.0,
+          "two_year_price_return_pct": 113.9,
+          "two_year_cagr_pct": 46.3
+        }
+      },
+      "hurdle_pe": 25,
+      "profit_2028_required_for_12pct_two_year_return_yi": 95.71,
+      "profit_for_flat_cap_yi": 76.3,
+      "reentry_evidence": [
+        "正常化扣非达到约95.7亿并验证新增产线资本回报",
+        "回款和应收减值改善",
+        "披露融资价格与实际股本后重算每股价值"
+      ]
+    },
+    {
+      "code": "688183",
+      "name": "生益电子",
+      "quote_price": 80.7,
+      "quote_a_price_equivalent_cap_yi": 694.23,
+      "quote_timestamp": "20261028161235",
+      "provider_pe_ttm": "33.81",
+      "status": "条件",
+      "score_components": {
+        "valuation_30": 18,
+        "profit_increment_25": 20,
+        "moat_20": 16,
+        "cash_balance_15": 7,
+        "evidence_10": 6
+      },
+      "score": 67,
+      "facts": {
+        "period": "2026H1正式+前三季预告",
+        "h1_revenue_yi": 57.8354,
+        "h1_attributable_profit_yi": 11.1071,
+        "h1_deducted_profit_yi": 11.1063,
+        "h1_ocf_yi": 9.1744,
+        "h1_capex_cash_yi": 12.6815,
+        "q1_q3_attributable_profit_range_yi": [
+          18.686,
+          19.517
+        ],
+        "q1_q3_deducted_profit_range_yi": [
+          18.649,
+          19.479
+        ],
+        "deducted_profit_simple_annual_range_yi": [
+          24.8653,
+          25.972
+        ],
+        "implied_q3_deducted_profit_range_yi": [
+          7.5427,
+          8.3727
+        ],
+        "latest_q3_status": "预告，正式报告预约10月30日；Q3现金流未得"
+      },
+      "risks": [
+        "前三季利润仍是预告，不能假定同时证明现金流",
+        "H1应收37.25亿、存货22.90亿，扩产与营运资金占用",
+        "生益科技为控股股东，两者持仓会重叠同一经营风险；建组合不可按独立产业敞口相加"
+      ],
+      "opportunities": [
+        "中高端PCB产品结构及新产能释放，H1扣非增长110.29%",
+        "前9月扣非预告18.65—19.48亿相较H1单独判断已抬高盈利基准；当前年化约26.7—27.9倍"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-15/1225474834.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-10-17/1225608856.PDF"
+      ],
+      "model_disclaimer": "以下均为独立研究假设；非公司预告，非一致预期。收入×扣非归母利润/合并收入比例，已总括费用、税与少数股东。无法取得产品级BOM与订单时不声称精确产品预测。未另行扣除尚未发生的股本稀释。",
+      "scenarios": {
+        "承压": {
+          "2027_revenue_yi": 140,
+          "2027_normalized_attributable_margin_pct": 16,
+          "2027_profit_yi": 22.4,
+          "2028_revenue_yi": 150,
+          "2028_normalized_attributable_margin_pct": 15,
+          "2028_profit_yi": 22.5,
+          "2028_terminal_pe": 20,
+          "2028_equity_value_yi": 450.0,
+          "two_year_price_return_pct": -35.2,
+          "two_year_cagr_pct": -19.5
+        },
+        "基准": {
+          "2027_revenue_yi": 175,
+          "2027_normalized_attributable_margin_pct": 22,
+          "2027_profit_yi": 38.5,
+          "2028_revenue_yi": 210,
+          "2028_normalized_attributable_margin_pct": 22,
+          "2028_profit_yi": 46.2,
+          "2028_terminal_pe": 25,
+          "2028_equity_value_yi": 1155.0,
+          "two_year_price_return_pct": 66.4,
+          "two_year_cagr_pct": 29.0
+        },
+        "较强": {
+          "2027_revenue_yi": 215,
+          "2027_normalized_attributable_margin_pct": 24,
+          "2027_profit_yi": 51.6,
+          "2028_revenue_yi": 270,
+          "2028_normalized_attributable_margin_pct": 24,
+          "2028_profit_yi": 64.8,
+          "2028_terminal_pe": 30,
+          "2028_equity_value_yi": 1944.0,
+          "two_year_price_return_pct": 180.0,
+          "two_year_cagr_pct": 67.3
+        }
+      },
+      "hurdle_pe": 25,
+      "profit_2028_required_for_12pct_two_year_return_yi": 34.83,
+      "profit_for_flat_cap_yi": 27.77,
+      "reentry_evidence": [
+        "正式Q3达到预告并确认应收与现金匹配",
+        "2028正常扣非利润至少34.83亿满足25倍退出两年12%",
+        "增发后股本和新项目回报，产能投产时间"
+      ]
+    },
+    {
+      "code": "600183",
+      "name": "生益科技",
+      "quote_price": 102.49,
+      "quote_a_price_equivalent_cap_yi": 2489.49,
+      "quote_timestamp": "20261028161240",
+      "provider_pe_ttm": "47.93",
+      "status": "条件",
+      "score_components": {
+        "valuation_30": 17,
+        "profit_increment_25": 20,
+        "moat_20": 17,
+        "cash_balance_15": 8,
+        "evidence_10": 6
+      },
+      "score": 68,
+      "facts": {
+        "period": "2026H1正式+2026-10-17前三季预告",
+        "h1_revenue_yi": 190.2561,
+        "h1_attributable_profit_yi": 32.8698,
+        "h1_deducted_profit_yi": 29.077,
+        "h1_ocf_yi": 29.8321,
+        "h1_capex_cash_yi": 18.8464,
+        "h1_simple_fcf_yi": 10.9857,
+        "q1_q3_attributable_profit_range_yi": [
+          64.6,
+          68.7
+        ],
+        "q1_q3_deducted_profit_range_yi": [
+          61.2,
+          65.3
+        ],
+        "deducted_profit_simple_annual_range_yi": [
+          81.6,
+          87.0667
+        ],
+        "pe_deducted_simple_annual_range": [
+          28.59,
+          30.51
+        ],
+        "implied_q3_deducted_profit_range_yi": [
+          32.123,
+          36.223
+        ],
+        "latest_q3_status": "正式Q3预约10月30日，本次使用预告"
+      },
+      "risks": [
+        "高端CCL升级与普通品涨价叠加，需将可持续结构利润与周期分开",
+        "前三季扣非预告仍未含对应完整资产现金数据",
+        "集团合并包含生益电子，不能给母公司集团利润后再重复加子公司全部价值"
+      ],
+      "opportunities": [
+        "已取得新版预告，原交接仅H1、继续按47.9倍接口PE判泡沫失准",
+        "Q3扣非隐含32.12—36.22亿，较H1平均单季显著提升",
+        "覆铜板材料体系、客户认证和高等级升级为长期壁垒"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-15/1225475783.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-10-17/1225608514.PDF"
+      ],
+      "model_disclaimer": "以下均为独立研究假设；非公司预告，非一致预期。收入×扣非归母利润/合并收入比例，已总括费用、税与少数股东。无法取得产品级BOM与订单时不声称精确产品预测。未另行扣除尚未发生的股本稀释。",
+      "scenarios": {
+        "承压": {
+          "2027_revenue_yi": 460,
+          "2027_normalized_attributable_margin_pct": 14,
+          "2027_profit_yi": 64.4,
+          "2028_revenue_yi": 470,
+          "2028_normalized_attributable_margin_pct": 13,
+          "2028_profit_yi": 61.1,
+          "2028_terminal_pe": 20,
+          "2028_equity_value_yi": 1222.0,
+          "two_year_price_return_pct": -50.9,
+          "two_year_cagr_pct": -29.9
+        },
+        "基准": {
+          "2027_revenue_yi": 625,
+          "2027_normalized_attributable_margin_pct": 16,
+          "2027_profit_yi": 100.0,
+          "2028_revenue_yi": 750,
+          "2028_normalized_attributable_margin_pct": 17,
+          "2028_profit_yi": 127.5,
+          "2028_terminal_pe": 25,
+          "2028_equity_value_yi": 3187.5,
+          "two_year_price_return_pct": 28.0,
+          "two_year_cagr_pct": 13.2
+        },
+        "较强": {
+          "2027_revenue_yi": 760,
+          "2027_normalized_attributable_margin_pct": 18,
+          "2027_profit_yi": 136.8,
+          "2028_revenue_yi": 960,
+          "2028_normalized_attributable_margin_pct": 19,
+          "2028_profit_yi": 182.4,
+          "2028_terminal_pe": 30,
+          "2028_equity_value_yi": 5472.0,
+          "two_year_price_return_pct": 119.8,
+          "two_year_cagr_pct": 48.3
+        }
+      },
+      "hurdle_pe": 25,
+      "profit_2028_required_for_12pct_two_year_return_yi": 124.91,
+      "profit_for_flat_cap_yi": 99.58,
+      "reentry_evidence": [
+        "正式Q3业绩和经营现金验证当前盈利平台",
+        "2028至少124.91亿扣非在25倍退出时才满足两年12%",
+        "高等级CCL分项占比与毛利；子公司应按持股比例和少数股东去重"
+      ]
+    },
+    {
+      "code": "688519",
+      "name": "南亚新材",
+      "quote_price": 228.63,
+      "quote_a_price_equivalent_cap_yi": 545.07,
+      "quote_timestamp": "20261028161227",
+      "provider_pe_ttm": "35.55",
+      "status": "观察",
+      "score_components": {
+        "valuation_30": 18,
+        "profit_increment_25": 19,
+        "moat_20": 14,
+        "cash_balance_15": 3,
+        "evidence_10": 7
+      },
+      "score": 61,
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 77.6361,
+        "attributable_profit_yi": 14.509,
+        "deducted_profit_yi": 14.3774,
+        "q3_revenue_yi": 35.3996,
+        "q3_deducted_profit_yi": 9.8482,
+        "ocf_yi": -1.0029,
+        "capex_cash_yi": 4.6265,
+        "simple_fcf_yi": -5.6293,
+        "receivables_yi": 43.4124,
+        "inventory_yi": 14.0459,
+        "deducted_profit_simple_annual_yi": 19.1699,
+        "q3_deducted_profit_times_four_yi": 39.3929
+      },
+      "risks": [
+        "Q3归母率27.96%、扣非约27.82%，远高于H1；年化易把价格周期误作长期平台",
+        "负经营现金；应收43.41亿为前三季收入55.9%，较年初24.66亿增长76.0%",
+        "M9导入不等于M9已全面量产，售价与高端份额竞争"
+      ],
+      "opportunities": [
+        "M6—M8已有批供且正式利润快速提升，不能仅因一年涨186%硬剔除",
+        "Q3年化39.39亿若可持续，当前仅13.8倍；但前三季平均年化19.17亿对应28.4倍，差异足以决定投资结论",
+        "可以作为小规模证据观察对象，现金确认比继续讲M9更关键"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-28/1225630419.PDF"
+      ],
+      "model_disclaimer": "以下均为独立研究假设；非公司预告，非一致预期。收入×扣非归母利润/合并收入比例，已总括费用、税与少数股东。无法取得产品级BOM与订单时不声称精确产品预测。未另行扣除尚未发生的股本稀释。",
+      "scenarios": {
+        "承压": {
+          "2027_revenue_yi": 105,
+          "2027_normalized_attributable_margin_pct": 13,
+          "2027_profit_yi": 13.65,
+          "2028_revenue_yi": 110,
+          "2028_normalized_attributable_margin_pct": 12,
+          "2028_profit_yi": 13.2,
+          "2028_terminal_pe": 20,
+          "2028_equity_value_yi": 264.0,
+          "two_year_price_return_pct": -51.6,
+          "two_year_cagr_pct": -30.4
+        },
+        "基准": {
+          "2027_revenue_yi": 130,
+          "2027_normalized_attributable_margin_pct": 20,
+          "2027_profit_yi": 26.0,
+          "2028_revenue_yi": 150,
+          "2028_normalized_attributable_margin_pct": 20,
+          "2028_profit_yi": 30.0,
+          "2028_terminal_pe": 25,
+          "2028_equity_value_yi": 750.0,
+          "two_year_price_return_pct": 37.6,
+          "two_year_cagr_pct": 17.3
+        },
+        "较强": {
+          "2027_revenue_yi": 155,
+          "2027_normalized_attributable_margin_pct": 26,
+          "2027_profit_yi": 40.3,
+          "2028_revenue_yi": 190,
+          "2028_normalized_attributable_margin_pct": 25,
+          "2028_profit_yi": 47.5,
+          "2028_terminal_pe": 30,
+          "2028_equity_value_yi": 1425.0,
+          "two_year_price_return_pct": 161.4,
+          "two_year_cagr_pct": 61.7
+        }
+      },
+      "hurdle_pe": 25,
+      "profit_2028_required_for_12pct_two_year_return_yi": 27.35,
+      "profit_for_flat_cap_yi": 21.8,
+      "reentry_evidence": [
+        "连续两个季度正常扣非利润率保持20%以上而非仅涨价",
+        "OCF转正并有较高利润现金转换",
+        "M9客户持续合格供货、量产份额与良率信息"
+      ]
+    },
+    {
+      "code": "300476",
+      "name": "胜宏科技",
+      "quote_price": 180.31,
+      "quote_a_price_equivalent_cap_yi": 1772.06,
+      "quote_timestamp": "20261028161233",
+      "provider_pe_ttm": "35.26",
+      "status": "观察",
+      "score_components": {
+        "valuation_30": 15,
+        "profit_increment_25": 18,
+        "moat_20": 18,
+        "cash_balance_15": 6,
+        "evidence_10": 6
+      },
+      "score": 63,
+      "facts": {
+        "period": "2026H1正式报表；A+H总股本9.82784813亿股",
+        "revenue_yi": 116.2937,
+        "attributable_profit_yi": 28.5678,
+        "deducted_profit_yi": 24.178,
+        "deducted_profit_yoy_pct": 12.5,
+        "non_recurring_yi": 4.3898,
+        "financial_fv_disposal_gain_yi": 5.8786,
+        "ocf_yi": 29.1118,
+        "capex_cash_yi": 70.7606,
+        "simple_fcf_yi": -41.6489,
+        "receivables_yi": 69.83,
+        "inventory_yi": 58.8964,
+        "deducted_profit_simple_annual_yi": 48.356,
+        "a_h_total_shares": 982784813,
+        "latest_q3_status": "Q3董事会10月29日、A股预约披露10月30日，尚未有正式Q3"
+      },
+      "risks": [
+        "扣非增长仅12.5%低于归母33.3%；归母含金融资产收益",
+        "H1Capex70.76亿，经营现金29.11亿；扩产回报未完全兑现",
+        "H股发行已发生，应用总股本分摊全公司盈利，不能继续用旧A股股本",
+        "既有HDI量产和未来70层以上、COWOP研发不能混算成当前订单"
+      ],
+      "opportunities": [
+        "高阶HDI及客户工艺储备具备较强竞争力",
+        "现金盈利转换在PCB组较好，H1 OCF/扣非约120.4%",
+        "股价大跌已降低泡沫但A价等价估值/扣非H1简单年化仍36.6倍，须等新的利润证据"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-28/1225522515.PDF"
+      ],
+      "model_disclaimer": "以下均为独立研究假设；非公司预告，非一致预期。收入×扣非归母利润/合并收入比例，已总括费用、税与少数股东。无法取得产品级BOM与订单时不声称精确产品预测。未另行扣除尚未发生的股本稀释。",
+      "scenarios": {
+        "承压": {
+          "2027_revenue_yi": 270,
+          "2027_normalized_attributable_margin_pct": 18,
+          "2027_profit_yi": 48.6,
+          "2028_revenue_yi": 280,
+          "2028_normalized_attributable_margin_pct": 17,
+          "2028_profit_yi": 47.6,
+          "2028_terminal_pe": 20,
+          "2028_equity_value_yi": 952.0,
+          "two_year_price_return_pct": -46.3,
+          "two_year_cagr_pct": -26.7
+        },
+        "基准": {
+          "2027_revenue_yi": 340,
+          "2027_normalized_attributable_margin_pct": 22,
+          "2027_profit_yi": 74.8,
+          "2028_revenue_yi": 410,
+          "2028_normalized_attributable_margin_pct": 22,
+          "2028_profit_yi": 90.2,
+          "2028_terminal_pe": 25,
+          "2028_equity_value_yi": 2255.0,
+          "two_year_price_return_pct": 27.3,
+          "two_year_cagr_pct": 12.8
+        },
+        "较强": {
+          "2027_revenue_yi": 420,
+          "2027_normalized_attributable_margin_pct": 24,
+          "2027_profit_yi": 100.8,
+          "2028_revenue_yi": 520,
+          "2028_normalized_attributable_margin_pct": 24,
+          "2028_profit_yi": 124.8,
+          "2028_terminal_pe": 30,
+          "2028_equity_value_yi": 3744.0,
+          "two_year_price_return_pct": 111.3,
+          "two_year_cagr_pct": 45.4
+        }
+      },
+      "hurdle_pe": 25,
+      "profit_2028_required_for_12pct_two_year_return_yi": 88.91,
+      "profit_for_flat_cap_yi": 70.88,
+      "reentry_evidence": [
+        "正式Q3主营扣非显著提速而非金融收益补足",
+        "2028正常化归母至少88.91亿可满足25倍退出两年12%",
+        "新产能有效产出、客户规格份额和折旧、现金回收"
+      ]
+    },
+    {
+      "code": "601208",
+      "name": "东材科技",
+      "quote_price": 37.59,
+      "quote_a_price_equivalent_cap_yi": 379.73,
+      "quote_timestamp": "20261028161237",
+      "provider_pe_ttm": "85.17",
+      "status": "估值透支剔除",
+      "score_components": null,
+      "score": null,
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 47.9042,
+        "attributable_profit_yi": 4.4335,
+        "deducted_profit_yi": 3.4765,
+        "q3_deducted_profit_yi": 1.2399,
+        "ocf_yi": 0.2641,
+        "high_speed_resin_revenue_yi": 8.83,
+        "high_speed_resin_revenue_yoy_pct": 126.97,
+        "deducted_profit_simple_annual_yi": 4.6353
+      },
+      "risks": [
+        "379.73亿估值在25倍退出时需要2028正常利润19.05亿才有两年12%回报，约为Q3年化4.96亿的3.84倍",
+        "高端树脂真实增长但只有集团部分收入，现金转换弱",
+        "归母与扣非差0.96亿，含股权处置等；不能按归母全部资本化"
+      ],
+      "opportunities": [
+        "高速树脂已具有销售，不是纯概念；剔除由当前价格约束"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-28/1225629186.PDF"
+      ],
+      "hurdle_pe": 25,
+      "profit_2028_required_for_12pct_two_year_return_yi": 19.05,
+      "profit_for_flat_cap_yi": 15.19,
+      "reentry_evidence": [
+        "回调至不依赖三至四倍利润的价格，或高端树脂现金利润出现连续量级提升"
+      ]
+    },
+    {
+      "code": "603256",
+      "name": "宏和科技",
+      "quote_price": 86.73,
+      "quote_a_price_equivalent_cap_yi": 784.55,
+      "quote_timestamp": "20261028161239",
+      "provider_pe_ttm": "97.27",
+      "status": "估值透支剔除",
+      "score_components": null,
+      "score": null,
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 19.747,
+        "attributable_profit_yi": 7.435,
+        "deducted_profit_yi": 7.499,
+        "q3_deducted_profit_yi": 3.772,
+        "ocf_yi": 6.4453,
+        "deducted_profit_simple_annual_yi": 9.9987
+      },
+      "risks": [
+        "784.55亿在30倍退出仍需2028利润32.81亿才有两年12%，较Q3年化15.09亿还需2.17倍",
+        "Q3扣非/收入约40.7%，再靠净利率扩张空间受限",
+        "普通电子布价格修复和特种布溢价同时存在；当前利润不可全部按永久壁垒定价"
+      ],
+      "opportunities": [
+        "特种玻纤布确实批供、现金质量优于铜箔，但好产品不抵消高预付价格"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-23/1225616229.PDF"
+      ],
+      "hurdle_pe": 30,
+      "profit_2028_required_for_12pct_two_year_return_yi": 32.8,
+      "profit_for_flat_cap_yi": 26.15,
+      "reentry_evidence": [
+        "确认特种布长期利润与有效新增产能，或价格使30倍利润门槛接近现有经营能力"
+      ]
+    },
+    {
+      "code": "301511",
+      "name": "德福科技",
+      "quote_price": 63.48,
+      "quote_a_price_equivalent_cap_yi": 400.13,
+      "quote_timestamp": "20261028161230",
+      "provider_pe_ttm": "77.96",
+      "status": "估值透支剔除",
+      "score_components": null,
+      "score": null,
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 145.8313,
+        "attributable_profit_yi": 4.6733,
+        "deducted_profit_yi": 4.2537,
+        "q3_deducted_profit_yi": 1.8936,
+        "ocf_yi": -10.2245,
+        "deducted_profit_simple_annual_yi": 5.6716
+      },
+      "risks": [
+        "400.13亿在25倍退出时2028需20.08亿利润才有两年12%，为Q3年化7.57亿2.65倍",
+        "负现金10.22亿，铜价传导放大收入与营运资本；高加工费可能被扩产压缩",
+        "不能把5万吨规划全部计入高等级满产订单"
+      ],
+      "opportunities": [
+        "HVLP认证和高端产品已批供，有行业成长但当前安全边际不足"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-27/1225622911.PDF"
+      ],
+      "hurdle_pe": 25,
+      "profit_2028_required_for_12pct_two_year_return_yi": 20.08,
+      "profit_for_flat_cap_yi": 16.01,
+      "reentry_evidence": [
+        "高端加工费与合格出货吨数支持利润台阶，回款改善，或估值明显下降"
+      ]
+    },
+    {
+      "code": "301217",
+      "name": "铜冠铜箔",
+      "quote_price": 77.92,
+      "quote_a_price_equivalent_cap_yi": 645.97,
+      "quote_timestamp": "20261028161230",
+      "provider_pe_ttm": "190.85",
+      "status": "估值透支剔除",
+      "score_components": null,
+      "score": null,
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 65.3318,
+        "attributable_profit_yi": 3.3855,
+        "deducted_profit_yi": 3.2759,
+        "q3_deducted_profit_yi": 1.2027,
+        "ocf_yi": -0.8917,
+        "deducted_profit_simple_annual_yi": 4.3679
+      },
+      "risks": [
+        "645.97亿在25倍退出时2028需32.41亿利润才有两年12%，为Q3年化4.81亿6.74倍",
+        "TTM约191倍，且使用最新单季年化仍约134倍",
+        "技改1.54亿是资本开支、周期约12个月，不是订单或净利润；存在存量产能转换"
+      ],
+      "opportunities": [
+        "HVLP批供真实，增长仍不足以支撑当前定价"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-28/1225628605.PDF"
+      ],
+      "hurdle_pe": 25,
+      "profit_2028_required_for_12pct_two_year_return_yi": 32.41,
+      "profit_for_flat_cap_yi": 25.84,
+      "reentry_evidence": [
+        "估值大幅回落，或出现可验证的数十亿正常利润路径；单个技改公告不够"
+      ]
+    },
+    {
+      "code": "002741",
+      "name": "光华科技",
+      "quote_price": 20.25,
+      "quote_a_price_equivalent_cap_yi": 94.89,
+      "quote_timestamp": "20261028161215",
+      "provider_pe_ttm": "66.76",
+      "status": "估值透支剔除",
+      "score_components": null,
+      "score": null,
+      "facts": {
+        "period": "2026Q1-3正式报表；财务数沿已核对公告",
+        "deducted_profit_yi": 1.24,
+        "q3_deducted_profit_yoy_pct": -3.7,
+        "ocf_yi": -3.24,
+        "deducted_profit_simple_annual_yi": 1.6533
+      },
+      "risks": [
+        "94.89亿在25倍退出需2028利润4.76亿才有两年12%，约前三季简单年化1.65亿的2.88倍",
+        "Q3扣非同比下降、经营现金为负，既有化学品毛利低",
+        "固态材料规模订单未核实，不能用另一概念填估值缺口"
+      ],
+      "opportunities": [
+        "PCB化学品客户和需求真实，但收益未按收入同步体现"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-15/1225604517.PDF"
+      ],
+      "hurdle_pe": 25,
+      "profit_2028_required_for_12pct_two_year_return_yi": 4.76,
+      "profit_for_flat_cap_yi": 3.8,
+      "reentry_evidence": [
+        "扣非与现金持续提速，或估值对正常利润要求明显降低"
+      ]
+    },
+    {
+      "code": "605589",
+      "name": "圣泉集团",
+      "quote_price": 29.57,
+      "quote_a_price_equivalent_cap_yi": 250.28,
+      "quote_timestamp": "20261028161227",
+      "provider_pe_ttm": "26.26",
+      "status": "暂不纳入",
+      "score_components": {
+        "valuation_30": 17,
+        "profit_increment_25": 12,
+        "moat_20": 13,
+        "cash_balance_15": 4,
+        "evidence_10": 7
+      },
+      "score": 53,
+      "facts": {
+        "period": "2026H1正式报表",
+        "deducted_profit_yi": 4.46,
+        "deducted_profit_yoy_pct": -7.35,
+        "ocf_yi": -9.75,
+        "advanced_electronic_battery_materials_revenue_yi": 10.39,
+        "deducted_profit_simple_annual_yi": 8.92,
+        "latest_q3_status": "Q3预约10月30日，未取得正式"
+      },
+      "risks": [
+        "电子和电池材料为混合板块，无法把集团盈利重新解释为AI高增",
+        "H1扣非下降且现金为负，尚不能支撑新一轮高增长",
+        "不能断言整个公司没有投资价值；本报告尚未证实足够回报空间"
+      ],
+      "opportunities": [
+        "树脂业务真实、26倍TTM并不构成极端泡沫；可留做后续经营改善对象"
+      ],
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-15/1225475121.PDF"
+      ],
+      "hurdle_pe": 20,
+      "profit_2028_required_for_12pct_two_year_return_yi": 15.7,
+      "profit_for_flat_cap_yi": 12.51,
+      "reentry_evidence": [
+        "最新Q3扣非转增及回款改善，高速材料分项与新增实际利润披露"
+      ]
+    }
+  ]
+}

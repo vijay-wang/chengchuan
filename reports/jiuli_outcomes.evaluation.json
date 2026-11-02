@@ -1,0 +1,241 @@
+{
+  "lookback_bars": 20,
+  "forward_bars": 5,
+  "rows": [
+    {
+      "as_of": "2026-09-01T15:00:00",
+      "candidate": "回撤承接／洗盘候选",
+      "score": 55,
+      "forward_return_pct": -7.670043415340089
+    },
+    {
+      "as_of": "2026-09-02T15:00:00",
+      "candidate": "证据不足／混合交易",
+      "score": 15,
+      "forward_return_pct": -5.012406947890813
+    },
+    {
+      "as_of": "2026-09-03T15:00:00",
+      "candidate": "证据不足／混合交易",
+      "score": 25,
+      "forward_return_pct": -5.941591137965762
+    },
+    {
+      "as_of": "2026-09-04T15:00:00",
+      "candidate": "证据不足／混合交易",
+      "score": 15,
+      "forward_return_pct": -6.218402426693636
+    },
+    {
+      "as_of": "2026-09-07T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -3.5583464154892663
+    },
+    {
+      "as_of": "2026-09-08T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -4.702194357366785
+    },
+    {
+      "as_of": "2026-09-09T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -6.42633228840126
+    },
+    {
+      "as_of": "2026-09-10T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -4.122055674518199
+    },
+    {
+      "as_of": "2026-09-11T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -1.563342318059291
+    },
+    {
+      "as_of": "2026-09-14T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": 0.27129679869777323
+    },
+    {
+      "as_of": "2026-09-15T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": 0.0
+    },
+    {
+      "as_of": "2026-09-16T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": 2.2333891680625273
+    },
+    {
+      "as_of": "2026-09-17T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": 2.7359017308765887
+    },
+    {
+      "as_of": "2026-09-18T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -0.9857612267251015
+    },
+    {
+      "as_of": "2026-09-21T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -5.1948051948051965
+    },
+    {
+      "as_of": "2026-09-22T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -2.247807017543857
+    },
+    {
+      "as_of": "2026-09-23T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -3.4953577280174564
+    },
+    {
+      "as_of": "2026-09-24T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -3.3695652173912904
+    },
+    {
+      "as_of": "2026-09-28T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -0.16592920353980523
+    },
+    {
+      "as_of": "2026-09-29T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": 1.9406392694063967
+    },
+    {
+      "as_of": "2026-09-30T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -2.131239484015701
+    },
+    {
+      "as_of": "2026-10-08T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -3.8483305036785653
+    },
+    {
+      "as_of": "2026-10-09T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -1.687289088863897
+    },
+    {
+      "as_of": "2026-10-12T15:00:00",
+      "candidate": "证据不足／混合交易",
+      "score": 40,
+      "forward_return_pct": -0.05540166204986985
+    },
+    {
+      "as_of": "2026-10-13T15:00:00",
+      "candidate": "证据不足／混合交易",
+      "score": 40,
+      "forward_return_pct": 2.015677491601342
+    },
+    {
+      "as_of": "2026-10-14T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -0.6876790830945612
+    },
+    {
+      "as_of": "2026-10-15T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": 2.118893466745164
+    },
+    {
+      "as_of": "2026-10-16T15:00:00",
+      "candidate": "证据不足／混合交易",
+      "score": 25,
+      "forward_return_pct": 2.4599542334096114
+    },
+    {
+      "as_of": "2026-10-19T15:00:00",
+      "candidate": "证据不足／混合交易",
+      "score": 45,
+      "forward_return_pct": 0.8869179600886845
+    },
+    {
+      "as_of": "2026-10-20T15:00:00",
+      "candidate": "证据不足／混合交易",
+      "score": 45,
+      "forward_return_pct": -9.824368825466511
+    },
+    {
+      "as_of": "2026-10-21T15:00:00",
+      "candidate": "卖压／疑似派发",
+      "score": 60,
+      "forward_return_pct": -6.982111944604719
+    },
+    {
+      "as_of": "2026-10-22T15:00:00",
+      "candidate": "证据不足／混合交易",
+      "score": 45,
+      "forward_return_pct": -6.34005763688762
+    },
+    {
+      "as_of": "2026-10-23T15:00:00",
+      "candidate": "证据不足／混合交易",
+      "score": 40,
+      "forward_return_pct": -11.892797319933003
+    },
+    {
+      "as_of": "2026-10-26T15:00:00",
+      "candidate": "承接／疑似吸筹",
+      "score": 55,
+      "forward_return_pct": -9.780219780219767
+    }
+  ],
+  "groups": [
+    {
+      "candidate": "卖压／疑似派发",
+      "samples": 22,
+      "mean_forward_return_pct": -1.90309210510575,
+      "positive_return_share": 0.22727272727272727
+    },
+    {
+      "candidate": "回撤承接／洗盘候选",
+      "samples": 1,
+      "mean_forward_return_pct": -7.670043415340089,
+      "positive_return_share": 0.0
+    },
+    {
+      "candidate": "承接／疑似吸筹",
+      "samples": 1,
+      "mean_forward_return_pct": -9.780219780219767,
+      "positive_return_share": 0.0
+    },
+    {
+      "candidate": "证据不足／混合交易",
+      "samples": 10,
+      "mean_forward_return_pct": -3.9922476271787577,
+      "positive_return_share": 0.3
+    }
+  ],
+  "limitations": [
+    "评估的是后续价格表现，不是主力识别准确率。",
+    "滚动区间和未来收益相互重叠，样本不能视作独立。",
+    "未建立交易策略，不输出可交易收益率或收益承诺。"
+  ]
+}

@@ -1,0 +1,2322 @@
+{
+  "schema_version": "0.1",
+  "model_version": "heuristic-v0.1-unvalidated",
+  "symbol": "sz002318",
+  "name": "久立特材",
+  "interval": "minute",
+  "requested_window": {
+    "start": "2026-11-02T09:30:00",
+    "end": "2026-11-02T15:00:00"
+  },
+  "actual_window": {
+    "start": "2026-11-02T09:30:00",
+    "end": "2026-11-02T15:00:00"
+  },
+  "observations": 242,
+  "metrics": {
+    "return_pct": 4.055766793409399,
+    "last_price": 16.42,
+    "reference_price": 15.78,
+    "reference_definition": "区间第一条行情开盘／采样价",
+    "volume_shares": 11189700.0,
+    "amount_yuan": 181649209.99,
+    "vwap": 16.233608585574235,
+    "close_vs_vwap_pct": 1.1481822630083682,
+    "close_location": 0.9142857142857163,
+    "close_series_max_drawdown_pct": -1.609907120743026,
+    "path_efficiency": 0.13559322033898394,
+    "up_bar_volume_share": 0.5342413112058411,
+    "realized_volatility_pct": 3.3680665761315045,
+    "volume_ratio_to_prior": 0.9717667697224441,
+    "baseline_days": 4,
+    "benchmark_return_pct": 0.6562801751925029,
+    "relative_return_pct": 3.399486618216896,
+    "flow_coverage": 0.9917355371900827,
+    "platform_flow_yuan": {
+      "main_yuan": -2476065.0,
+      "super_yuan": -789100.0,
+      "large_yuan": -1686965.0,
+      "medium_yuan": -13794209.0,
+      "small_yuan": 16270272.0
+    },
+    "main_classified_net_to_turnover": -0.0136310254260743
+  },
+  "stages": [
+    {
+      "name": "拉升／趋势上行",
+      "evidence_score": 80,
+      "evidence": [
+        "区间价格上涨至少2%",
+        "收盘接近区间高位",
+        "收盘高于成交均价",
+        "跑赢基准超过1个百分点"
+      ],
+      "calibrated_probability": null
+    },
+    {
+      "name": "承接／疑似吸筹",
+      "evidence_score": 60,
+      "evidence": [
+        "收盘位于区间偏上部",
+        "收盘不低于成交均价",
+        "收盘序列回撤较浅",
+        "跑赢同期基准"
+      ],
+      "calibrated_probability": null
+    },
+    {
+      "name": "回撤承接／洗盘候选",
+      "evidence_score": 0,
+      "evidence": [
+        "未同时满足此前上行、区间回撤和回收条件，不启用洗盘候选。"
+      ],
+      "calibrated_probability": null
+    },
+    {
+      "name": "卖压／疑似派发",
+      "evidence_score": 0,
+      "evidence": [],
+      "calibrated_probability": null
+    }
+  ],
+  "summary": "拉升／趋势上行",
+  "institutional_net_purchase_estimate": {
+    "low_yuan": null,
+    "high_yuan": null,
+    "status": "not_identifiable",
+    "reason": "公开数据缺少投资者或母单标识；尚无经验证的金额估计模型，不能编造机构净买入区间。"
+  },
+  "execution_model_identification": {
+    "status": "insufficient_order_level_data",
+    "candidates": [
+      "随机TWAP",
+      "VWAP",
+      "POV",
+      "限价执行",
+      "分散投资者共同交易"
+    ],
+    "reason": "分钟行情和大小单净额不是某个参与者的成交轨迹，暂不输出算法匹配概率。"
+  },
+  "counter_hypotheses": [
+    "行情和订单金额分类不揭示真实账户；无法据此认定机构净增持。",
+    "指数跟随、多人追涨、回补及被动调仓也可能造成类似价格路径。",
+    "吸筹和建仓并非互斥；洗盘含交易动机，实时分析只能给出候选解释。"
+  ],
+  "quality_notes": [
+    "免费分钟接口只返回近期少数交易日；数周／数月的小时级研究需要另接历史分钟数据。",
+    "分钟OHLC为分钟末采样价格，不代表该分钟内真实最高最低价。",
+    "历史可比样本不足5天，成交量比较仅供探索。",
+    "阶段评分为未校准的研究规则分数，不能读作准确率或概率。",
+    "公开成交明细存在3秒时间格点，不可直接据此识别3秒下单算法。"
+  ],
+  "provenance": [
+    {
+      "url": "https://web.ifzq.gtimg.cn/appstock/app/day/query?code=sz002318",
+      "retrieved_at_utc": "2026-11-02T09:40:10.884882+00:00",
+      "raw_cache": ".flowradar/cache/45f50317994ef37df83075f7c6fc6d357d2d9e3459fb97d0c088671296612a08.json",
+      "sha256": "45f50317994ef37df83075f7c6fc6d357d2d9e3459fb97d0c088671296612a08",
+      "cached": false
+    },
+    {
+      "url": "https://push2.eastmoney.com/api/qt/stock/fflow/kline/get?secid=0.002318&lmt=0&klt=1&fields1=f1%2Cf2%2Cf3%2Cf7&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56",
+      "retrieved_at_utc": "2026-11-02T09:40:11.035121+00:00",
+      "raw_cache": ".flowradar/cache/04891f31fe5a7ac0d94dcddf53b367061a78a8a97bc78c4c1e99dcbd17097736.json",
+      "sha256": "04891f31fe5a7ac0d94dcddf53b367061a78a8a97bc78c4c1e99dcbd17097736",
+      "cached": false
+    },
+    {
+      "url": "https://web.ifzq.gtimg.cn/appstock/app/day/query?code=sh000001",
+      "retrieved_at_utc": "2026-11-02T09:40:11.289075+00:00",
+      "raw_cache": ".flowradar/cache/1da892adb022a4dfc0b1ba5ad67e260c01aef35b01237adb5746443dd5cad882.json",
+      "sha256": "1da892adb022a4dfc0b1ba5ad67e260c01aef35b01237adb5746443dd5cad882",
+      "cached": false
+    },
+    {
+      "url": "https://push2.eastmoney.com/api/qt/stock/details/get?secid=0.002318&fields1=f1%2Cf2%2Cf3%2Cf4&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55&pos=-100000&iscca=1",
+      "retrieved_at_utc": "2026-11-02T09:40:11.614683+00:00",
+      "raw_cache": ".flowradar/cache/d1dc2550f5dcdd775ef283a6c085834cc7c269cf1600f2fe651c9b1f7299bbf4.json",
+      "sha256": "d1dc2550f5dcdd775ef283a6c085834cc7c269cf1600f2fe651c9b1f7299bbf4",
+      "cached": false
+    }
+  ],
+  "chart_bars": [
+    {
+      "timestamp": "2026-11-02T09:30:00",
+      "open": 15.78,
+      "high": 15.78,
+      "low": 15.78,
+      "close": 15.78,
+      "volume_shares": 12200.0,
+      "amount_yuan": 192516.0
+    },
+    {
+      "timestamp": "2026-11-02T09:31:00",
+      "open": 16.15,
+      "high": 16.15,
+      "low": 16.15,
+      "close": 16.15,
+      "volume_shares": 136100.0,
+      "amount_yuan": 2175912.0
+    },
+    {
+      "timestamp": "2026-11-02T09:32:00",
+      "open": 16.06,
+      "high": 16.06,
+      "low": 16.06,
+      "close": 16.06,
+      "volume_shares": 312000.0,
+      "amount_yuan": 5041216.0
+    },
+    {
+      "timestamp": "2026-11-02T09:33:00",
+      "open": 16.02,
+      "high": 16.02,
+      "low": 16.02,
+      "close": 16.02,
+      "volume_shares": 107200.0,
+      "amount_yuan": 1719767.0
+    },
+    {
+      "timestamp": "2026-11-02T09:34:00",
+      "open": 16.0,
+      "high": 16.0,
+      "low": 16.0,
+      "close": 16.0,
+      "volume_shares": 69900.0,
+      "amount_yuan": 1120942.0
+    },
+    {
+      "timestamp": "2026-11-02T09:35:00",
+      "open": 16.05,
+      "high": 16.05,
+      "low": 16.05,
+      "close": 16.05,
+      "volume_shares": 62000.0,
+      "amount_yuan": 994663.0
+    },
+    {
+      "timestamp": "2026-11-02T09:36:00",
+      "open": 16.08,
+      "high": 16.08,
+      "low": 16.08,
+      "close": 16.08,
+      "volume_shares": 68300.0,
+      "amount_yuan": 1096471.0
+    },
+    {
+      "timestamp": "2026-11-02T09:37:00",
+      "open": 16.09,
+      "high": 16.09,
+      "low": 16.09,
+      "close": 16.09,
+      "volume_shares": 85500.0,
+      "amount_yuan": 1375745.960000001
+    },
+    {
+      "timestamp": "2026-11-02T09:38:00",
+      "open": 16.03,
+      "high": 16.03,
+      "low": 16.03,
+      "close": 16.03,
+      "volume_shares": 45600.0,
+      "amount_yuan": 732556.9799999986
+    },
+    {
+      "timestamp": "2026-11-02T09:39:00",
+      "open": 16.02,
+      "high": 16.02,
+      "low": 16.02,
+      "close": 16.02,
+      "volume_shares": 15400.0,
+      "amount_yuan": 246742.99000000022
+    },
+    {
+      "timestamp": "2026-11-02T09:40:00",
+      "open": 16.01,
+      "high": 16.01,
+      "low": 16.01,
+      "close": 16.01,
+      "volume_shares": 46200.0,
+      "amount_yuan": 740427.9600000009
+    },
+    {
+      "timestamp": "2026-11-02T09:41:00",
+      "open": 15.99,
+      "high": 15.99,
+      "low": 15.99,
+      "close": 15.99,
+      "volume_shares": 26800.0,
+      "amount_yuan": 428925.9699999988
+    },
+    {
+      "timestamp": "2026-11-02T09:42:00",
+      "open": 16.01,
+      "high": 16.01,
+      "low": 16.01,
+      "close": 16.01,
+      "volume_shares": 26200.0,
+      "amount_yuan": 419323.97000000067
+    },
+    {
+      "timestamp": "2026-11-02T09:43:00",
+      "open": 15.98,
+      "high": 15.98,
+      "low": 15.98,
+      "close": 15.98,
+      "volume_shares": 45600.0,
+      "amount_yuan": 728640.9300000016
+    },
+    {
+      "timestamp": "2026-11-02T09:44:00",
+      "open": 15.97,
+      "high": 15.97,
+      "low": 15.97,
+      "close": 15.97,
+      "volume_shares": 52200.0,
+      "amount_yuan": 832517.9100000001
+    },
+    {
+      "timestamp": "2026-11-02T09:45:00",
+      "open": 15.98,
+      "high": 15.98,
+      "low": 15.98,
+      "close": 15.98,
+      "volume_shares": 27000.0,
+      "amount_yuan": 431019.95999999717
+    },
+    {
+      "timestamp": "2026-11-02T09:46:00",
+      "open": 15.96,
+      "high": 15.96,
+      "low": 15.96,
+      "close": 15.96,
+      "volume_shares": 12700.0,
+      "amount_yuan": 202736.98000000045
+    },
+    {
+      "timestamp": "2026-11-02T09:47:00",
+      "open": 15.9,
+      "high": 15.9,
+      "low": 15.9,
+      "close": 15.9,
+      "volume_shares": 71700.0,
+      "amount_yuan": 1142569.879999999
+    },
+    {
+      "timestamp": "2026-11-02T09:48:00",
+      "open": 15.92,
+      "high": 15.92,
+      "low": 15.92,
+      "close": 15.92,
+      "volume_shares": 44400.0,
+      "amount_yuan": 706376.9200000018
+    },
+    {
+      "timestamp": "2026-11-02T09:49:00",
+      "open": 15.91,
+      "high": 15.91,
+      "low": 15.91,
+      "close": 15.91,
+      "volume_shares": 16800.0,
+      "amount_yuan": 267294.9699999988
+    },
+    {
+      "timestamp": "2026-11-02T09:50:00",
+      "open": 15.95,
+      "high": 15.95,
+      "low": 15.95,
+      "close": 15.95,
+      "volume_shares": 64900.0,
+      "amount_yuan": 1033280.9000000022
+    },
+    {
+      "timestamp": "2026-11-02T09:51:00",
+      "open": 15.94,
+      "high": 15.94,
+      "low": 15.94,
+      "close": 15.94,
+      "volume_shares": 36000.0,
+      "amount_yuan": 574036.9599999972
+    },
+    {
+      "timestamp": "2026-11-02T09:52:00",
+      "open": 15.93,
+      "high": 15.93,
+      "low": 15.93,
+      "close": 15.93,
+      "volume_shares": 18800.0,
+      "amount_yuan": 299775.97000000253
+    },
+    {
+      "timestamp": "2026-11-02T09:53:00",
+      "open": 15.95,
+      "high": 15.95,
+      "low": 15.95,
+      "close": 15.95,
+      "volume_shares": 21000.0,
+      "amount_yuan": 334434.98000000045
+    },
+    {
+      "timestamp": "2026-11-02T09:54:00",
+      "open": 15.95,
+      "high": 15.95,
+      "low": 15.95,
+      "close": 15.95,
+      "volume_shares": 14100.0,
+      "amount_yuan": 224696.98000000045
+    },
+    {
+      "timestamp": "2026-11-02T09:55:00",
+      "open": 15.89,
+      "high": 15.89,
+      "low": 15.89,
+      "close": 15.89,
+      "volume_shares": 36000.0,
+      "amount_yuan": 573245.9599999972
+    },
+    {
+      "timestamp": "2026-11-02T09:56:00",
+      "open": 15.9,
+      "high": 15.9,
+      "low": 15.9,
+      "close": 15.9,
+      "volume_shares": 15300.0,
+      "amount_yuan": 243167.97000000253
+    },
+    {
+      "timestamp": "2026-11-02T09:57:00",
+      "open": 15.9,
+      "high": 15.9,
+      "low": 15.9,
+      "close": 15.9,
+      "volume_shares": 33700.0,
+      "amount_yuan": 535902.9599999972
+    },
+    {
+      "timestamp": "2026-11-02T09:58:00",
+      "open": 15.96,
+      "high": 15.96,
+      "low": 15.96,
+      "close": 15.96,
+      "volume_shares": 89900.0,
+      "amount_yuan": 1429755.8800000027
+    },
+    {
+      "timestamp": "2026-11-02T09:59:00",
+      "open": 16.05,
+      "high": 16.05,
+      "low": 16.05,
+      "close": 16.05,
+      "volume_shares": 47200.0,
+      "amount_yuan": 756098.0
+    },
+    {
+      "timestamp": "2026-11-02T10:00:00",
+      "open": 16.06,
+      "high": 16.06,
+      "low": 16.06,
+      "close": 16.06,
+      "volume_shares": 90400.0,
+      "amount_yuan": 1450937.0299999975
+    },
+    {
+      "timestamp": "2026-11-02T10:01:00",
+      "open": 16.09,
+      "high": 16.09,
+      "low": 16.09,
+      "close": 16.09,
+      "volume_shares": 89700.0,
+      "amount_yuan": 1441800.0500000007
+    },
+    {
+      "timestamp": "2026-11-02T10:02:00",
+      "open": 16.06,
+      "high": 16.06,
+      "low": 16.06,
+      "close": 16.06,
+      "volume_shares": 23600.0,
+      "amount_yuan": 379250.01000000164
+    },
+    {
+      "timestamp": "2026-11-02T10:03:00",
+      "open": 16.12,
+      "high": 16.12,
+      "low": 16.12,
+      "close": 16.12,
+      "volume_shares": 158900.0,
+      "amount_yuan": 2557615.09
+    },
+    {
+      "timestamp": "2026-11-02T10:04:00",
+      "open": 16.17,
+      "high": 16.17,
+      "low": 16.17,
+      "close": 16.17,
+      "volume_shares": 125200.0,
+      "amount_yuan": 2021751.120000001
+    },
+    {
+      "timestamp": "2026-11-02T10:05:00",
+      "open": 16.23,
+      "high": 16.23,
+      "low": 16.23,
+      "close": 16.23,
+      "volume_shares": 253600.0,
+      "amount_yuan": 4106312.280000001
+    },
+    {
+      "timestamp": "2026-11-02T10:06:00",
+      "open": 16.2,
+      "high": 16.2,
+      "low": 16.2,
+      "close": 16.2,
+      "volume_shares": 126300.0,
+      "amount_yuan": 2048036.1399999931
+    },
+    {
+      "timestamp": "2026-11-02T10:07:00",
+      "open": 16.23,
+      "high": 16.23,
+      "low": 16.23,
+      "close": 16.23,
+      "volume_shares": 238500.0,
+      "amount_yuan": 3870698.25
+    },
+    {
+      "timestamp": "2026-11-02T10:08:00",
+      "open": 16.24,
+      "high": 16.24,
+      "low": 16.24,
+      "close": 16.24,
+      "volume_shares": 128000.0,
+      "amount_yuan": 2081785.1400000006
+    },
+    {
+      "timestamp": "2026-11-02T10:09:00",
+      "open": 16.25,
+      "high": 16.25,
+      "low": 16.25,
+      "close": 16.25,
+      "volume_shares": 59000.0,
+      "amount_yuan": 958685.0600000024
+    },
+    {
+      "timestamp": "2026-11-02T10:10:00",
+      "open": 16.26,
+      "high": 16.26,
+      "low": 16.26,
+      "close": 16.26,
+      "volume_shares": 21100.0,
+      "amount_yuan": 342984.0200000033
+    },
+    {
+      "timestamp": "2026-11-02T10:11:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 87000.0,
+      "amount_yuan": 1415168.0899999961
+    },
+    {
+      "timestamp": "2026-11-02T10:12:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 148800.0,
+      "amount_yuan": 2422304.1400000006
+    },
+    {
+      "timestamp": "2026-11-02T10:13:00",
+      "open": 16.29,
+      "high": 16.29,
+      "low": 16.29,
+      "close": 16.29,
+      "volume_shares": 87100.0,
+      "amount_yuan": 1418156.0799999982
+    },
+    {
+      "timestamp": "2026-11-02T10:14:00",
+      "open": 16.31,
+      "high": 16.31,
+      "low": 16.31,
+      "close": 16.31,
+      "volume_shares": 72300.0,
+      "amount_yuan": 1178452.0700000003
+    },
+    {
+      "timestamp": "2026-11-02T10:15:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 27500.0,
+      "amount_yuan": 448058.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T10:16:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 49000.0,
+      "amount_yuan": 797560.0399999991
+    },
+    {
+      "timestamp": "2026-11-02T10:17:00",
+      "open": 16.29,
+      "high": 16.29,
+      "low": 16.29,
+      "close": 16.29,
+      "volume_shares": 43400.0,
+      "amount_yuan": 706593.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T10:18:00",
+      "open": 16.29,
+      "high": 16.29,
+      "low": 16.29,
+      "close": 16.29,
+      "volume_shares": 22900.0,
+      "amount_yuan": 373007.0200000033
+    },
+    {
+      "timestamp": "2026-11-02T10:19:00",
+      "open": 16.25,
+      "high": 16.25,
+      "low": 16.25,
+      "close": 16.25,
+      "volume_shares": 44200.0,
+      "amount_yuan": 719313.0399999991
+    },
+    {
+      "timestamp": "2026-11-02T10:20:00",
+      "open": 16.25,
+      "high": 16.25,
+      "low": 16.25,
+      "close": 16.25,
+      "volume_shares": 74600.0,
+      "amount_yuan": 1213491.049999997
+    },
+    {
+      "timestamp": "2026-11-02T10:21:00",
+      "open": 16.26,
+      "high": 16.26,
+      "low": 16.26,
+      "close": 16.26,
+      "volume_shares": 46500.0,
+      "amount_yuan": 755752.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T10:22:00",
+      "open": 16.25,
+      "high": 16.25,
+      "low": 16.25,
+      "close": 16.25,
+      "volume_shares": 24500.0,
+      "amount_yuan": 398159.0099999979
+    },
+    {
+      "timestamp": "2026-11-02T10:23:00",
+      "open": 16.25,
+      "high": 16.25,
+      "low": 16.25,
+      "close": 16.25,
+      "volume_shares": 41300.0,
+      "amount_yuan": 671132.0200000033
+    },
+    {
+      "timestamp": "2026-11-02T10:24:00",
+      "open": 16.21,
+      "high": 16.21,
+      "low": 16.21,
+      "close": 16.21,
+      "volume_shares": 43400.0,
+      "amount_yuan": 704746.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T10:25:00",
+      "open": 16.21,
+      "high": 16.21,
+      "low": 16.21,
+      "close": 16.21,
+      "volume_shares": 40300.0,
+      "amount_yuan": 652914.0099999979
+    },
+    {
+      "timestamp": "2026-11-02T10:26:00",
+      "open": 16.24,
+      "high": 16.24,
+      "low": 16.24,
+      "close": 16.24,
+      "volume_shares": 20000.0,
+      "amount_yuan": 324657.0099999979
+    },
+    {
+      "timestamp": "2026-11-02T10:27:00",
+      "open": 16.24,
+      "high": 16.24,
+      "low": 16.24,
+      "close": 16.24,
+      "volume_shares": 40800.0,
+      "amount_yuan": 662695.0200000033
+    },
+    {
+      "timestamp": "2026-11-02T10:28:00",
+      "open": 16.22,
+      "high": 16.22,
+      "low": 16.22,
+      "close": 16.22,
+      "volume_shares": 10000.0,
+      "amount_yuan": 162316.0
+    },
+    {
+      "timestamp": "2026-11-02T10:29:00",
+      "open": 16.23,
+      "high": 16.23,
+      "low": 16.23,
+      "close": 16.23,
+      "volume_shares": 17800.0,
+      "amount_yuan": 288740.0099999979
+    },
+    {
+      "timestamp": "2026-11-02T10:30:00",
+      "open": 16.24,
+      "high": 16.24,
+      "low": 16.24,
+      "close": 16.24,
+      "volume_shares": 30900.0,
+      "amount_yuan": 501778.0099999979
+    },
+    {
+      "timestamp": "2026-11-02T10:31:00",
+      "open": 16.25,
+      "high": 16.25,
+      "low": 16.25,
+      "close": 16.25,
+      "volume_shares": 21000.0,
+      "amount_yuan": 341300.0200000033
+    },
+    {
+      "timestamp": "2026-11-02T10:32:00",
+      "open": 16.22,
+      "high": 16.22,
+      "low": 16.22,
+      "close": 16.22,
+      "volume_shares": 18400.0,
+      "amount_yuan": 298690.0
+    },
+    {
+      "timestamp": "2026-11-02T10:33:00",
+      "open": 16.2,
+      "high": 16.2,
+      "low": 16.2,
+      "close": 16.2,
+      "volume_shares": 15300.0,
+      "amount_yuan": 248142.0099999979
+    },
+    {
+      "timestamp": "2026-11-02T10:34:00",
+      "open": 16.19,
+      "high": 16.19,
+      "low": 16.19,
+      "close": 16.19,
+      "volume_shares": 19000.0,
+      "amount_yuan": 307741.0
+    },
+    {
+      "timestamp": "2026-11-02T10:35:00",
+      "open": 16.22,
+      "high": 16.22,
+      "low": 16.22,
+      "close": 16.22,
+      "volume_shares": 68100.0,
+      "amount_yuan": 1102819.0200000033
+    },
+    {
+      "timestamp": "2026-11-02T10:36:00",
+      "open": 16.2,
+      "high": 16.2,
+      "low": 16.2,
+      "close": 16.2,
+      "volume_shares": 10300.0,
+      "amount_yuan": 167027.0
+    },
+    {
+      "timestamp": "2026-11-02T10:37:00",
+      "open": 16.21,
+      "high": 16.21,
+      "low": 16.21,
+      "close": 16.21,
+      "volume_shares": 20100.0,
+      "amount_yuan": 325585.0099999979
+    },
+    {
+      "timestamp": "2026-11-02T10:38:00",
+      "open": 16.23,
+      "high": 16.23,
+      "low": 16.23,
+      "close": 16.23,
+      "volume_shares": 40300.0,
+      "amount_yuan": 653561.0099999979
+    },
+    {
+      "timestamp": "2026-11-02T10:39:00",
+      "open": 16.26,
+      "high": 16.26,
+      "low": 16.26,
+      "close": 16.26,
+      "volume_shares": 37400.0,
+      "amount_yuan": 607327.0199999958
+    },
+    {
+      "timestamp": "2026-11-02T10:40:00",
+      "open": 16.17,
+      "high": 16.17,
+      "low": 16.17,
+      "close": 16.17,
+      "volume_shares": 430500.0,
+      "amount_yuan": 6973497.100000009
+    },
+    {
+      "timestamp": "2026-11-02T10:41:00",
+      "open": 16.14,
+      "high": 16.14,
+      "low": 16.14,
+      "close": 16.14,
+      "volume_shares": 125000.0,
+      "amount_yuan": 2018091.0
+    },
+    {
+      "timestamp": "2026-11-02T10:42:00",
+      "open": 16.18,
+      "high": 16.18,
+      "low": 16.18,
+      "close": 16.18,
+      "volume_shares": 45800.0,
+      "amount_yuan": 739713.0
+    },
+    {
+      "timestamp": "2026-11-02T10:43:00",
+      "open": 16.21,
+      "high": 16.21,
+      "low": 16.21,
+      "close": 16.21,
+      "volume_shares": 49900.0,
+      "amount_yuan": 807975.0099999905
+    },
+    {
+      "timestamp": "2026-11-02T10:44:00",
+      "open": 16.16,
+      "high": 16.16,
+      "low": 16.16,
+      "close": 16.16,
+      "volume_shares": 72000.0,
+      "amount_yuan": 1166394.0100000054
+    },
+    {
+      "timestamp": "2026-11-02T10:45:00",
+      "open": 16.18,
+      "high": 16.18,
+      "low": 16.18,
+      "close": 16.18,
+      "volume_shares": 50500.0,
+      "amount_yuan": 816074.0100000054
+    },
+    {
+      "timestamp": "2026-11-02T10:46:00",
+      "open": 16.15,
+      "high": 16.15,
+      "low": 16.15,
+      "close": 16.15,
+      "volume_shares": 38200.0,
+      "amount_yuan": 616973.0
+    },
+    {
+      "timestamp": "2026-11-02T10:47:00",
+      "open": 16.13,
+      "high": 16.13,
+      "low": 16.13,
+      "close": 16.13,
+      "volume_shares": 19900.0,
+      "amount_yuan": 321114.0
+    },
+    {
+      "timestamp": "2026-11-02T10:48:00",
+      "open": 16.11,
+      "high": 16.11,
+      "low": 16.11,
+      "close": 16.11,
+      "volume_shares": 45800.0,
+      "amount_yuan": 738198.9899999946
+    },
+    {
+      "timestamp": "2026-11-02T10:49:00",
+      "open": 16.13,
+      "high": 16.13,
+      "low": 16.13,
+      "close": 16.13,
+      "volume_shares": 16400.0,
+      "amount_yuan": 264399.0
+    },
+    {
+      "timestamp": "2026-11-02T10:50:00",
+      "open": 16.15,
+      "high": 16.15,
+      "low": 16.15,
+      "close": 16.15,
+      "volume_shares": 11300.0,
+      "amount_yuan": 182325.0
+    },
+    {
+      "timestamp": "2026-11-02T10:51:00",
+      "open": 16.14,
+      "high": 16.14,
+      "low": 16.14,
+      "close": 16.14,
+      "volume_shares": 10300.0,
+      "amount_yuan": 166200.0
+    },
+    {
+      "timestamp": "2026-11-02T10:52:00",
+      "open": 16.11,
+      "high": 16.11,
+      "low": 16.11,
+      "close": 16.11,
+      "volume_shares": 30900.0,
+      "amount_yuan": 498220.0
+    },
+    {
+      "timestamp": "2026-11-02T10:53:00",
+      "open": 16.09,
+      "high": 16.09,
+      "low": 16.09,
+      "close": 16.09,
+      "volume_shares": 17500.0,
+      "amount_yuan": 281697.0
+    },
+    {
+      "timestamp": "2026-11-02T10:54:00",
+      "open": 16.08,
+      "high": 16.08,
+      "low": 16.08,
+      "close": 16.08,
+      "volume_shares": 22100.0,
+      "amount_yuan": 355372.98999999464
+    },
+    {
+      "timestamp": "2026-11-02T10:55:00",
+      "open": 16.06,
+      "high": 16.06,
+      "low": 16.06,
+      "close": 16.06,
+      "volume_shares": 14700.0,
+      "amount_yuan": 236272.0
+    },
+    {
+      "timestamp": "2026-11-02T10:56:00",
+      "open": 16.05,
+      "high": 16.05,
+      "low": 16.05,
+      "close": 16.05,
+      "volume_shares": 14700.0,
+      "amount_yuan": 236096.99000000954
+    },
+    {
+      "timestamp": "2026-11-02T10:57:00",
+      "open": 16.07,
+      "high": 16.07,
+      "low": 16.07,
+      "close": 16.07,
+      "volume_shares": 17400.0,
+      "amount_yuan": 279475.0
+    },
+    {
+      "timestamp": "2026-11-02T10:58:00",
+      "open": 16.08,
+      "high": 16.08,
+      "low": 16.08,
+      "close": 16.08,
+      "volume_shares": 26000.0,
+      "amount_yuan": 417975.98999999464
+    },
+    {
+      "timestamp": "2026-11-02T10:59:00",
+      "open": 16.08,
+      "high": 16.08,
+      "low": 16.08,
+      "close": 16.08,
+      "volume_shares": 12000.0,
+      "amount_yuan": 192948.0
+    },
+    {
+      "timestamp": "2026-11-02T11:00:00",
+      "open": 16.11,
+      "high": 16.11,
+      "low": 16.11,
+      "close": 16.11,
+      "volume_shares": 6700.0,
+      "amount_yuan": 107842.0
+    },
+    {
+      "timestamp": "2026-11-02T11:01:00",
+      "open": 16.14,
+      "high": 16.14,
+      "low": 16.14,
+      "close": 16.14,
+      "volume_shares": 8400.0,
+      "amount_yuan": 135399.0
+    },
+    {
+      "timestamp": "2026-11-02T11:02:00",
+      "open": 16.13,
+      "high": 16.13,
+      "low": 16.13,
+      "close": 16.13,
+      "volume_shares": 23600.0,
+      "amount_yuan": 380908.0
+    },
+    {
+      "timestamp": "2026-11-02T11:03:00",
+      "open": 16.14,
+      "high": 16.14,
+      "low": 16.14,
+      "close": 16.14,
+      "volume_shares": 9600.0,
+      "amount_yuan": 154869.0
+    },
+    {
+      "timestamp": "2026-11-02T11:04:00",
+      "open": 16.18,
+      "high": 16.18,
+      "low": 16.18,
+      "close": 16.18,
+      "volume_shares": 10900.0,
+      "amount_yuan": 176115.0
+    },
+    {
+      "timestamp": "2026-11-02T11:05:00",
+      "open": 16.17,
+      "high": 16.17,
+      "low": 16.17,
+      "close": 16.17,
+      "volume_shares": 27600.0,
+      "amount_yuan": 446201.0
+    },
+    {
+      "timestamp": "2026-11-02T11:06:00",
+      "open": 16.17,
+      "high": 16.17,
+      "low": 16.17,
+      "close": 16.17,
+      "volume_shares": 29400.0,
+      "amount_yuan": 475467.0
+    },
+    {
+      "timestamp": "2026-11-02T11:07:00",
+      "open": 16.17,
+      "high": 16.17,
+      "low": 16.17,
+      "close": 16.17,
+      "volume_shares": 22500.0,
+      "amount_yuan": 363974.01000000536
+    },
+    {
+      "timestamp": "2026-11-02T11:08:00",
+      "open": 16.17,
+      "high": 16.17,
+      "low": 16.17,
+      "close": 16.17,
+      "volume_shares": 19600.0,
+      "amount_yuan": 316921.0
+    },
+    {
+      "timestamp": "2026-11-02T11:09:00",
+      "open": 16.19,
+      "high": 16.19,
+      "low": 16.19,
+      "close": 16.19,
+      "volume_shares": 17700.0,
+      "amount_yuan": 286481.0
+    },
+    {
+      "timestamp": "2026-11-02T11:10:00",
+      "open": 16.18,
+      "high": 16.18,
+      "low": 16.18,
+      "close": 16.18,
+      "volume_shares": 20100.0,
+      "amount_yuan": 325511.0
+    },
+    {
+      "timestamp": "2026-11-02T11:11:00",
+      "open": 16.2,
+      "high": 16.2,
+      "low": 16.2,
+      "close": 16.2,
+      "volume_shares": 60000.0,
+      "amount_yuan": 971936.0099999905
+    },
+    {
+      "timestamp": "2026-11-02T11:12:00",
+      "open": 16.21,
+      "high": 16.21,
+      "low": 16.21,
+      "close": 16.21,
+      "volume_shares": 147700.0,
+      "amount_yuan": 2396581.0400000066
+    },
+    {
+      "timestamp": "2026-11-02T11:13:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 58600.0,
+      "amount_yuan": 951436.0199999958
+    },
+    {
+      "timestamp": "2026-11-02T11:14:00",
+      "open": 16.29,
+      "high": 16.29,
+      "low": 16.29,
+      "close": 16.29,
+      "volume_shares": 372900.0,
+      "amount_yuan": 6073135.140000001
+    },
+    {
+      "timestamp": "2026-11-02T11:15:00",
+      "open": 16.32,
+      "high": 16.32,
+      "low": 16.32,
+      "close": 16.32,
+      "volume_shares": 108200.0,
+      "amount_yuan": 1764749.049999997
+    },
+    {
+      "timestamp": "2026-11-02T11:16:00",
+      "open": 16.34,
+      "high": 16.34,
+      "low": 16.34,
+      "close": 16.34,
+      "volume_shares": 103900.0,
+      "amount_yuan": 1696300.050000012
+    },
+    {
+      "timestamp": "2026-11-02T11:17:00",
+      "open": 16.3,
+      "high": 16.3,
+      "low": 16.3,
+      "close": 16.3,
+      "volume_shares": 124800.0,
+      "amount_yuan": 2038965.049999997
+    },
+    {
+      "timestamp": "2026-11-02T11:18:00",
+      "open": 16.33,
+      "high": 16.33,
+      "low": 16.33,
+      "close": 16.33,
+      "volume_shares": 39000.0,
+      "amount_yuan": 636304.0199999958
+    },
+    {
+      "timestamp": "2026-11-02T11:19:00",
+      "open": 16.32,
+      "high": 16.32,
+      "low": 16.32,
+      "close": 16.32,
+      "volume_shares": 72200.0,
+      "amount_yuan": 1179110.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T11:20:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 35400.0,
+      "amount_yuan": 577014.0100000054
+    },
+    {
+      "timestamp": "2026-11-02T11:21:00",
+      "open": 16.31,
+      "high": 16.31,
+      "low": 16.31,
+      "close": 16.31,
+      "volume_shares": 93400.0,
+      "amount_yuan": 1524409.0399999917
+    },
+    {
+      "timestamp": "2026-11-02T11:22:00",
+      "open": 16.3,
+      "high": 16.3,
+      "low": 16.3,
+      "close": 16.3,
+      "volume_shares": 30600.0,
+      "amount_yuan": 498784.01000000536
+    },
+    {
+      "timestamp": "2026-11-02T11:23:00",
+      "open": 16.35,
+      "high": 16.35,
+      "low": 16.35,
+      "close": 16.35,
+      "volume_shares": 64700.0,
+      "amount_yuan": 1057307.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T11:24:00",
+      "open": 16.32,
+      "high": 16.32,
+      "low": 16.32,
+      "close": 16.32,
+      "volume_shares": 17400.0,
+      "amount_yuan": 284307.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T11:25:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 42400.0,
+      "amount_yuan": 691532.0100000054
+    },
+    {
+      "timestamp": "2026-11-02T11:26:00",
+      "open": 16.29,
+      "high": 16.29,
+      "low": 16.29,
+      "close": 16.29,
+      "volume_shares": 15600.0,
+      "amount_yuan": 254014.0
+    },
+    {
+      "timestamp": "2026-11-02T11:27:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 48700.0,
+      "amount_yuan": 792179.0199999958
+    },
+    {
+      "timestamp": "2026-11-02T11:28:00",
+      "open": 16.3,
+      "high": 16.3,
+      "low": 16.3,
+      "close": 16.3,
+      "volume_shares": 42200.0,
+      "amount_yuan": 687015.0100000054
+    },
+    {
+      "timestamp": "2026-11-02T11:29:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 28300.0,
+      "amount_yuan": 460831.0
+    },
+    {
+      "timestamp": "2026-11-02T11:30:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 31800.0,
+      "amount_yuan": 517149.01000000536
+    },
+    {
+      "timestamp": "2026-11-02T13:00:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 0.0,
+      "amount_yuan": 0.0
+    },
+    {
+      "timestamp": "2026-11-02T13:01:00",
+      "open": 16.19,
+      "high": 16.19,
+      "low": 16.19,
+      "close": 16.19,
+      "volume_shares": 130800.0,
+      "amount_yuan": 2120218.0099999905
+    },
+    {
+      "timestamp": "2026-11-02T13:02:00",
+      "open": 16.16,
+      "high": 16.16,
+      "low": 16.16,
+      "close": 16.16,
+      "volume_shares": 29700.0,
+      "amount_yuan": 480698.0
+    },
+    {
+      "timestamp": "2026-11-02T13:03:00",
+      "open": 16.2,
+      "high": 16.2,
+      "low": 16.2,
+      "close": 16.2,
+      "volume_shares": 28300.0,
+      "amount_yuan": 457609.0
+    },
+    {
+      "timestamp": "2026-11-02T13:04:00",
+      "open": 16.19,
+      "high": 16.19,
+      "low": 16.19,
+      "close": 16.19,
+      "volume_shares": 6800.0,
+      "amount_yuan": 110126.0
+    },
+    {
+      "timestamp": "2026-11-02T13:05:00",
+      "open": 16.18,
+      "high": 16.18,
+      "low": 16.18,
+      "close": 16.18,
+      "volume_shares": 37000.0,
+      "amount_yuan": 599116.0
+    },
+    {
+      "timestamp": "2026-11-02T13:06:00",
+      "open": 16.2,
+      "high": 16.2,
+      "low": 16.2,
+      "close": 16.2,
+      "volume_shares": 10500.0,
+      "amount_yuan": 170037.0
+    },
+    {
+      "timestamp": "2026-11-02T13:07:00",
+      "open": 16.21,
+      "high": 16.21,
+      "low": 16.21,
+      "close": 16.21,
+      "volume_shares": 13100.0,
+      "amount_yuan": 212307.0
+    },
+    {
+      "timestamp": "2026-11-02T13:08:00",
+      "open": 16.18,
+      "high": 16.18,
+      "low": 16.18,
+      "close": 16.18,
+      "volume_shares": 19200.0,
+      "amount_yuan": 310850.01000000536
+    },
+    {
+      "timestamp": "2026-11-02T13:09:00",
+      "open": 16.18,
+      "high": 16.18,
+      "low": 16.18,
+      "close": 16.18,
+      "volume_shares": 17100.0,
+      "amount_yuan": 276698.0
+    },
+    {
+      "timestamp": "2026-11-02T13:10:00",
+      "open": 16.19,
+      "high": 16.19,
+      "low": 16.19,
+      "close": 16.19,
+      "volume_shares": 41700.0,
+      "amount_yuan": 674450.0
+    },
+    {
+      "timestamp": "2026-11-02T13:11:00",
+      "open": 16.17,
+      "high": 16.17,
+      "low": 16.17,
+      "close": 16.17,
+      "volume_shares": 20200.0,
+      "amount_yuan": 326801.0
+    },
+    {
+      "timestamp": "2026-11-02T13:12:00",
+      "open": 16.22,
+      "high": 16.22,
+      "low": 16.22,
+      "close": 16.22,
+      "volume_shares": 21800.0,
+      "amount_yuan": 353188.0
+    },
+    {
+      "timestamp": "2026-11-02T13:13:00",
+      "open": 16.21,
+      "high": 16.21,
+      "low": 16.21,
+      "close": 16.21,
+      "volume_shares": 14900.0,
+      "amount_yuan": 241512.0
+    },
+    {
+      "timestamp": "2026-11-02T13:14:00",
+      "open": 16.2,
+      "high": 16.2,
+      "low": 16.2,
+      "close": 16.2,
+      "volume_shares": 51000.0,
+      "amount_yuan": 826219.0
+    },
+    {
+      "timestamp": "2026-11-02T13:15:00",
+      "open": 16.18,
+      "high": 16.18,
+      "low": 16.18,
+      "close": 16.18,
+      "volume_shares": 68100.0,
+      "amount_yuan": 1101802.0
+    },
+    {
+      "timestamp": "2026-11-02T13:16:00",
+      "open": 16.2,
+      "high": 16.2,
+      "low": 16.2,
+      "close": 16.2,
+      "volume_shares": 17700.0,
+      "amount_yuan": 286481.0
+    },
+    {
+      "timestamp": "2026-11-02T13:17:00",
+      "open": 16.2,
+      "high": 16.2,
+      "low": 16.2,
+      "close": 16.2,
+      "volume_shares": 15700.0,
+      "amount_yuan": 254228.0
+    },
+    {
+      "timestamp": "2026-11-02T13:18:00",
+      "open": 16.22,
+      "high": 16.22,
+      "low": 16.22,
+      "close": 16.22,
+      "volume_shares": 61100.0,
+      "amount_yuan": 989769.0
+    },
+    {
+      "timestamp": "2026-11-02T13:19:00",
+      "open": 16.22,
+      "high": 16.22,
+      "low": 16.22,
+      "close": 16.22,
+      "volume_shares": 16600.0,
+      "amount_yuan": 269099.01000000536
+    },
+    {
+      "timestamp": "2026-11-02T13:20:00",
+      "open": 16.24,
+      "high": 16.24,
+      "low": 16.24,
+      "close": 16.24,
+      "volume_shares": 45800.0,
+      "amount_yuan": 742859.0
+    },
+    {
+      "timestamp": "2026-11-02T13:21:00",
+      "open": 16.26,
+      "high": 16.26,
+      "low": 16.26,
+      "close": 16.26,
+      "volume_shares": 52500.0,
+      "amount_yuan": 852746.0099999905
+    },
+    {
+      "timestamp": "2026-11-02T13:22:00",
+      "open": 16.24,
+      "high": 16.24,
+      "low": 16.24,
+      "close": 16.24,
+      "volume_shares": 23000.0,
+      "amount_yuan": 373625.0
+    },
+    {
+      "timestamp": "2026-11-02T13:23:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 27600.0,
+      "amount_yuan": 448758.38000001013
+    },
+    {
+      "timestamp": "2026-11-02T13:24:00",
+      "open": 16.25,
+      "high": 16.25,
+      "low": 16.25,
+      "close": 16.25,
+      "volume_shares": 18500.0,
+      "amount_yuan": 300872.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T13:25:00",
+      "open": 16.26,
+      "high": 16.26,
+      "low": 16.26,
+      "close": 16.26,
+      "volume_shares": 16500.0,
+      "amount_yuan": 268366.01000000536
+    },
+    {
+      "timestamp": "2026-11-02T13:26:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 17800.0,
+      "amount_yuan": 289562.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T13:27:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 37500.0,
+      "amount_yuan": 609697.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T13:28:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 14600.0,
+      "amount_yuan": 237510.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T13:29:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 16900.0,
+      "amount_yuan": 275025.01000000536
+    },
+    {
+      "timestamp": "2026-11-02T13:30:00",
+      "open": 16.29,
+      "high": 16.29,
+      "low": 16.29,
+      "close": 16.29,
+      "volume_shares": 18700.0,
+      "amount_yuan": 304416.01000000536
+    },
+    {
+      "timestamp": "2026-11-02T13:31:00",
+      "open": 16.29,
+      "high": 16.29,
+      "low": 16.29,
+      "close": 16.29,
+      "volume_shares": 18700.0,
+      "amount_yuan": 304492.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T13:32:00",
+      "open": 16.3,
+      "high": 16.3,
+      "low": 16.3,
+      "close": 16.3,
+      "volume_shares": 39700.0,
+      "amount_yuan": 646662.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T13:33:00",
+      "open": 16.31,
+      "high": 16.31,
+      "low": 16.31,
+      "close": 16.31,
+      "volume_shares": 29000.0,
+      "amount_yuan": 472775.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T13:34:00",
+      "open": 16.3,
+      "high": 16.3,
+      "low": 16.3,
+      "close": 16.3,
+      "volume_shares": 29200.0,
+      "amount_yuan": 476202.0199999958
+    },
+    {
+      "timestamp": "2026-11-02T13:35:00",
+      "open": 16.3,
+      "high": 16.3,
+      "low": 16.3,
+      "close": 16.3,
+      "volume_shares": 70600.0,
+      "amount_yuan": 1149540.049999997
+    },
+    {
+      "timestamp": "2026-11-02T13:36:00",
+      "open": 16.29,
+      "high": 16.29,
+      "low": 16.29,
+      "close": 16.29,
+      "volume_shares": 17900.0,
+      "amount_yuan": 291759.01000000536
+    },
+    {
+      "timestamp": "2026-11-02T13:37:00",
+      "open": 16.3,
+      "high": 16.3,
+      "low": 16.3,
+      "close": 16.3,
+      "volume_shares": 24200.0,
+      "amount_yuan": 394460.0199999958
+    },
+    {
+      "timestamp": "2026-11-02T13:38:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 65200.0,
+      "amount_yuan": 1061116.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T13:39:00",
+      "open": 16.3,
+      "high": 16.3,
+      "low": 16.3,
+      "close": 16.3,
+      "volume_shares": 53000.0,
+      "amount_yuan": 862838.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T13:40:00",
+      "open": 16.25,
+      "high": 16.25,
+      "low": 16.25,
+      "close": 16.25,
+      "volume_shares": 97800.0,
+      "amount_yuan": 1590799.0499999821
+    },
+    {
+      "timestamp": "2026-11-02T13:41:00",
+      "open": 16.26,
+      "high": 16.26,
+      "low": 16.26,
+      "close": 16.26,
+      "volume_shares": 57700.0,
+      "amount_yuan": 937678.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T13:42:00",
+      "open": 16.25,
+      "high": 16.25,
+      "low": 16.25,
+      "close": 16.25,
+      "volume_shares": 35800.0,
+      "amount_yuan": 581749.0099999905
+    },
+    {
+      "timestamp": "2026-11-02T13:43:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 56900.0,
+      "amount_yuan": 925916.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T13:44:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 111000.0,
+      "amount_yuan": 1807747.0700000226
+    },
+    {
+      "timestamp": "2026-11-02T13:45:00",
+      "open": 16.3,
+      "high": 16.3,
+      "low": 16.3,
+      "close": 16.3,
+      "volume_shares": 61600.0,
+      "amount_yuan": 1003627.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T13:46:00",
+      "open": 16.31,
+      "high": 16.31,
+      "low": 16.31,
+      "close": 16.31,
+      "volume_shares": 81300.0,
+      "amount_yuan": 1325174.0499999821
+    },
+    {
+      "timestamp": "2026-11-02T13:47:00",
+      "open": 16.32,
+      "high": 16.32,
+      "low": 16.32,
+      "close": 16.32,
+      "volume_shares": 122100.0,
+      "amount_yuan": 1990639.080000013
+    },
+    {
+      "timestamp": "2026-11-02T13:48:00",
+      "open": 16.32,
+      "high": 16.32,
+      "low": 16.32,
+      "close": 16.32,
+      "volume_shares": 78200.0,
+      "amount_yuan": 1276103.0499999821
+    },
+    {
+      "timestamp": "2026-11-02T13:49:00",
+      "open": 16.31,
+      "high": 16.31,
+      "low": 16.31,
+      "close": 16.31,
+      "volume_shares": 50200.0,
+      "amount_yuan": 819275.0400000215
+    },
+    {
+      "timestamp": "2026-11-02T13:50:00",
+      "open": 16.32,
+      "high": 16.32,
+      "low": 16.32,
+      "close": 16.32,
+      "volume_shares": 48100.0,
+      "amount_yuan": 784627.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T13:51:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 48600.0,
+      "amount_yuan": 791089.0199999809
+    },
+    {
+      "timestamp": "2026-11-02T13:52:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 56500.0,
+      "amount_yuan": 919239.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T13:53:00",
+      "open": 16.28,
+      "high": 16.28,
+      "low": 16.28,
+      "close": 16.28,
+      "volume_shares": 42900.0,
+      "amount_yuan": 698233.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T13:54:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 22200.0,
+      "amount_yuan": 361128.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T13:55:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 21300.0,
+      "amount_yuan": 346679.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T13:56:00",
+      "open": 16.24,
+      "high": 16.24,
+      "low": 16.24,
+      "close": 16.24,
+      "volume_shares": 16400.0,
+      "amount_yuan": 266501.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T13:57:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 26000.0,
+      "amount_yuan": 422472.0
+    },
+    {
+      "timestamp": "2026-11-02T13:58:00",
+      "open": 16.26,
+      "high": 16.26,
+      "low": 16.26,
+      "close": 16.26,
+      "volume_shares": 14700.0,
+      "amount_yuan": 239070.01000002027
+    },
+    {
+      "timestamp": "2026-11-02T13:59:00",
+      "open": 16.27,
+      "high": 16.27,
+      "low": 16.27,
+      "close": 16.27,
+      "volume_shares": 14000.0,
+      "amount_yuan": 227744.0
+    },
+    {
+      "timestamp": "2026-11-02T14:00:00",
+      "open": 16.37,
+      "high": 16.37,
+      "low": 16.37,
+      "close": 16.37,
+      "volume_shares": 170600.0,
+      "amount_yuan": 2787995.129999995
+    },
+    {
+      "timestamp": "2026-11-02T14:01:00",
+      "open": 16.4,
+      "high": 16.4,
+      "low": 16.4,
+      "close": 16.4,
+      "volume_shares": 129500.0,
+      "amount_yuan": 2123026.129999995
+    },
+    {
+      "timestamp": "2026-11-02T14:02:00",
+      "open": 16.41,
+      "high": 16.41,
+      "low": 16.41,
+      "close": 16.41,
+      "volume_shares": 56500.0,
+      "amount_yuan": 926563.0600000024
+    },
+    {
+      "timestamp": "2026-11-02T14:03:00",
+      "open": 16.43,
+      "high": 16.43,
+      "low": 16.43,
+      "close": 16.43,
+      "volume_shares": 39700.0,
+      "amount_yuan": 651916.0399999917
+    },
+    {
+      "timestamp": "2026-11-02T14:04:00",
+      "open": 16.43,
+      "high": 16.43,
+      "low": 16.43,
+      "close": 16.43,
+      "volume_shares": 18600.0,
+      "amount_yuan": 305451.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T14:05:00",
+      "open": 16.42,
+      "high": 16.42,
+      "low": 16.42,
+      "close": 16.42,
+      "volume_shares": 24400.0,
+      "amount_yuan": 400471.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T14:06:00",
+      "open": 16.41,
+      "high": 16.41,
+      "low": 16.41,
+      "close": 16.41,
+      "volume_shares": 57700.0,
+      "amount_yuan": 947417.0600000024
+    },
+    {
+      "timestamp": "2026-11-02T14:07:00",
+      "open": 16.39,
+      "high": 16.39,
+      "low": 16.39,
+      "close": 16.39,
+      "volume_shares": 35600.0,
+      "amount_yuan": 583793.0399999917
+    },
+    {
+      "timestamp": "2026-11-02T14:08:00",
+      "open": 16.39,
+      "high": 16.39,
+      "low": 16.39,
+      "close": 16.39,
+      "volume_shares": 15700.0,
+      "amount_yuan": 257296.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:09:00",
+      "open": 16.39,
+      "high": 16.39,
+      "low": 16.39,
+      "close": 16.39,
+      "volume_shares": 21300.0,
+      "amount_yuan": 349029.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T14:10:00",
+      "open": 16.39,
+      "high": 16.39,
+      "low": 16.39,
+      "close": 16.39,
+      "volume_shares": 12200.0,
+      "amount_yuan": 199984.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:11:00",
+      "open": 16.39,
+      "high": 16.39,
+      "low": 16.39,
+      "close": 16.39,
+      "volume_shares": 22600.0,
+      "amount_yuan": 370398.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T14:12:00",
+      "open": 16.39,
+      "high": 16.39,
+      "low": 16.39,
+      "close": 16.39,
+      "volume_shares": 8300.0,
+      "amount_yuan": 136096.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:13:00",
+      "open": 16.39,
+      "high": 16.39,
+      "low": 16.39,
+      "close": 16.39,
+      "volume_shares": 12600.0,
+      "amount_yuan": 206561.01000002027
+    },
+    {
+      "timestamp": "2026-11-02T14:14:00",
+      "open": 16.42,
+      "high": 16.42,
+      "low": 16.42,
+      "close": 16.42,
+      "volume_shares": 41200.0,
+      "amount_yuan": 675620.0399999917
+    },
+    {
+      "timestamp": "2026-11-02T14:15:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 48200.0,
+      "amount_yuan": 791900.0500000119
+    },
+    {
+      "timestamp": "2026-11-02T14:16:00",
+      "open": 16.43,
+      "high": 16.43,
+      "low": 16.43,
+      "close": 16.43,
+      "volume_shares": 22900.0,
+      "amount_yuan": 376584.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T14:17:00",
+      "open": 16.43,
+      "high": 16.43,
+      "low": 16.43,
+      "close": 16.43,
+      "volume_shares": 17100.0,
+      "amount_yuan": 281009.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:18:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 34300.0,
+      "amount_yuan": 563912.0399999917
+    },
+    {
+      "timestamp": "2026-11-02T14:19:00",
+      "open": 16.45,
+      "high": 16.45,
+      "low": 16.45,
+      "close": 16.45,
+      "volume_shares": 29700.0,
+      "amount_yuan": 488482.03999999166
+    },
+    {
+      "timestamp": "2026-11-02T14:20:00",
+      "open": 16.47,
+      "high": 16.47,
+      "low": 16.47,
+      "close": 16.47,
+      "volume_shares": 68700.0,
+      "amount_yuan": 1130941.080000013
+    },
+    {
+      "timestamp": "2026-11-02T14:21:00",
+      "open": 16.47,
+      "high": 16.47,
+      "low": 16.47,
+      "close": 16.47,
+      "volume_shares": 28100.0,
+      "amount_yuan": 463054.03999999166
+    },
+    {
+      "timestamp": "2026-11-02T14:22:00",
+      "open": 16.47,
+      "high": 16.47,
+      "low": 16.47,
+      "close": 16.47,
+      "volume_shares": 11200.0,
+      "amount_yuan": 184496.01000002027
+    },
+    {
+      "timestamp": "2026-11-02T14:23:00",
+      "open": 16.47,
+      "high": 16.47,
+      "low": 16.47,
+      "close": 16.47,
+      "volume_shares": 26000.0,
+      "amount_yuan": 428431.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T14:24:00",
+      "open": 16.46,
+      "high": 16.46,
+      "low": 16.46,
+      "close": 16.46,
+      "volume_shares": 12200.0,
+      "amount_yuan": 200838.01999998093
+    },
+    {
+      "timestamp": "2026-11-02T14:25:00",
+      "open": 16.46,
+      "high": 16.46,
+      "low": 16.46,
+      "close": 16.46,
+      "volume_shares": 13900.0,
+      "amount_yuan": 228814.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:26:00",
+      "open": 16.46,
+      "high": 16.46,
+      "low": 16.46,
+      "close": 16.46,
+      "volume_shares": 9100.0,
+      "amount_yuan": 149737.01000002027
+    },
+    {
+      "timestamp": "2026-11-02T14:27:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 48900.0,
+      "amount_yuan": 804232.0600000024
+    },
+    {
+      "timestamp": "2026-11-02T14:28:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 15100.0,
+      "amount_yuan": 248244.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:29:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 9300.0,
+      "amount_yuan": 152876.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:30:00",
+      "open": 16.47,
+      "high": 16.47,
+      "low": 16.47,
+      "close": 16.47,
+      "volume_shares": 54000.0,
+      "amount_yuan": 887758.0600000024
+    },
+    {
+      "timestamp": "2026-11-02T14:31:00",
+      "open": 16.46,
+      "high": 16.46,
+      "low": 16.46,
+      "close": 16.46,
+      "volume_shares": 26900.0,
+      "amount_yuan": 442884.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T14:32:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 17700.0,
+      "amount_yuan": 291168.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T14:33:00",
+      "open": 16.42,
+      "high": 16.42,
+      "low": 16.42,
+      "close": 16.42,
+      "volume_shares": 18400.0,
+      "amount_yuan": 302281.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T14:34:00",
+      "open": 16.41,
+      "high": 16.41,
+      "low": 16.41,
+      "close": 16.41,
+      "volume_shares": 12400.0,
+      "amount_yuan": 203615.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:35:00",
+      "open": 16.41,
+      "high": 16.41,
+      "low": 16.41,
+      "close": 16.41,
+      "volume_shares": 10500.0,
+      "amount_yuan": 172360.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:36:00",
+      "open": 16.42,
+      "high": 16.42,
+      "low": 16.42,
+      "close": 16.42,
+      "volume_shares": 24200.0,
+      "amount_yuan": 397525.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T14:37:00",
+      "open": 16.42,
+      "high": 16.42,
+      "low": 16.42,
+      "close": 16.42,
+      "volume_shares": 13000.0,
+      "amount_yuan": 213552.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:38:00",
+      "open": 16.43,
+      "high": 16.43,
+      "low": 16.43,
+      "close": 16.43,
+      "volume_shares": 5100.0,
+      "amount_yuan": 83777.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:39:00",
+      "open": 16.43,
+      "high": 16.43,
+      "low": 16.43,
+      "close": 16.43,
+      "volume_shares": 39100.0,
+      "amount_yuan": 642318.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T14:40:00",
+      "open": 16.43,
+      "high": 16.43,
+      "low": 16.43,
+      "close": 16.43,
+      "volume_shares": 19000.0,
+      "amount_yuan": 311980.0200000107
+    },
+    {
+      "timestamp": "2026-11-02T14:41:00",
+      "open": 16.43,
+      "high": 16.43,
+      "low": 16.43,
+      "close": 16.43,
+      "volume_shares": 9300.0,
+      "amount_yuan": 152767.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:42:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 43400.0,
+      "amount_yuan": 713168.0400000215
+    },
+    {
+      "timestamp": "2026-11-02T14:43:00",
+      "open": 16.45,
+      "high": 16.45,
+      "low": 16.45,
+      "close": 16.45,
+      "volume_shares": 24000.0,
+      "amount_yuan": 394438.0300000012
+    },
+    {
+      "timestamp": "2026-11-02T14:44:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 18600.0,
+      "amount_yuan": 305794.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:45:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 17400.0,
+      "amount_yuan": 285989.0900000036
+    },
+    {
+      "timestamp": "2026-11-02T14:46:00",
+      "open": 16.45,
+      "high": 16.45,
+      "low": 16.45,
+      "close": 16.45,
+      "volume_shares": 17700.0,
+      "amount_yuan": 291024.5799999833
+    },
+    {
+      "timestamp": "2026-11-02T14:47:00",
+      "open": 16.46,
+      "high": 16.46,
+      "low": 16.46,
+      "close": 16.46,
+      "volume_shares": 61500.0,
+      "amount_yuan": 1011918.75
+    },
+    {
+      "timestamp": "2026-11-02T14:48:00",
+      "open": 16.46,
+      "high": 16.46,
+      "low": 16.46,
+      "close": 16.46,
+      "volume_shares": 47200.0,
+      "amount_yuan": 776568.9500000179
+    },
+    {
+      "timestamp": "2026-11-02T14:49:00",
+      "open": 16.48,
+      "high": 16.48,
+      "low": 16.48,
+      "close": 16.48,
+      "volume_shares": 38100.0,
+      "amount_yuan": 627363.0
+    },
+    {
+      "timestamp": "2026-11-02T14:50:00",
+      "open": 16.48,
+      "high": 16.48,
+      "low": 16.48,
+      "close": 16.48,
+      "volume_shares": 26700.0,
+      "amount_yuan": 439856.00999999046
+    },
+    {
+      "timestamp": "2026-11-02T14:51:00",
+      "open": 16.46,
+      "high": 16.46,
+      "low": 16.46,
+      "close": 16.46,
+      "volume_shares": 45500.0,
+      "amount_yuan": 748928.4699999988
+    },
+    {
+      "timestamp": "2026-11-02T14:52:00",
+      "open": 16.45,
+      "high": 16.45,
+      "low": 16.45,
+      "close": 16.45,
+      "volume_shares": 24900.0,
+      "amount_yuan": 409743.0
+    },
+    {
+      "timestamp": "2026-11-02T14:53:00",
+      "open": 16.45,
+      "high": 16.45,
+      "low": 16.45,
+      "close": 16.45,
+      "volume_shares": 8200.0,
+      "amount_yuan": 134925.0
+    },
+    {
+      "timestamp": "2026-11-02T14:54:00",
+      "open": 16.43,
+      "high": 16.43,
+      "low": 16.43,
+      "close": 16.43,
+      "volume_shares": 41000.0,
+      "amount_yuan": 673933.3199999928
+    },
+    {
+      "timestamp": "2026-11-02T14:55:00",
+      "open": 16.41,
+      "high": 16.41,
+      "low": 16.41,
+      "close": 16.41,
+      "volume_shares": 41500.0,
+      "amount_yuan": 681507.5900000036
+    },
+    {
+      "timestamp": "2026-11-02T14:56:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 30000.0,
+      "amount_yuan": 492767.9800000191
+    },
+    {
+      "timestamp": "2026-11-02T14:57:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 30700.0,
+      "amount_yuan": 504212.9699999988
+    },
+    {
+      "timestamp": "2026-11-02T14:58:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 0.0,
+      "amount_yuan": 0.0
+    },
+    {
+      "timestamp": "2026-11-02T14:59:00",
+      "open": 16.44,
+      "high": 16.44,
+      "low": 16.44,
+      "close": 16.44,
+      "volume_shares": 0.0,
+      "amount_yuan": 0.0
+    },
+    {
+      "timestamp": "2026-11-02T15:00:00",
+      "open": 16.42,
+      "high": 16.42,
+      "low": 16.42,
+      "close": 16.42,
+      "volume_shares": 39000.0,
+      "amount_yuan": 640379.9699999988
+    }
+  ]
+}

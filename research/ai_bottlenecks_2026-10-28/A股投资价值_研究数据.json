@@ -1,0 +1,2364 @@
+{
+  "metadata": {
+    "research_date": "2026-10-28",
+    "quote_retrieved_at": "2026-10-28T08:11:42.482528+00:00",
+    "horizon": "2027—2028，统一两年近似",
+    "assumed_annual_required_return": 0.12,
+    "assumed_extra_margin_of_safety": 0.2,
+    "profit_definition": "可持续归母利润近似值；实际以扣非为起点，仍需剔除周期高利润及不可持续经营因素",
+    "model_limit": "收入×有效归母净利率的估值压力测试；没有完整产品订单、ASP、份额与现金流输入，不作为盈利预测",
+    "count": 49,
+    "valuation_excluded_count": 14,
+    "scored_count": 35
+  },
+  "companies": [
+    {
+      "code": "688676",
+      "name": "金盘科技",
+      "price": 50.26,
+      "a_price_equivalent_cap_yi": 231.09,
+      "quote_timestamp": "20261028161237",
+      "pe_ttm_provider": "32.19",
+      "old_group": "A",
+      "status": "条件研究",
+      "hard_excluded": false,
+      "score": 73,
+      "score_components": [
+        21,
+        22,
+        15,
+        6,
+        9
+      ],
+      "opportunity": "数据中心在手订单及收入已有规模，交付仍有增量",
+      "risk": "AIDC在手订单55.65亿，但退税贡献未单列、现金转换弱，价格仅在基准附近；SST不计额外利润",
+      "latest_period_used": "2026前三季",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-14/1225603297.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 61.0427687631,
+        "net_profit_yi": 5.4401234026,
+        "core_profit_yi": 5.1902601397,
+        "cfo_yi": 0.9074361991,
+        "capex_yi": 2.3648328475,
+        "simplified_fcf_yi": -1.4574
+      },
+      "rank": 6
+    },
+    {
+      "code": "002353",
+      "name": "杰瑞股份",
+      "price": 93.9,
+      "a_price_equivalent_cap_yi": 961.4,
+      "quote_timestamp": "20261028161206",
+      "pe_ttm_provider": "34.84",
+      "old_group": "A",
+      "status": "条件研究",
+      "hard_excluded": false,
+      "score": 70,
+      "score_components": [
+        16,
+        22,
+        15,
+        9,
+        8
+      ],
+      "opportunity": "有约束采购单、预付款和主机测试进展，2027交付",
+      "risk": "预付款及测试节点提高订单可信度，961亿市值已要求2028利润达到约48亿（25倍退出PE、12%年化）；合资权益与净利率尚未查清",
+      "latest_period_used": "2026前三季",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-22/1225613985.PDF",
+        "https://disc.static.szse.cn/disc/disk03/finalpage/2026-08-14/d5e158ce-4407-409e-bf14-8a0386032052.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-07-23/1225436739.PDF",
+        "https://file.finance.sina.com.cn/211.154.219.97:9494/MRGG/CNSESZ_STOCK/2026/2026-10/2026-10-26/12659632.PDF",
+        "https://ir.ftaiaviation.com/node/13041/pdf"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 119.7390934493,
+        "net_profit_yi": 18.867182537,
+        "core_profit_yi": 18.0670276025,
+        "cfo_yi": 24.1257773573,
+        "capex_yi": 8.0001637171,
+        "simplified_fcf_yi": 16.1256
+      },
+      "rank": 7
+    },
+    {
+      "code": "300811",
+      "name": "铂科新材",
+      "price": 72.26,
+      "a_price_equivalent_cap_yi": 294.91,
+      "quote_timestamp": "20261028161157",
+      "pe_ttm_provider": "54.59",
+      "old_group": "A",
+      "status": "优先研究",
+      "hard_excluded": false,
+      "score": 77,
+      "score_components": [
+        21,
+        23,
+        17,
+        8,
+        8
+      ],
+      "opportunity": "TLVR及AI电感升级已形成收入、扣非利润增长",
+      "risk": "Q3扣非1.896亿/+88%，规格升级和放量同时发生；现价仍需2028扣非约12.33亿才能在30倍退出PE下实现12%年化",
+      "latest_period_used": "2026前三季",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-28/1225628072.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-26/1225503598.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 20.7103220918,
+        "net_profit_yi": 4.1569933459,
+        "core_profit_yi": 4.1292187912,
+        "cfo_yi": 2.7147492728,
+        "capex_yi": 2.2523719261,
+        "simplified_fcf_yi": 0.4624
+      },
+      "rank": 3
+    },
+    {
+      "code": "002484",
+      "name": "江海股份",
+      "price": 35.08,
+      "a_price_equivalent_cap_yi": 298.36,
+      "quote_timestamp": "20261028161215",
+      "pe_ttm_provider": "39.05",
+      "old_group": "A",
+      "status": "条件研究",
+      "hard_excluded": false,
+      "score": 66,
+      "score_components": [
+        17,
+        17,
+        15,
+        10,
+        7
+      ],
+      "opportunity": "电容多应用升级，Q3扣非增长改善",
+      "risk": "Q3加速可信，但39倍接口PE已计较强期待；Q1 AI服务器超容仅1200万，全公司AI价值量不可按整个超容/MLPC板块放大",
+      "latest_period_used": "2026前三季",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-23/1225615320.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-21/1225484297.PDF",
+        "https://disc.static.szse.cn/disc/disk03/finalpage/2026-06-18/02a38f6e-ca19-441f-90db-30a1b0694042.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 49.2013496972,
+        "net_profit_yi": 6.2421598477,
+        "core_profit_yi": 6.1011194804,
+        "cfo_yi": 4.7448158352,
+        "capex_yi": 0.7271836991,
+        "simplified_fcf_yi": 4.0176
+      },
+      "rank": 11
+    },
+    {
+      "code": "000338",
+      "name": "潍柴动力",
+      "price": 21.35,
+      "a_price_equivalent_cap_yi": 1844.69,
+      "quote_timestamp": "20261028161230",
+      "pe_ttm_provider": "14.20",
+      "old_group": "C",
+      "status": "优先研究",
+      "hard_excluded": false,
+      "score": 77,
+      "score_components": [
+        23,
+        17,
+        16,
+        13,
+        8
+      ],
+      "opportunity": "主业现金流与分红支撑，发电产品增加成长来源",
+      "risk": "整体扣非增长18.86%、现金流扎实、分红可见，AI纯度低不能成为否定理由；按A股价乘总股本的等价权益口径估值，而非混用AH实际市值",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-28/1225520941.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 1231.6296522785,
+        "net_profit_yi": 77.0126542395,
+        "core_profit_yi": 61.1888907631,
+        "cfo_yi": 113.4944437945,
+        "capex_yi": 24.8469748972,
+        "simplified_fcf_yi": 88.6475
+      },
+      "rank": 2
+    },
+    {
+      "code": "600563",
+      "name": "法拉电子",
+      "price": 102.87,
+      "a_price_equivalent_cap_yi": 231.46,
+      "quote_timestamp": "20261028161241",
+      "pe_ttm_provider": "19.21",
+      "old_group": "C",
+      "status": "条件研究",
+      "hard_excluded": false,
+      "score": 74,
+      "score_components": [
+        21,
+        12,
+        18,
+        14,
+        9
+      ],
+      "opportunity": "薄膜电容认证壁垒、现金流扎实，主业价值可独立成立",
+      "risk": "现金转换和壁垒优于多数高PE概念股；19倍PE不过热，但H1扣非仅+3.06%，不能视作低价高增长AI标的",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-22/1225489178.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 27.636996478,
+        "net_profit_yi": 5.8213724011,
+        "core_profit_yi": 5.7263781203,
+        "cfo_yi": 8.2452935849,
+        "capex_yi": 2.9326310214,
+        "simplified_fcf_yi": 5.3127
+      },
+      "rank": 4
+    },
+    {
+      "code": "002851",
+      "name": "麦格米特",
+      "price": 89.16,
+      "a_price_equivalent_cap_yi": 521.6,
+      "quote_timestamp": "20261028161200",
+      "pe_ttm_provider": "232.61",
+      "old_group": "C",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "服务器电源生态及产品交付",
+      "risk": "521.6亿市值按25倍PE仍需20.86亿持续利润，按两年12%年化需26.17亿；对比H1扣非1.18亿/同比下降16.13%，不能以生态伙伴身份填补利润差额",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-28/1225522762.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 60.6100462208,
+        "net_profit_yi": 2.5207042676,
+        "core_profit_yi": 1.181914646,
+        "cfo_yi": 0.2954505208,
+        "capex_yi": null,
+        "simplified_fcf_yi": null
+      }
+    },
+    {
+      "code": "300870",
+      "name": "欧陆通",
+      "price": 113.61,
+      "a_price_equivalent_cap_yi": 173.42,
+      "quote_timestamp": "20261028161230",
+      "pe_ttm_provider": "671.66",
+      "old_group": "C",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "服务器电源规格与集中供电升级",
+      "risk": "前三季扣非亏损、Q3亦亏损，173.4亿市值在25倍PE下要求6.94亿持续利润/两年12%年化要求8.70亿，尚无足够利润转化证据",
+      "latest_period_used": "2026前三季",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-28/1225629124.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 38.8803638301,
+        "net_profit_yi": 0.0347191184,
+        "core_profit_yi": -0.0259135055,
+        "cfo_yi": 0.1338833786,
+        "capex_yi": null,
+        "simplified_fcf_yi": null
+      }
+    },
+    {
+      "code": "002364",
+      "name": "中恒电气",
+      "price": 25.61,
+      "a_price_equivalent_cap_yi": 144.33,
+      "quote_timestamp": "20261028161230",
+      "pe_ttm_provider": "106.84",
+      "old_group": "C",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "HVDC及数据中心供电产品",
+      "risk": "Q3扣非仅+0.83%，CFO-3.21亿；144.3亿市值以25倍PE需5.77亿持续利润/两年12%年化需7.24亿，远高于当前约1亿年化盈利能力",
+      "latest_period_used": "2026前三季",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-28/1225631721.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 18.4560688381,
+        "net_profit_yi": 0.8128249056,
+        "core_profit_yi": 0.7460341429,
+        "cfo_yi": -3.2136664848,
+        "capex_yi": null,
+        "simplified_fcf_yi": null
+      }
+    },
+    {
+      "code": "002138",
+      "name": "顺络电子",
+      "price": 42.06,
+      "a_price_equivalent_cap_yi": 339.14,
+      "quote_timestamp": "20261028161215",
+      "pe_ttm_provider": "34.53",
+      "old_group": "C",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 62,
+      "score_components": [
+        14,
+        14,
+        17,
+        10,
+        7
+      ],
+      "opportunity": "高端电感、磁性元件及AI配套",
+      "risk": "AI电感具方向性，但半年度扣非-6.21%，贵金属成本传导未验证；当前不能按铂科增速类推",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-07-31/1225448686.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 38.59,
+        "net_profit_yi": 4.47,
+        "core_profit_yi": 4.34,
+        "cfo_yi": 6.26,
+        "capex_yi": null,
+        "simplified_fcf_yi": null
+      },
+      "rank": 17
+    },
+    {
+      "code": "002335",
+      "name": "科华数据",
+      "price": 25.0,
+      "a_price_equivalent_cap_yi": 188.97,
+      "quote_timestamp": "20261028161200",
+      "pe_ttm_provider": "33.11",
+      "old_group": "C",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 59,
+      "score_components": [
+        16,
+        10,
+        15,
+        11,
+        7
+      ],
+      "opportunity": "电源、IDC及储能业务",
+      "risk": "处置收益抬升归母，IDC服务/硬件/储能应分别估值；数据中心行业毛利率-6.28个百分点，尚缺高增长利润证据",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-28/1225522569.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 38.84,
+        "net_profit_yi": 3.962065194,
+        "core_profit_yi": 2.4235414305,
+        "cfo_yi": 6.2597943354,
+        "capex_yi": null,
+        "simplified_fcf_yi": null
+      },
+      "rank": 22
+    },
+    {
+      "code": "002922",
+      "name": "伊戈尔",
+      "price": 18.98,
+      "a_price_equivalent_cap_yi": 80.21,
+      "quote_timestamp": "20261028161233",
+      "pe_ttm_provider": "38.66",
+      "old_group": "C",
+      "status": "暂不纳入",
+      "hard_excluded": false,
+      "score": 50,
+      "score_components": [
+        13,
+        11,
+        13,
+        6,
+        7
+      ],
+      "opportunity": "变压器与磁性器件，SST产品储备",
+      "risk": "SST产品发布尚未转为可识别规模订单；H1扣非仅+3.13%、现金流略负，不给予2027大幅跳升的估值溢价",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-21/1225487742.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 26.84,
+        "net_profit_yi": 1.12,
+        "core_profit_yi": 0.987133,
+        "cfo_yi": -0.228,
+        "capex_yi": null,
+        "simplified_fcf_yi": null
+      },
+      "rank": 31
+    },
+    {
+      "code": "603989",
+      "name": "艾华集团",
+      "price": 21.78,
+      "a_price_equivalent_cap_yi": 86.85,
+      "quote_timestamp": "20261028161239",
+      "pe_ttm_provider": "29.96",
+      "old_group": "C",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 58,
+      "score_components": [
+        17,
+        12,
+        14,
+        8,
+        7
+      ],
+      "opportunity": "服务器电源电容及固液混合产品",
+      "risk": "有真实服务器电源用电容业务，估值非极端，但现金转换较弱、AI利润份额不足以支撑快速增长判断",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-29/1225525330.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 22.7,
+        "net_profit_yi": 1.6972750324,
+        "core_profit_yi": 1.5424492034,
+        "cfo_yi": 0.3690815151,
+        "capex_yi": null,
+        "simplified_fcf_yi": null
+      },
+      "rank": 23
+    },
+    {
+      "code": "002318",
+      "name": "久立特材",
+      "price": 16.12,
+      "a_price_equivalent_cap_yi": 157.52,
+      "quote_timestamp": "20261028161200",
+      "pe_ttm_provider": "22.47",
+      "old_group": "C",
+      "status": "暂不纳入",
+      "hard_excluded": false,
+      "score": 42,
+      "score_components": [
+        11,
+        7,
+        14,
+        3,
+        7
+      ],
+      "opportunity": "特种管材、核能长期需求",
+      "risk": "扣非下降83.46%、CFO负，归母含股权处置收益；远期核聚变不弥补当前盈利恶化，行业复苏需另证",
+      "latest_period_used": "2026前三季",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-27/1225622125.PDF"
+      ],
+      "sector_group": "供电与元件",
+      "facts": {
+        "revenue_yi": 60.8927930935,
+        "net_profit_yi": 4.5337108426,
+        "core_profit_yi": 1.9793815187,
+        "cfo_yi": -1.8133983517,
+        "capex_yi": null,
+        "simplified_fcf_yi": null
+      },
+      "rank": 33
+    },
+    {
+      "code": "688008",
+      "name": "澜起科技",
+      "price": 174.7,
+      "a_price_equivalent_cap_yi": 2132.28,
+      "quote_timestamp": "20261028161228",
+      "pe_ttm_provider": "69.37",
+      "old_group": "A",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 64,
+      "score_components": [
+        8,
+        21,
+        19,
+        8,
+        8
+      ],
+      "opportunity": "DDR5迭代、MRDIMM和Retimer等互连新品",
+      "risk": "归母含较多投资等收益；经营估值高，路线与新品渗透不确定",
+      "latest_period_used": "2026H1正式+2026Q3预告",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-29/1225530486.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-10-21/1225612915.PDF"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {
+        "revenue_h1_yi": 33.354975,
+        "profit_h1_yi": 19.973745,
+        "core_profit_h1_yi": 13.224785,
+        "ocf_h1_yi": 13.28028,
+        "capex_h1_yi": 2.552935,
+        "core_profit_q3_forecast_yi": [
+          9.5,
+          10.5
+        ],
+        "revenue_q3_forecast_yi": 20.79
+      },
+      "rank": 14
+    },
+    {
+      "code": "300604",
+      "name": "长川科技",
+      "price": 190.71,
+      "a_price_equivalent_cap_yi": 1237.58,
+      "quote_timestamp": "20261028161200",
+      "pe_ttm_provider": "55.48",
+      "old_group": "A",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 64,
+      "score_components": [
+        8,
+        22,
+        17,
+        8,
+        9
+      ],
+      "opportunity": "国内测试设备替代、SoC及存储测试升级",
+      "risk": "存货及应收增长、验收周期；现金转换和设备资本开支周期",
+      "latest_period_used": "2026Q1-3正式",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-27/1225627248.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-28/1225523202.PDF"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {
+        "revenue_9m_yi": 59.42232,
+        "profit_9m_yi": 17.647262,
+        "core_profit_9m_yi": 17.168274,
+        "core_profit_q3_yi": 7.949172,
+        "ocf_9m_yi": 10.386924,
+        "capex_9m_yi": 5.260429,
+        "inventory_yi": 61.796104,
+        "receivables_yi": 27.007094,
+        "contract_liabilities_yi": 1.798568,
+        "financing_equity_cash_9m_yi": 32.977951
+      },
+      "rank": 13
+    },
+    {
+      "code": "688123",
+      "name": "聚辰股份",
+      "price": 117.15,
+      "a_price_equivalent_cap_yi": 186.23,
+      "quote_timestamp": "20261028161236",
+      "pe_ttm_provider": "35.16",
+      "old_group": "A",
+      "status": "条件研究",
+      "hard_excluded": false,
+      "score": 66,
+      "score_components": [
+        14,
+        18,
+        16,
+        10,
+        8
+      ],
+      "opportunity": "SOCAMM等新模组SPD及高可靠EEPROM",
+      "risk": "前三季扣非下降，投资损益扭曲PE；SPD单价与用量约束",
+      "latest_period_used": "2026Q1-3正式",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-24/1225620951.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-15/1225475815.PDF"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {
+        "revenue_9m_yi": 10.526203,
+        "profit_9m_yi": 4.859776,
+        "core_profit_9m_yi": 2.338041,
+        "profit_q3_yi": -0.393565,
+        "core_profit_q3_yi": 1.403329,
+        "nonrecurring_9m_yi": 2.521736,
+        "ocf_9m_yi": 1.293499,
+        "capex_9m_yi": 0.483871,
+        "inventory_yi": 3.730933,
+        "receivables_yi": 1.999484
+      },
+      "rank": 12
+    },
+    {
+      "code": "688041",
+      "name": "海光信息",
+      "price": 192.7,
+      "a_price_equivalent_cap_yi": 4479.0,
+      "quote_timestamp": "20261028161237",
+      "pe_ttm_provider": "130.58",
+      "old_group": "C",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "国产CPU/DCU需求",
+      "risk": "2026Q1-3扣非25.84亿、经营现金-24.43亿；A价等价市值4479亿。即使用35倍退出PE，两年12%回报需要2028利润160.53亿，是前三季年化扣非的4.66倍；CPU/DCU未拆分且现金占用高。不能用Agent需求直接填补利润缺口。",
+      "latest_period_used": "详见对应公告及底稿；H1/Q3/预告分列",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-20/1225611145.PDF"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {}
+    },
+    {
+      "code": "688498",
+      "name": "源杰科技",
+      "price": 840.0,
+      "a_price_equivalent_cap_yi": 1045.8,
+      "quote_timestamp": "20261028161229",
+      "pe_ttm_provider": "139.12",
+      "old_group": "C",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "光互连激光器与CW光源放量",
+      "risk": "Q3预告扣非4.0—4.5亿，按这一高景气季度年化16—18亿仍约58—65倍。35倍退出PE、两年12%需要2028扣非37.48亿，是Q3年化2.08—2.34倍；还需产能、良率、光源路线和毛利均兑现。排除是严格安全边际筛选，不断言技术或增长为假。 本轮检得10月13日预告、10月23日经营公告均仍为预计数；未取得正式Q3；第三方日历预约10月31日，不能据此断言届时前一定没有新披露。",
+      "latest_period_used": "详见对应公告及底稿；H1/Q3/预告分列",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-13/1225602284.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-10-23/1225617693.PDF",
+        "https://basic.10jqka.com.cn/144/688498/event.html"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {}
+    },
+    {
+      "code": "300394",
+      "name": "天孚通信",
+      "price": 201.43,
+      "a_price_equivalent_cap_yi": 2197.25,
+      "quote_timestamp": "20261028161200",
+      "pe_ttm_provider": "94.61",
+      "old_group": "C",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "光器件与光引擎规模升级",
+      "risk": "H1扣非11.86亿、现金10.01亿，经营优质；2197.25亿市值相当于H1扣非简单年化92.6倍。35倍退出PE、两年12%要求2028利润78.75亿，较H1年化3.32倍；现有证据不足支撑同时高增与高估值。本轮检得并复核的最新正式财报为H1，公司官网当时列H1；东方财富预约日历显示Q3预约10月29日。预约不是实际披露，不能排除报告抓取后更新。",
+      "latest_period_used": "详见对应公告及底稿；H1/Q3/预告分列",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-19/1225480327.PDF",
+        "https://data.eastmoney.com/stockcalendar/300394.html"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {}
+    },
+    {
+      "code": "688627",
+      "name": "精智达",
+      "price": 275.0,
+      "a_price_equivalent_cap_yi": 279.8,
+      "quote_timestamp": "20261028161221",
+      "pe_ttm_provider": "334.11",
+      "old_group": "C",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "存储测试国产化和显示检测",
+      "risk": "H1扣非0.445亿、经营现金-3.50亿；279.8亿市值/半年年化扣非314倍。35倍退出PE、两年12%要求2028利润10.03亿，约H1年化11.27倍；算力测试仍研发、显示/存储业务混合，新定增不等于经营回款。 本轮检得并复核的最新正式财报为H1；同花顺、东方财富显示Q3预约10月29日。预约不是实际披露，不能排除抓取后更新。",
+      "latest_period_used": "详见对应公告及底稿；H1/Q3/预告分列",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-19/1225480779.PDF",
+        "https://basic.10jqka.com.cn/688627/event.html"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {}
+    },
+    {
+      "code": "301308",
+      "name": "江波龙",
+      "price": 239.2,
+      "a_price_equivalent_cap_yi": 1099.5,
+      "quote_timestamp": "20261028161212",
+      "pe_ttm_provider": "9.17",
+      "old_group": "C",
+      "status": "暂不纳入",
+      "hard_excluded": false,
+      "score": 53,
+      "score_components": [
+        14,
+        15,
+        13,
+        5,
+        6
+      ],
+      "opportunity": "企业级存储增长与存储主业弹性",
+      "risk": "原PDF单位已复核：H1收入240.88亿、扣非100.47亿确是亿元；经营现金-31.51亿，企业级收入21.4亿仅占8.88%。前三季预告扣非138—148亿，公司明确涨价盈利边际趋缓。当前1099.5亿市值按20倍、两年12%需要2028正常利润68.96亿；若约400亿收入基数，要求17.2%可持续净利率。无法把目前周期超额毛利永久化，因此不是极端泡沫结论而是现金与正常利润待核实。",
+      "latest_period_used": "详见对应公告及底稿；H1/Q3/预告分列",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-11/1225467150.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-10-15/1225607002.PDF"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {},
+      "rank": 28
+    },
+    {
+      "code": "002156",
+      "name": "通富微电",
+      "price": 45.24,
+      "a_price_equivalent_cap_yi": 721.03,
+      "quote_timestamp": "20261028161215",
+      "pe_ttm_provider": "28.57",
+      "old_group": "C",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 56,
+      "score_components": [
+        10,
+        17,
+        16,
+        6,
+        7
+      ],
+      "opportunity": "HPC及AMD生态封测",
+      "risk": "H1归母17.17亿但扣非7.47亿，非经常接近一半。经营现金29.33亿、购建长期资产51.99亿，简化FCF-22.66亿。按H1扣非年化约48.3倍；28倍退出PE、两年12%要求2028正常利润32.30亿，约年化2.16倍。HPC/AMD客户机会真实但需JV归属和折旧/资本回报兑现。未检得截至时点正式Q3，维持H1。",
+      "latest_period_used": "详见对应公告及底稿；H1/Q3/预告分列",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-29/1225527099.PDF"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {},
+      "rank": 25
+    },
+    {
+      "code": "600584",
+      "name": "长电科技",
+      "price": 55.41,
+      "a_price_equivalent_cap_yi": 991.51,
+      "quote_timestamp": "20261028161236",
+      "pe_ttm_provider": "44.49",
+      "old_group": "C",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 57,
+      "score_components": [
+        11,
+        17,
+        17,
+        5,
+        7
+      ],
+      "opportunity": "先进封装与异构集成",
+      "risk": "Q1-3扣非15.61亿、经营现金43.00亿、购建长期资产88.91亿，简化FCF-45.91亿。当前市值约47.6倍前三季扣非年化；28倍退出PE、两年12%要求2028正常利润44.42亿，约前三季年化2.13倍。先进封装真增长，但现金投资、折旧、利用率和新平台导入约束显著。",
+      "latest_period_used": "详见对应公告及底稿；H1/Q3/预告分列",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-23/1225617213.PDF"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {},
+      "rank": 24
+    },
+    {
+      "code": "300408",
+      "name": "三环集团",
+      "price": 87.0,
+      "a_price_equivalent_cap_yi": 1737.15,
+      "quote_timestamp": "20261028161230",
+      "pe_ttm_provider": "52.43",
+      "old_group": "C",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 61,
+      "score_components": [
+        11,
+        18,
+        18,
+        8,
+        6
+      ],
+      "opportunity": "MLCC及光通信陶瓷工艺平台",
+      "risk": "H1扣非18.09亿、经营现金12.97亿、购建长期资产4.76亿，简化FCF8.21亿。H股已发行且挂牌，非仅申请：7月9日首发7136.43万股，8月部分超配885.69万股，合计8022.12万股；A+H总股本19.96718571亿，需用A价等价口径，现1737.15亿约48倍H1扣非年化。28倍退出PE、两年12%需2028正常利润77.82亿，为H1年化2.15倍。MLCC与光通信增长和材料工艺壁垒真实，但涨价/结构/AI份额未拆、回报要求偏高。",
+      "latest_period_used": "详见对应公告及底稿；H1/Q3/预告分列",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-28/1225516992.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-07-09/1225417597.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-06/1225461867.PDF"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {},
+      "rank": 20
+    },
+    {
+      "code": "000636",
+      "name": "风华高科",
+      "price": 36.9,
+      "a_price_equivalent_cap_yi": 423.42,
+      "quote_timestamp": "20261028161151",
+      "pe_ttm_provider": "60.78",
+      "old_group": "C",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 55,
+      "score_components": [
+        11,
+        16,
+        13,
+        9,
+        6
+      ],
+      "opportunity": "高端MLCC与被动元件结构改善",
+      "risk": "Q1-3扣非6.365亿、经营现金6.229亿；Q3扣非3.489亿已显著加速，不能只写AI占比低就剔除。当前423.42亿市值约30.3倍Q3简单年化，25倍退出PE、两年12%需2028正常利润21.25亿（Q3年化1.52倍）。相比海光/精智达远非同级泡沫；但价格修复、正常毛利及高端AI占比不清，不直接入优先。",
+      "latest_period_used": "详见对应公告及底稿；H1/Q3/预告分列",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-24/1225621037.PDF"
+      ],
+      "sector_group": "芯片与封测",
+      "facts": {},
+      "rank": 27
+    },
+    {
+      "code": "002463",
+      "name": "沪电股份",
+      "price": 104.57,
+      "a_price_equivalent_cap_yi": 2016.69,
+      "quote_timestamp": "20261028161154",
+      "pe_ttm_provider": "29.98",
+      "old_group": "A",
+      "status": "优先研究",
+      "hard_excluded": false,
+      "score": 80,
+      "score_components": [
+        23,
+        23,
+        18,
+        7,
+        9
+      ],
+      "opportunity": "高速交换机、AI服务器、高性能计算需求与产品升级有正式利润支持；泰国从爬坡进入规模化并扭亏，新增合格产能有望贡献2027-28；当前价格约为前三季扣非简单年化27.6倍，优于材料泡沫组",
+      "risk": "Q3扣非净利率28.1%不可永久外推；下游AI资本开支与大客户集中；应收较年初+75.2%，存货+68.1%；现金盈利转换落后；泰国及新产线良率、折旧、原材料与海外合规",
+      "latest_period_used": "2026Q1-3正式报表",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-28/1225627804.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-26/1225502252.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 232.2544,
+        "attributable_profit_yi": 56.2194,
+        "deducted_profit_yi": 54.7419,
+        "q3_deducted_profit_yi": 26.7966,
+        "ocf_yi": 27.0385,
+        "capex_cash_yi": 52.77,
+        "simple_fcf_yi": -25.7315,
+        "receivables_yi": 96.497,
+        "inventory_yi": 71.3892,
+        "ocf_to_attributable_profit_pct": 48.1,
+        "deducted_profit_simple_annual_yi": 72.9892
+      },
+      "rank": 1
+    },
+    {
+      "code": "601138",
+      "name": "工业富联",
+      "price": 48.64,
+      "a_price_equivalent_cap_yi": 9652.17,
+      "quote_timestamp": "20261028161216",
+      "pe_ttm_provider": "20.57",
+      "old_group": "A",
+      "status": "条件研究",
+      "hard_excluded": false,
+      "score": 73,
+      "score_components": [
+        20,
+        22,
+        18,
+        5,
+        8
+      ],
+      "opportunity": "云计算H1收入+75.7%，云服务商AI服务器收入增长2.3倍；GPU/ASIC多路线覆盖；机柜交付、散热/电源集成和高速网络提高价值量；新价格对H1扣非简单年化约21倍，尚非极度泡沫；主要风险是盈利质量而非题材真实性",
+      "risk": "高收入低利润率：H1扣非归母率约4.12%；0.5个百分点毛利变化在年收入1.6万亿时约影响税前80亿元；存货1921亿；现金净利比31%，增长大量占用供应链资金；10月12日337调查：Vicor垂直供电专利，涉及FII及鸿佰等；公司称当前涉案产品仅内部验证、目前无实质影响，未来裁决未知；不能把鸿海集团所有AI产能、订单和利润归入A股上市主体",
+      "latest_period_used": "2026H1正式报表；单位由千元换算亿元",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-12/1225468066.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-10-12/1225600466.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026H1正式报表；单位由千元换算亿元",
+        "revenue_yi": 5578.6065,
+        "attributable_profit_yi": 237.4046,
+        "deducted_profit_yi": 229.8412,
+        "ocf_yi": 73.9146,
+        "capex_cash_yi": 90.9188,
+        "simple_fcf_yi": -17.0042,
+        "receivables_yi": 1275.2246,
+        "inventory_yi": 1921.0912,
+        "ocf_to_attributable_profit_pct": 31.1,
+        "deducted_profit_simple_annual_yi": 459.6825,
+        "latest_q3_status": "截至10月28日未取得Q3正式报表；市场日历预约10月30日"
+      },
+      "final_score_adjustment": "分组初评75；综合复核因现金转换、337及基准门槛余量很薄，估值和现金各减1分，最终73",
+      "rank": 5
+    },
+    {
+      "code": "002916",
+      "name": "深南电路",
+      "price": 280.04,
+      "a_price_equivalent_cap_yi": 1907.45,
+      "quote_timestamp": "20261028161230",
+      "pe_ttm_provider": "37.55",
+      "old_group": "B",
+      "status": "条件研究",
+      "hard_excluded": false,
+      "score": 68,
+      "score_components": [
+        17,
+        20,
+        17,
+        5,
+        9
+      ],
+      "opportunity": "Q3扣非同比+102.78%，业务订单与结构提升有正式报表支持；无锡等新产能与封装基板升级提供增量",
+      "risk": "PCB与封装基板利润来源、客户利用率不同，不可全部作为AI PCB收入；扩产Capex76.13亿远超经营现金19.59亿；折旧回报和融资稀释；拟定增48.82亿并非已发生稀释，发行价及最终股数未知；增加5%股本可把基准年化回报压至约10%",
+      "latest_period_used": "2026Q1-3正式报表",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-23/1225616402.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 257.7387,
+        "attributable_profit_yi": 41.2918,
+        "deducted_profit_yi": 40.9766,
+        "q3_deducted_profit_yi": 18.5849,
+        "ocf_yi": 19.5873,
+        "capex_cash_yi": 76.1298,
+        "simple_fcf_yi": -56.5425,
+        "deducted_profit_simple_annual_yi": 54.6355,
+        "ocf_to_attributable_profit_pct": 47.4,
+        "proposed_placement_yi": 48.8197
+      },
+      "rank": 8
+    },
+    {
+      "code": "688183",
+      "name": "生益电子",
+      "price": 80.7,
+      "a_price_equivalent_cap_yi": 694.23,
+      "quote_timestamp": "20261028161235",
+      "pe_ttm_provider": "33.81",
+      "old_group": "B",
+      "status": "条件研究",
+      "hard_excluded": false,
+      "score": 67,
+      "score_components": [
+        18,
+        20,
+        16,
+        7,
+        6
+      ],
+      "opportunity": "中高端PCB产品结构及新产能释放，H1扣非增长110.29%；前9月扣非预告18.65—19.48亿相较H1单独判断已抬高盈利基准；当前年化约26.7—27.9倍",
+      "risk": "前三季利润仍是预告，不能假定同时证明现金流；H1应收37.25亿、存货22.90亿，扩产与营运资金占用；生益科技为控股股东，两者持仓会重叠同一经营风险；建组合不可按独立产业敞口相加",
+      "latest_period_used": "2026H1正式+前三季预告",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-15/1225474834.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-10-17/1225608856.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026H1正式+前三季预告",
+        "h1_revenue_yi": 57.8354,
+        "h1_attributable_profit_yi": 11.1071,
+        "h1_deducted_profit_yi": 11.1063,
+        "h1_ocf_yi": 9.1744,
+        "h1_capex_cash_yi": 12.6815,
+        "q1_q3_attributable_profit_range_yi": [
+          18.686,
+          19.517
+        ],
+        "q1_q3_deducted_profit_range_yi": [
+          18.649,
+          19.479
+        ],
+        "deducted_profit_simple_annual_range_yi": [
+          24.8653,
+          25.972
+        ],
+        "implied_q3_deducted_profit_range_yi": [
+          7.5427,
+          8.3727
+        ],
+        "latest_q3_status": "预告，正式报告预约10月30日；Q3现金流未得"
+      },
+      "rank": 10
+    },
+    {
+      "code": "600183",
+      "name": "生益科技",
+      "price": 102.49,
+      "a_price_equivalent_cap_yi": 2489.49,
+      "quote_timestamp": "20261028161240",
+      "pe_ttm_provider": "47.93",
+      "old_group": "C",
+      "status": "条件研究",
+      "hard_excluded": false,
+      "score": 68,
+      "score_components": [
+        17,
+        20,
+        17,
+        8,
+        6
+      ],
+      "opportunity": "已取得新版预告，原交接仅H1、继续按47.9倍接口PE判泡沫失准；Q3扣非隐含32.12—36.22亿，较H1平均单季显著提升；覆铜板材料体系、客户认证和高等级升级为长期壁垒",
+      "risk": "高端CCL升级与普通品涨价叠加，需将可持续结构利润与周期分开；前三季扣非预告仍未含对应完整资产现金数据；集团合并包含生益电子，不能给母公司集团利润后再重复加子公司全部价值",
+      "latest_period_used": "2026H1正式+2026-10-17前三季预告",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-15/1225475783.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-10-17/1225608514.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026H1正式+2026-10-17前三季预告",
+        "h1_revenue_yi": 190.2561,
+        "h1_attributable_profit_yi": 32.8698,
+        "h1_deducted_profit_yi": 29.077,
+        "h1_ocf_yi": 29.8321,
+        "h1_capex_cash_yi": 18.8464,
+        "h1_simple_fcf_yi": 10.9857,
+        "q1_q3_attributable_profit_range_yi": [
+          64.6,
+          68.7
+        ],
+        "q1_q3_deducted_profit_range_yi": [
+          61.2,
+          65.3
+        ],
+        "deducted_profit_simple_annual_range_yi": [
+          81.6,
+          87.0667
+        ],
+        "pe_deducted_simple_annual_range": [
+          28.59,
+          30.51
+        ],
+        "implied_q3_deducted_profit_range_yi": [
+          32.123,
+          36.223
+        ],
+        "latest_q3_status": "正式Q3预约10月30日，本次使用预告"
+      },
+      "rank": 9
+    },
+    {
+      "code": "688519",
+      "name": "南亚新材",
+      "price": 228.63,
+      "a_price_equivalent_cap_yi": 545.07,
+      "quote_timestamp": "20261028161227",
+      "pe_ttm_provider": "35.55",
+      "old_group": "B",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 61,
+      "score_components": [
+        18,
+        19,
+        14,
+        3,
+        7
+      ],
+      "opportunity": "M6—M8已有批供且正式利润快速提升，不能仅因一年涨186%硬剔除；Q3年化39.39亿若可持续，当前仅13.8倍；但前三季平均年化19.17亿对应28.4倍，差异足以决定投资结论；可以作为小规模证据观察对象，现金确认比继续讲M9更关键",
+      "risk": "Q3归母率27.96%、扣非约27.82%，远高于H1；年化易把价格周期误作长期平台；负经营现金；应收43.41亿为前三季收入55.9%，较年初24.66亿增长76.0%；M9导入不等于M9已全面量产，售价与高端份额竞争",
+      "latest_period_used": "2026Q1-3正式报表",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-28/1225630419.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 77.6361,
+        "attributable_profit_yi": 14.509,
+        "deducted_profit_yi": 14.3774,
+        "q3_revenue_yi": 35.3996,
+        "q3_deducted_profit_yi": 9.8482,
+        "ocf_yi": -1.0029,
+        "capex_cash_yi": 4.6265,
+        "simple_fcf_yi": -5.6293,
+        "receivables_yi": 43.4124,
+        "inventory_yi": 14.0459,
+        "deducted_profit_simple_annual_yi": 19.1699,
+        "q3_deducted_profit_times_four_yi": 39.3929
+      },
+      "rank": 21
+    },
+    {
+      "code": "300476",
+      "name": "胜宏科技",
+      "price": 180.31,
+      "a_price_equivalent_cap_yi": 1772.06,
+      "quote_timestamp": "20261028161233",
+      "pe_ttm_provider": "35.26",
+      "old_group": "B",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 63,
+      "score_components": [
+        15,
+        18,
+        18,
+        6,
+        6
+      ],
+      "opportunity": "高阶HDI及客户工艺储备具备较强竞争力；现金盈利转换在PCB组较好，H1 OCF/扣非约120.4%；股价大跌已降低泡沫但A价等价估值/扣非H1简单年化仍36.6倍，须等新的利润证据",
+      "risk": "扣非增长仅12.5%低于归母33.3%；归母含金融资产收益；H1Capex70.76亿，经营现金29.11亿；扩产回报未完全兑现；H股发行已发生，应用总股本分摊全公司盈利，不能继续用旧A股股本；既有HDI量产和未来70层以上、COWOP研发不能混算成当前订单",
+      "latest_period_used": "2026H1正式报表；A+H总股本9.82784813亿股",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-28/1225522515.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026H1正式报表；A+H总股本9.82784813亿股",
+        "revenue_yi": 116.2937,
+        "attributable_profit_yi": 28.5678,
+        "deducted_profit_yi": 24.178,
+        "deducted_profit_yoy_pct": 12.5,
+        "non_recurring_yi": 4.3898,
+        "financial_fv_disposal_gain_yi": 5.8786,
+        "ocf_yi": 29.1118,
+        "capex_cash_yi": 70.7606,
+        "simple_fcf_yi": -41.6489,
+        "receivables_yi": 69.83,
+        "inventory_yi": 58.8964,
+        "deducted_profit_simple_annual_yi": 48.356,
+        "a_h_total_shares": 982784813,
+        "latest_q3_status": "Q3董事会10月29日、A股预约披露10月30日，尚未有正式Q3"
+      },
+      "rank": 16
+    },
+    {
+      "code": "601208",
+      "name": "东材科技",
+      "price": 37.59,
+      "a_price_equivalent_cap_yi": 379.73,
+      "quote_timestamp": "20261028161237",
+      "pe_ttm_provider": "85.17",
+      "old_group": "B",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "高速树脂已具有销售，不是纯概念；剔除由当前价格约束",
+      "risk": "379.73亿估值在25倍退出时需要2028正常利润19.05亿才有两年12%回报，约为Q3年化4.96亿的3.84倍；高端树脂真实增长但只有集团部分收入，现金转换弱；归母与扣非差0.96亿，含股权处置等；不能按归母全部资本化",
+      "latest_period_used": "2026Q1-3正式报表",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-28/1225629186.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 47.9042,
+        "attributable_profit_yi": 4.4335,
+        "deducted_profit_yi": 3.4765,
+        "q3_deducted_profit_yi": 1.2399,
+        "ocf_yi": 0.2641,
+        "high_speed_resin_revenue_yi": 8.83,
+        "high_speed_resin_revenue_yoy_pct": 126.97,
+        "deducted_profit_simple_annual_yi": 4.6353
+      }
+    },
+    {
+      "code": "603256",
+      "name": "宏和科技",
+      "price": 86.73,
+      "a_price_equivalent_cap_yi": 784.55,
+      "quote_timestamp": "20261028161239",
+      "pe_ttm_provider": "97.27",
+      "old_group": "B",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "特种玻纤布确实批供、现金质量优于铜箔，但好产品不抵消高预付价格",
+      "risk": "784.55亿在30倍退出仍需2028利润32.81亿才有两年12%，较Q3年化15.09亿还需2.17倍；Q3扣非/收入约40.7%，再靠净利率扩张空间受限；普通电子布价格修复和特种布溢价同时存在；当前利润不可全部按永久壁垒定价",
+      "latest_period_used": "2026Q1-3正式报表",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-23/1225616229.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 19.747,
+        "attributable_profit_yi": 7.435,
+        "deducted_profit_yi": 7.499,
+        "q3_deducted_profit_yi": 3.772,
+        "ocf_yi": 6.4453,
+        "deducted_profit_simple_annual_yi": 9.9987
+      }
+    },
+    {
+      "code": "301511",
+      "name": "德福科技",
+      "price": 63.48,
+      "a_price_equivalent_cap_yi": 400.13,
+      "quote_timestamp": "20261028161230",
+      "pe_ttm_provider": "77.96",
+      "old_group": "B",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "HVLP认证和高端产品已批供，有行业成长但当前安全边际不足",
+      "risk": "400.13亿在25倍退出时2028需20.08亿利润才有两年12%，为Q3年化7.57亿2.65倍；负现金10.22亿，铜价传导放大收入与营运资本；高加工费可能被扩产压缩；不能把5万吨规划全部计入高等级满产订单",
+      "latest_period_used": "2026Q1-3正式报表",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-27/1225622911.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 145.8313,
+        "attributable_profit_yi": 4.6733,
+        "deducted_profit_yi": 4.2537,
+        "q3_deducted_profit_yi": 1.8936,
+        "ocf_yi": -10.2245,
+        "deducted_profit_simple_annual_yi": 5.6716
+      }
+    },
+    {
+      "code": "301217",
+      "name": "铜冠铜箔",
+      "price": 77.92,
+      "a_price_equivalent_cap_yi": 645.97,
+      "quote_timestamp": "20261028161230",
+      "pe_ttm_provider": "190.85",
+      "old_group": "B",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "HVLP批供真实，增长仍不足以支撑当前定价",
+      "risk": "645.97亿在25倍退出时2028需32.41亿利润才有两年12%，为Q3年化4.81亿6.74倍；TTM约191倍，且使用最新单季年化仍约134倍；技改1.54亿是资本开支、周期约12个月，不是订单或净利润；存在存量产能转换",
+      "latest_period_used": "2026Q1-3正式报表",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-28/1225628605.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026Q1-3正式报表",
+        "revenue_yi": 65.3318,
+        "attributable_profit_yi": 3.3855,
+        "deducted_profit_yi": 3.2759,
+        "q3_deducted_profit_yi": 1.2027,
+        "ocf_yi": -0.8917,
+        "deducted_profit_simple_annual_yi": 4.3679
+      }
+    },
+    {
+      "code": "002741",
+      "name": "光华科技",
+      "price": 20.25,
+      "a_price_equivalent_cap_yi": 94.89,
+      "quote_timestamp": "20261028161215",
+      "pe_ttm_provider": "66.76",
+      "old_group": "C",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "PCB化学品客户和需求真实，但收益未按收入同步体现",
+      "risk": "94.89亿在25倍退出需2028利润4.76亿才有两年12%，约前三季简单年化1.65亿的2.88倍；Q3扣非同比下降、经营现金为负，既有化学品毛利低；固态材料规模订单未核实，不能用另一概念填估值缺口",
+      "latest_period_used": "2026Q1-3正式报表；财务数沿已核对公告",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-15/1225604517.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026Q1-3正式报表；财务数沿已核对公告",
+        "deducted_profit_yi": 1.24,
+        "q3_deducted_profit_yoy_pct": -3.7,
+        "ocf_yi": -3.24,
+        "deducted_profit_simple_annual_yi": 1.6533
+      }
+    },
+    {
+      "code": "605589",
+      "name": "圣泉集团",
+      "price": 29.57,
+      "a_price_equivalent_cap_yi": 250.28,
+      "quote_timestamp": "20261028161227",
+      "pe_ttm_provider": "26.26",
+      "old_group": "C",
+      "status": "暂不纳入",
+      "hard_excluded": false,
+      "score": 53,
+      "score_components": [
+        17,
+        12,
+        13,
+        4,
+        7
+      ],
+      "opportunity": "树脂业务真实、26倍TTM并不构成极端泡沫；可留做后续经营改善对象",
+      "risk": "电子和电池材料为混合板块，无法把集团盈利重新解释为AI高增；H1扣非下降且现金为负，尚不能支撑新一轮高增长；不能断言整个公司没有投资价值；本报告尚未证实足够回报空间",
+      "latest_period_used": "2026H1正式报表",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-15/1225475121.PDF"
+      ],
+      "sector_group": "PCB与服务器",
+      "facts": {
+        "period": "2026H1正式报表",
+        "deducted_profit_yi": 4.46,
+        "deducted_profit_yoy_pct": -7.35,
+        "ocf_yi": -9.75,
+        "advanced_electronic_battery_materials_revenue_yi": 10.39,
+        "deducted_profit_simple_annual_yi": 8.92,
+        "latest_q3_status": "Q3预约10月30日，未取得正式"
+      },
+      "rank": 29
+    },
+    {
+      "code": "300073",
+      "name": "当升科技",
+      "price": 33.64,
+      "a_price_equivalent_cap_yi": 183.1,
+      "quote_timestamp": "20261028161224",
+      "pe_ttm_provider": "23.70",
+      "old_group": "B",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 62,
+      "score_components": [
+        20,
+        16,
+        15,
+        4,
+        7
+      ],
+      "opportunity": "固态正极已有分阶段供货，成熟正极客户与新增技术升级",
+      "risk": "Q3利润承压；扩产和应收存货占款，不能把收入随原料涨价当净利增长",
+      "latest_period_used": "2026Q1-3",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-27/1225624902.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-26/1225502782.PDF"
+      ],
+      "sector_group": "电池材料",
+      "facts": {
+        "period": "2026Q1-3",
+        "revenue_yi": 174.5483,
+        "core_profit_yi": 5.84904,
+        "core_profit_q3_yi": 1.21725,
+        "ocf_yi": -1.49803,
+        "capex_yi": 28.8746,
+        "opportunity": "固态正极已有分阶段供货，成熟正极客户与新增技术升级",
+        "risk": "Q3利润承压；扩产和应收存货占款，不能把收入随原料涨价当净利增长"
+      },
+      "rank": 18
+    },
+    {
+      "code": "688116",
+      "name": "天奈科技",
+      "price": 32.97,
+      "a_price_equivalent_cap_yi": 120.85,
+      "quote_timestamp": "20261028161228",
+      "pe_ttm_provider": "46.99",
+      "old_group": "B",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 62,
+      "score_components": [
+        15,
+        18,
+        16,
+        6,
+        7
+      ],
+      "opportunity": "单壁导电材料在快充、硅负极等路线渗透",
+      "risk": "现价仍需高增长；一般单壁量产不等于全固态专用放量；现金弱",
+      "latest_period_used": "2026Q1-3",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-27/1225625740.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-25/1225495086.PDF"
+      ],
+      "sector_group": "电池材料",
+      "facts": {
+        "period": "2026Q1-3",
+        "revenue_yi": 12.2207,
+        "core_profit_yi": 2.04327,
+        "core_profit_q3_yi": 0.84179,
+        "ocf_yi": 0.92502,
+        "capex_yi": 1.89813,
+        "opportunity": "单壁导电材料在快充、硅负极等路线渗透",
+        "risk": "现价仍需高增长；一般单壁量产不等于全固态专用放量；现金弱"
+      },
+      "rank": 19
+    },
+    {
+      "code": "300587",
+      "name": "天铁科技",
+      "price": 3.84,
+      "a_price_equivalent_cap_yi": 49.85,
+      "quote_timestamp": "20261028161227",
+      "pe_ttm_provider": "-42.34",
+      "old_group": "C",
+      "status": "暂不纳入",
+      "hard_excluded": false,
+      "score": 33,
+      "score_components": [
+        10,
+        8,
+        8,
+        3,
+        4
+      ],
+      "opportunity": "金属锂能力及原有减振业务",
+      "risk": "缺全固态合格供货与新增经营利润证据；2025经营亏损",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-29/1225527045.PDF"
+      ],
+      "sector_group": "电池材料",
+      "facts": {
+        "period": "2026H1",
+        "revenue_yi": 10.07,
+        "core_profit_yi": 0.277,
+        "opportunity": "金属锂能力及原有减振业务",
+        "risk": "缺全固态合格供货与新增经营利润证据；2025经营亏损"
+      },
+      "rank": 35
+    },
+    {
+      "code": "603663",
+      "name": "三祥新材",
+      "price": 33.33,
+      "a_price_equivalent_cap_yi": 197.84,
+      "quote_timestamp": "20261028161228",
+      "pe_ttm_provider": "132.20",
+      "old_group": "C",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "核级海绵锆及锆材料",
+      "risk": "市值约134倍H1扣非年化；固态小批不能支持利润门槛",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-22/1225488603.PDF"
+      ],
+      "sector_group": "电池材料",
+      "facts": {
+        "period": "2026H1",
+        "revenue_yi": 5.63343,
+        "core_profit_yi": 0.73988,
+        "ocf_yi": 0.93243,
+        "opportunity": "核级海绵锆及锆材料",
+        "risk": "市值约134倍H1扣非年化；固态小批不能支持利润门槛",
+        "exit_pe": 25
+      }
+    },
+    {
+      "code": "002460",
+      "name": "赣锋锂业",
+      "price": 36.46,
+      "a_price_equivalent_cap_yi": 764.45,
+      "quote_timestamp": "20261028161233",
+      "pe_ttm_provider": "11.58",
+      "old_group": "C",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 56,
+      "score_components": [
+        18,
+        11,
+        14,
+        7,
+        6
+      ],
+      "opportunity": "锂产业链资产及电池技术，锂价上行有弹性",
+      "risk": "Q3利润较H1均值回落；扣非不能去周期；固态不能解释集团利润",
+      "latest_period_used": "2026Q1-3",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-16/1225607211.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-29/1225528829.PDF"
+      ],
+      "sector_group": "电池材料",
+      "facts": {
+        "period": "2026Q1-3",
+        "revenue_yi": 361.58732,
+        "core_profit_yi": 46.35869,
+        "core_profit_q3_yi": 7.87644,
+        "ocf_yi": 22.94703,
+        "opportunity": "锂产业链资产及电池技术，锂价上行有弹性",
+        "risk": "Q3利润较H1均值回落；扣非不能去周期；固态不能解释集团利润"
+      },
+      "rank": 26
+    },
+    {
+      "code": "002167",
+      "name": "东方锆业",
+      "price": 14.1,
+      "a_price_equivalent_cap_yi": 109.23,
+      "quote_timestamp": "20261028161233",
+      "pe_ttm_provider": "60.46",
+      "old_group": "C",
+      "status": "暂不纳入",
+      "hard_excluded": false,
+      "score": 51,
+      "score_components": [
+        13,
+        13,
+        10,
+        10,
+        5
+      ],
+      "opportunity": "电池级氧化锆批供、现有锆业务盈利改善",
+      "risk": "全固态占比未单列；当前利润含价格周期，扩产与估值待消化",
+      "latest_period_used": "2026Q1-3",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-27/1225625247.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-25/1225500047.PDF"
+      ],
+      "sector_group": "电池材料",
+      "facts": {
+        "period": "2026Q1-3",
+        "revenue_yi": 11.25413,
+        "core_profit_yi": 1.65917,
+        "core_profit_q3_yi": 0.86175,
+        "ocf_yi": 2.53573,
+        "opportunity": "电池级氧化锆批供、现有锆业务盈利改善",
+        "risk": "全固态占比未单列；当前利润含价格周期，扩产与估值待消化"
+      },
+      "rank": 30
+    },
+    {
+      "code": "002709",
+      "name": "天赐材料",
+      "price": 26.89,
+      "a_price_equivalent_cap_yi": 548.17,
+      "quote_timestamp": "20261028161224",
+      "pe_ttm_provider": "13.86",
+      "old_group": "B",
+      "status": "观察",
+      "hard_excluded": false,
+      "score": 63,
+      "score_components": [
+        22,
+        15,
+        16,
+        4,
+        6
+      ],
+      "opportunity": "成熟电解液和锂盐主业修复，固态布局提供远期期权",
+      "risk": "周期高利润、107.36亿应收与回款压力；H股潜在摊薄；中试不等于量产订单",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-21/1225486883.PDF"
+      ],
+      "sector_group": "电池材料",
+      "facts": {
+        "period": "2026H1",
+        "revenue_yi": 147.09501,
+        "core_profit_yi": 28.07473,
+        "ocf_yi": 3.97234,
+        "opportunity": "成熟电解液和锂盐主业修复，固态布局提供远期期权",
+        "risk": "周期高利润、107.36亿应收与回款压力；H股潜在摊薄；中试不等于量产订单"
+      },
+      "rank": 15
+    },
+    {
+      "code": "301238",
+      "name": "瑞泰新材",
+      "price": 14.59,
+      "a_price_equivalent_cap_yi": 106.99,
+      "quote_timestamp": "20261028161145",
+      "pe_ttm_provider": "33.29",
+      "old_group": "C",
+      "status": "暂不纳入",
+      "hard_excluded": false,
+      "score": 39,
+      "score_components": [
+        10,
+        10,
+        11,
+        3,
+        5
+      ],
+      "opportunity": "新型锂盐已有销售，成熟材料可能修复",
+      "risk": "扣非同比下降、归母有卖股收益；现金负流出；新技术利润规模未明",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-08-22/1225491487.PDF"
+      ],
+      "sector_group": "电池材料",
+      "facts": {
+        "period": "2026H1",
+        "revenue_yi": 14.59569,
+        "core_profit_yi": 0.65431,
+        "ocf_yi": -2.60476,
+        "opportunity": "新型锂盐已有销售，成熟材料可能修复",
+        "risk": "扣非同比下降、归母有卖股收益；现金负流出；新技术利润规模未明"
+      },
+      "rank": 34
+    },
+    {
+      "code": "688005",
+      "name": "容百科技",
+      "price": 19.65,
+      "a_price_equivalent_cap_yi": 140.42,
+      "quote_timestamp": "20261028161228",
+      "pe_ttm_provider": "-1455.17",
+      "old_group": "B",
+      "status": "暂不纳入",
+      "hard_excluded": false,
+      "score": 46,
+      "score_components": [
+        12,
+        13,
+        13,
+        3,
+        5
+      ],
+      "opportunity": "高镍与多元正极平台修复、固态正极十吨级交付",
+      "risk": "利润规模小、扩产和海外爬坡；硫化物仍早期；订单需验证",
+      "latest_period_used": "2026H1",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-07-23/1225437886.PDF"
+      ],
+      "sector_group": "电池材料",
+      "facts": {
+        "period": "2026H1",
+        "revenue_yi": 87.21031,
+        "core_profit_yi": 1.01669,
+        "ocf_yi": -1.72494,
+        "opportunity": "高镍与多元正极平台修复、固态正极十吨级交付",
+        "risk": "利润规模小、扩产和海外爬坡；硫化物仍早期；订单需验证"
+      },
+      "rank": 32
+    },
+    {
+      "code": "002971",
+      "name": "和远气体",
+      "price": 33.9,
+      "a_price_equivalent_cap_yi": 71.39,
+      "quote_timestamp": "20261028161239",
+      "pe_ttm_provider": "160.72",
+      "old_group": "C",
+      "status": "估值剔除",
+      "hard_excluded": true,
+      "score": null,
+      "score_components": null,
+      "opportunity": "硅烷销售及硅碳客户",
+      "risk": "利润同比下降且规模小，现价约138倍三季扣非年化",
+      "latest_period_used": "2026Q1-3",
+      "sources": [
+        "https://static.cninfo.com.cn/finalpage/2026-10-23/1225615274.PDF",
+        "https://static.cninfo.com.cn/finalpage/2026-08-21/1225486179.PDF"
+      ],
+      "sector_group": "电池材料",
+      "facts": {
+        "period": "2026Q1-3",
+        "revenue_yi": 13.2987,
+        "core_profit_yi": 0.38801,
+        "ocf_yi": 2.53226,
+        "opportunity": "硅烷销售及硅碳客户",
+        "risk": "利润同比下降且规模小，现价约138倍三季扣非年化",
+        "exit_pe": 25
+      }
+    }
+  ],
+  "scenarios": {
+    "688676": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 100,
+          "profit_2027": 7.8,
+          "revenue_2028": 110,
+          "profit_2028": 7.7,
+          "pe": 20,
+          "terminal_equity_yi": 154.0,
+          "two_year_price_return_pct": -33.35929724349821,
+          "cagr_pct": -18.36624303849431
+        },
+        "基准": {
+          "revenue_2027": 120,
+          "profit_2027": 9.6,
+          "revenue_2028": 150,
+          "profit_2028": 12,
+          "pe": 25,
+          "terminal_equity_yi": 300,
+          "two_year_price_return_pct": 29.819550824354145,
+          "cagr_pct": 13.938382832280949
+        },
+        "较强": {
+          "revenue_2027": 140,
+          "profit_2027": 12.6,
+          "revenue_2028": 180,
+          "profit_2028": 16.2,
+          "pe": 28,
+          "terminal_equity_yi": 453.59999999999997,
+          "two_year_price_return_pct": 96.28716084642346,
+          "cagr_pct": 40.10251990825271
+        }
+      },
+      "assumptions": [
+        "承压：2028收入110亿、净利率7%；基准：2027收入120亿/净利率8%，2028收入150亿/8%；较强：2028收入180亿/9%",
+        "2028基准收入对前三季61亿的增量由AIDC订单交付和后续补单共同提供，未证实的SST认证突破不计入",
+        "PE20/25/28是普通电气制造商/稳定交付成长/较强结构改善三档研究参数，不是同行均值"
+      ],
+      "profit_for_flat_price_yi": 9.2436,
+      "profit_for_12pct_annual_two_year_yi": 11.595171840000003,
+      "base_discounted_reference_price": 52.014753064668675,
+      "base_reference_price_with_20pct_margin": 41.611802451734945,
+      "base_reference_price_at_15pct_rate": 49.336337424816946
+    },
+    "002353": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 300,
+          "profit_2027": 29,
+          "revenue_2028": null,
+          "profit_2028": 30,
+          "pe": 20,
+          "terminal_equity_yi": 600,
+          "two_year_price_return_pct": -37.59101310588725,
+          "cagr_pct": -21.00064120885996
+        },
+        "基准": {
+          "revenue_2027": 360,
+          "profit_2027": 36,
+          "revenue_2028": 445,
+          "profit_2028": 44.8,
+          "pe": 25,
+          "terminal_equity_yi": 1120.0,
+          "two_year_price_return_pct": 16.496775535677145,
+          "cagr_pct": 7.933672010025283
+        },
+        "较强": {
+          "revenue_2027": 440,
+          "profit_2027": 48,
+          "revenue_2028": null,
+          "profit_2028": 62,
+          "pe": 28,
+          "terminal_equity_yi": 1736,
+          "two_year_price_return_pct": 80.57000208029956,
+          "cagr_pct": 34.37633797670614
+        }
+      },
+      "assumptions": [
+        "基准2027原有业务180亿收入×14%归母净利率+供电180亿×6%=36亿；2028原有业务195亿×14%+供电250亿×7%=44.8亿",
+        "供电归母净利率6%/7%为包含主机、集成、税费、少数股东后有效假设，尚无公司分部净利润佐证；不是已公开订单预测",
+        "承压：主机/验收延期、供电低毛利；较强：后续订单和服务收入放量。不能把2026累计209亿全部再加99.5亿大单",
+        "PE20/25/28反映工程制造和交付周期，不将其按芯片企业估值",
+        "2027承压拆分：原业务170亿×14%+供电130亿×4%=29亿；较强：原业务200亿×15%+供电240亿×7.5%=48亿；均为税后归母有效利润率，不推定J&F股权比例"
+      ],
+      "profit_for_flat_price_yi": 38.455999999999996,
+      "profit_for_12pct_annual_two_year_yi": 48.2392064,
+      "base_discounted_reference_price": 87.20541472257717,
+      "base_reference_price_with_20pct_margin": 69.76433177806175,
+      "base_reference_price_at_15pct_rate": 82.71491283780783
+    },
+    "300811": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 32.5,
+          "profit_2027": 6.5,
+          "revenue_2028": 35,
+          "profit_2028": 7,
+          "pe": 25,
+          "terminal_equity_yi": 175,
+          "two_year_price_return_pct": -40.659862330880614,
+          "cagr_pct": -22.967449951907092
+        },
+        "基准": {
+          "revenue_2027": 43,
+          "profit_2027": 9.245,
+          "revenue_2028": 60,
+          "profit_2028": 13.5,
+          "pe": 30,
+          "terminal_equity_yi": 405.0,
+          "two_year_price_return_pct": 37.33003289139059,
+          "cagr_pct": 17.187897366319604
+        },
+        "较强": {
+          "revenue_2027": 50,
+          "profit_2027": 12,
+          "revenue_2028": 75,
+          "profit_2028": 18,
+          "pe": 35,
+          "terminal_equity_yi": 630,
+          "two_year_price_return_pct": 113.62449560882979,
+          "cagr_pct": 46.15898727373209
+        }
+      },
+      "assumptions": [
+        "基准2027收入43亿×21.5%=9.245亿，2028收入60亿×22.5%=13.5亿；2026Q3收入8.88亿/扣非1.896亿，基准要求两年后收入较Q3年化提高约69%，净利率略升",
+        "承压：2028收入35亿×20%=7亿；较强：2028收入75亿×24%=18亿；海外/国内扩产应通过良率和回款检验",
+        "PE25/30/35分别代表增长回落/持续中高速/更强份额与规格升级。产品高技术但仍是制造业，不使用永久高PE"
+      ],
+      "profit_for_flat_price_yi": 9.830333333333334,
+      "profit_for_12pct_annual_two_year_yi": 12.331170133333336,
+      "base_discounted_reference_price": 79.10928074563044,
+      "base_reference_price_with_20pct_margin": 63.28742459650436,
+      "base_reference_price_at_15pct_rate": 75.03567619457002
+    },
+    "002484": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 68,
+          "profit_2027": 8.5,
+          "revenue_2028": null,
+          "profit_2028": 9,
+          "pe": 20,
+          "terminal_equity_yi": 180,
+          "two_year_price_return_pct": -39.67019707735622,
+          "cagr_pct": -22.32773794806554
+        },
+        "基准": {
+          "revenue_2027": 76,
+          "profit_2027": 10.032,
+          "revenue_2028": 90,
+          "profit_2028": 12.6,
+          "pe": 25,
+          "terminal_equity_yi": 315.0,
+          "two_year_price_return_pct": 5.57715511462662,
+          "cagr_pct": 2.7507445786290274
+        },
+        "较强": {
+          "revenue_2027": 100,
+          "profit_2027": 13,
+          "revenue_2028": 110,
+          "profit_2028": 16.5,
+          "pe": 30,
+          "terminal_equity_yi": 495.0,
+          "two_year_price_return_pct": 65.9069580372704,
+          "cagr_pct": 28.804874922213397
+        }
+      },
+      "assumptions": [
+        "基准2027收入76亿×13.2%=10.032亿，2028收入90亿×14%=12.6亿；较强2028收入110亿×15%=16.5亿",
+        "2026Q1 AI超容收入仅1200万，故基准增长由铝电解/薄膜/超容多应用承担，不能声称均来自AI",
+        "PE20/25/30为成熟元件/较强结构升级/高增长兑现参数。14.97亿是25倍退出PE下达到12%年化的要求，比基准高"
+      ],
+      "profit_for_flat_price_yi": 11.9344,
+      "profit_for_12pct_annual_two_year_yi": 14.970511360000003,
+      "base_discounted_reference_price": 29.52524395265546,
+      "base_reference_price_with_20pct_margin": 23.62019516212437,
+      "base_reference_price_at_15pct_rate": 28.00488923569831
+    },
+    "000338": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 2450,
+          "profit_2027": 105,
+          "revenue_2028": null,
+          "profit_2028": 110,
+          "pe": 11,
+          "terminal_equity_yi": 1210,
+          "two_year_price_return_pct": -34.40632301362289,
+          "cagr_pct": -19.010076561107237
+        },
+        "基准": {
+          "revenue_2027": 2750,
+          "profit_2027": 145,
+          "revenue_2028": null,
+          "profit_2028": 170,
+          "pe": 14,
+          "terminal_equity_yi": 2380,
+          "two_year_price_return_pct": 29.018967956675645,
+          "cagr_pct": 13.586516786401926
+        },
+        "较强": {
+          "revenue_2027": 3000,
+          "profit_2027": 175,
+          "revenue_2028": null,
+          "profit_2028": 210,
+          "pe": 16,
+          "terminal_equity_yi": 3360,
+          "two_year_price_return_pct": 82.14442535060091,
+          "cagr_pct": 34.96089261360156
+        }
+      },
+      "assumptions": [
+        "以H1扣非61.19亿、18.86%增长为锚，2027/2028基准可持续归母145/170亿；非经常性收益不重复计入",
+        "2028基准可分解为2026约125亿经营利润基础×(1.12)^2约157亿，加电力能源结构优化新增约13亿；13亿是达标条件，未披露AI分部净利润，不能写为已确认",
+        "承压反映重卡/物流周期下行、海外减值；较强反映主业与高端发电双增长",
+        "PE11/14/16按综合装备制造、商用车周期与分红特征设置，不能因AI给全集团30倍。情景价格回报暂不加分红，另列分红增强项",
+        "2027承压/基准/较强集团收入分别2450/2750/3000亿，对应归母经营净利率4.29%/5.27%/5.83%；收入与净利率是总量一致性校验，尚无分业务完整预测"
+      ],
+      "profit_for_flat_price_yi": 131.76357142857142,
+      "profit_for_12pct_annual_two_year_yi": 165.28422400000002,
+      "base_discounted_reference_price": 21.959143541733294,
+      "base_reference_price_with_20pct_margin": 17.567314833386636,
+      "base_reference_price_at_15pct_rate": 20.82839293667316
+    },
+    "600563": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 55,
+          "profit_2027": 10.5,
+          "revenue_2028": null,
+          "profit_2028": 11,
+          "pe": 16,
+          "terminal_equity_yi": 176,
+          "two_year_price_return_pct": -23.96094357556382,
+          "cagr_pct": -12.799623610653965
+        },
+        "基准": {
+          "revenue_2027": 62,
+          "profit_2027": 13.02,
+          "revenue_2028": 68,
+          "profit_2028": 14.62,
+          "pe": 20,
+          "terminal_equity_yi": 292.4,
+          "two_year_price_return_pct": 26.328523286961026,
+          "cagr_pct": 12.395962243739444
+        },
+        "较强": {
+          "revenue_2027": 70,
+          "profit_2027": 15,
+          "revenue_2028": null,
+          "profit_2028": 18,
+          "pe": 23,
+          "terminal_equity_yi": 414,
+          "two_year_price_return_pct": 78.8645986347533,
+          "cagr_pct": 33.74027016375931
+        }
+      },
+      "assumptions": [
+        "基准2027收入62亿×21%=13.02亿，2028收入68亿×21.5%=14.62亿；来自多行业需求和产品结构改善，不假设AI突然爆发",
+        "承压反映新能源/储能竞争及原材料；较强反映新应用和产能带来的收入、利润率共同上升",
+        "PE16/20/23反映成熟高质量零件商的低增长/稳健增长/较强增长，不因800V赋予过高终值。已实施2.30元/股分红为过去事实，未来股息非保证"
+      ],
+      "profit_for_flat_price_yi": 11.573,
+      "profit_for_12pct_annual_two_year_yi": 14.517171200000002,
+      "base_discounted_reference_price": 103.59865426123787,
+      "base_reference_price_with_20pct_margin": 82.8789234089903,
+      "base_reference_price_at_15pct_rate": 98.26400900211479
+    },
+    "688008": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 90,
+          "profit_2027": 35,
+          "revenue_2028": 100,
+          "profit_2028": 38,
+          "pe": 28,
+          "terminal_equity_yi": 1064,
+          "two_year_price_return_pct": -50.100362053764044,
+          "cagr_pct": -29.360324217734444
+        },
+        "基准": {
+          "revenue_2027": 115,
+          "profit_2027": 48,
+          "revenue_2028": 145,
+          "profit_2028": 62,
+          "pe": 35,
+          "terminal_equity_yi": 2170,
+          "two_year_price_return_pct": 1.7689984429812178,
+          "cagr_pct": 0.8806217481738265
+        },
+        "较强": {
+          "revenue_2027": 135,
+          "profit_2027": 61,
+          "revenue_2028": 180,
+          "profit_2028": 82,
+          "pe": 40,
+          "terminal_equity_yi": 3280,
+          "two_year_price_return_pct": 53.825951563584496,
+          "cagr_pct": 24.026590521381543
+        }
+      },
+      "assumptions": [],
+      "profit_for_flat_price_yi": 60.92228571428572,
+      "profit_for_12pct_annual_two_year_yi": 76.42091520000002,
+      "base_discounted_reference_price": 141.73345047822718,
+      "base_reference_price_with_20pct_margin": 113.38676038258176,
+      "base_reference_price_at_15pct_rate": 134.43511552354497
+    },
+    "300604": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 88,
+          "profit_2027": 24,
+          "revenue_2028": 90,
+          "profit_2028": 23,
+          "pe": 25,
+          "terminal_equity_yi": 575,
+          "two_year_price_return_pct": -53.53835711630764,
+          "cagr_pct": -31.837222119625753
+        },
+        "基准": {
+          "revenue_2027": 105,
+          "profit_2027": 32,
+          "revenue_2028": 135,
+          "profit_2028": 42,
+          "pe": 30,
+          "terminal_equity_yi": 1260,
+          "two_year_price_return_pct": 1.8116000581780645,
+          "cagr_pct": 0.9017344044085718
+        },
+        "较强": {
+          "revenue_2027": 135,
+          "profit_2027": 44,
+          "revenue_2028": 180,
+          "profit_2028": 60,
+          "pe": 35,
+          "terminal_equity_yi": 2100,
+          "two_year_price_return_pct": 69.68600009696344,
+          "cagr_pct": 30.263578983906104
+        }
+      },
+      "assumptions": [],
+      "profit_for_flat_price_yi": 41.25266666666666,
+      "profit_for_12pct_annual_two_year_yi": 51.74734506666667,
+      "base_discounted_reference_price": 154.7870714851334,
+      "base_reference_price_with_20pct_margin": 123.82965718810672,
+      "base_reference_price_at_15pct_rate": 146.81656141470805
+    },
+    "688123": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 15.5,
+          "profit_2027": 3.7,
+          "revenue_2028": 16.5,
+          "profit_2028": 4,
+          "pe": 23,
+          "terminal_equity_yi": 92,
+          "two_year_price_return_pct": -50.59872201041722,
+          "cagr_pct": -29.713957296215078
+        },
+        "基准": {
+          "revenue_2027": 20,
+          "profit_2027": 5.8,
+          "revenue_2028": 24,
+          "profit_2028": 7.2,
+          "pe": 28,
+          "terminal_equity_yi": 201.6,
+          "two_year_price_return_pct": 8.253235246737912,
+          "cagr_pct": 4.044814982169065
+        },
+        "较强": {
+          "revenue_2027": 24,
+          "profit_2027": 7.7,
+          "revenue_2028": 31,
+          "profit_2028": 10.2,
+          "pe": 33,
+          "terminal_equity_yi": 336.59999999999997,
+          "two_year_price_return_pct": 80.74424099232131,
+          "cagr_pct": 34.44115478242564
+        }
+      },
+      "assumptions": [],
+      "profit_for_flat_price_yi": 6.651071428571428,
+      "profit_for_12pct_annual_two_year_yi": 8.343104,
+      "base_discounted_reference_price": 101.09906337017972,
+      "base_reference_price_with_20pct_margin": 80.87925069614379,
+      "base_reference_price_at_15pct_rate": 95.89313050401019
+    },
+    "002463": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 340,
+          "profit_2027": 68.0,
+          "revenue_2028": 350,
+          "profit_2028": 66.5,
+          "pe": 20,
+          "terminal_equity_yi": 1330.0,
+          "two_year_price_return_pct": -34.050349830663116,
+          "cagr_pct": -18.790610044566346
+        },
+        "基准": {
+          "revenue_2027": 430,
+          "profit_2027": 103.2,
+          "revenue_2028": 520,
+          "profit_2028": 124.8,
+          "pe": 25,
+          "terminal_equity_yi": 3120.0,
+          "two_year_price_return_pct": 54.708953780700064,
+          "cagr_pct": 24.382054083657923
+        },
+        "较强": {
+          "revenue_2027": 520,
+          "profit_2027": 135.2,
+          "revenue_2028": 650,
+          "profit_2028": 169.0,
+          "pe": 30,
+          "terminal_equity_yi": 5070.0,
+          "two_year_price_return_pct": 151.40204989363758,
+          "cagr_pct": 58.556630228331215
+        }
+      },
+      "assumptions": [],
+      "profit_for_flat_price_yi": 80.66760000000001,
+      "profit_for_12pct_annual_two_year_yi": 101.18943744000002,
+      "base_discounted_reference_price": 128.96935026186065,
+      "base_reference_price_with_20pct_margin": 103.17548020948853,
+      "base_reference_price_at_15pct_rate": 122.32828201775278
+    },
+    "601138": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 11000,
+          "profit_2027": 407.0,
+          "revenue_2028": 11000,
+          "profit_2028": 385.0,
+          "pe": 14,
+          "terminal_equity_yi": 5390.0,
+          "two_year_price_return_pct": -44.15763501886104,
+          "cagr_pct": -25.272250815952603
+        },
+        "基准": {
+          "revenue_2027": 14000,
+          "profit_2027": 560.0,
+          "revenue_2028": 16000,
+          "profit_2028": 680.0,
+          "pe": 18,
+          "terminal_equity_yi": 12240.0,
+          "two_year_price_return_pct": 26.810862220619814,
+          "cagr_pct": 12.61032910910962
+        },
+        "较强": {
+          "revenue_2027": 16000,
+          "profit_2027": 704.0,
+          "revenue_2028": 19500,
+          "profit_2028": 877.5,
+          "pe": 22,
+          "terminal_equity_yi": 19305.0,
+          "two_year_price_return_pct": 100.00683784060995,
+          "cagr_pct": 41.42377375837838
+        }
+      },
+      "assumptions": [],
+      "profit_for_flat_price_yi": 536.2316666666667,
+      "profit_for_12pct_annual_two_year_yi": 672.6490026666668,
+      "base_discounted_reference_price": 49.17155882024033,
+      "base_reference_price_with_20pct_margin": 39.33724705619227,
+      "base_reference_price_at_15pct_rate": 46.63954887267258
+    },
+    "002916": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 360,
+          "profit_2027": 50.4,
+          "revenue_2028": 360,
+          "profit_2028": 46.8,
+          "pe": 20,
+          "terminal_equity_yi": 936.0,
+          "two_year_price_return_pct": -50.92925109439304,
+          "cagr_pct": -29.949483295548095
+        },
+        "基准": {
+          "revenue_2027": 450,
+          "profit_2027": 76.5,
+          "revenue_2028": 540,
+          "profit_2028": 97.2,
+          "pe": 25,
+          "terminal_equity_yi": 2430.0,
+          "two_year_price_return_pct": 27.39521350494114,
+          "cagr_pct": 12.869488128962981
+        },
+        "较强": {
+          "revenue_2027": 540,
+          "profit_2027": 102.6,
+          "revenue_2028": 680,
+          "profit_2028": 136.0,
+          "pe": 30,
+          "terminal_equity_yi": 4080.0,
+          "two_year_price_return_pct": 113.89813625520983,
+          "cagr_pct": 46.25256792795462
+        }
+      },
+      "assumptions": [],
+      "profit_for_flat_price_yi": 76.298,
+      "profit_for_12pct_annual_two_year_yi": 95.70821120000002,
+      "base_discounted_reference_price": 284.4049393329378,
+      "base_reference_price_with_20pct_margin": 227.52395146635024,
+      "base_reference_price_at_15pct_rate": 269.75996665348754
+    },
+    "688183": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 140,
+          "profit_2027": 22.4,
+          "revenue_2028": 150,
+          "profit_2028": 22.5,
+          "pe": 20,
+          "terminal_equity_yi": 450.0,
+          "two_year_price_return_pct": -35.179983578929175,
+          "cagr_pct": -19.489120970473294
+        },
+        "基准": {
+          "revenue_2027": 175,
+          "profit_2027": 38.5,
+          "revenue_2028": 210,
+          "profit_2028": 46.2,
+          "pe": 25,
+          "terminal_equity_yi": 1155.0,
+          "two_year_price_return_pct": 66.37137548074845,
+          "cagr_pct": 28.985028387308766
+        },
+        "较强": {
+          "revenue_2027": 215,
+          "profit_2027": 51.6,
+          "revenue_2028": 270,
+          "profit_2028": 64.8,
+          "pe": 30,
+          "terminal_equity_yi": 1944.0,
+          "two_year_price_return_pct": 180.02247093902594,
+          "cagr_pct": 67.3387196494063
+        }
+      },
+      "assumptions": [],
+      "profit_for_flat_price_yi": 27.7692,
+      "profit_for_12pct_annual_two_year_yi": 34.83368448000001,
+      "base_discounted_reference_price": 107.03260523992664,
+      "base_reference_price_with_20pct_margin": 85.62608419194132,
+      "base_reference_price_at_15pct_rate": 101.52113422530361
+    },
+    "600183": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 460,
+          "profit_2027": 64.4,
+          "revenue_2028": 470,
+          "profit_2028": 61.1,
+          "pe": 20,
+          "terminal_equity_yi": 1222.0,
+          "two_year_price_return_pct": -50.91364094653925,
+          "cagr_pct": -29.93834211677492
+        },
+        "基准": {
+          "revenue_2027": 625,
+          "profit_2027": 100.0,
+          "revenue_2028": 750,
+          "profit_2028": 127.5,
+          "pe": 25,
+          "terminal_equity_yi": 3187.5,
+          "two_year_price_return_pct": 28.038272899268545,
+          "cagr_pct": 13.153998117286392
+        },
+        "较强": {
+          "revenue_2027": 760,
+          "profit_2027": 136.8,
+          "revenue_2028": 960,
+          "profit_2028": 182.4,
+          "pe": 30,
+          "terminal_equity_yi": 5472.0,
+          "two_year_price_return_pct": 119.80405625248545,
+          "cagr_pct": 48.25790240404908
+        }
+      },
+      "assumptions": [],
+      "profit_for_flat_price_yi": 99.57959999999999,
+      "profit_for_12pct_annual_two_year_yi": 124.91265024,
+      "base_discounted_reference_price": 104.61290329596645,
+      "base_reference_price_with_20pct_margin": 83.69032263677316,
+      "base_reference_price_at_15pct_rate": 99.22603092208722
+    },
+    "688519": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 105,
+          "profit_2027": 13.65,
+          "revenue_2028": 110,
+          "profit_2028": 13.2,
+          "pe": 20,
+          "terminal_equity_yi": 264.0,
+          "two_year_price_return_pct": -51.56585392701856,
+          "cagr_pct": -30.405355038637172
+        },
+        "基准": {
+          "revenue_2027": 130,
+          "profit_2027": 26.0,
+          "revenue_2028": 150,
+          "profit_2028": 30.0,
+          "pe": 25,
+          "terminal_equity_yi": 750.0,
+          "two_year_price_return_pct": 37.597005889151845,
+          "cagr_pct": 17.30175015282247
+        },
+        "较强": {
+          "revenue_2027": 155,
+          "profit_2027": 40.3,
+          "revenue_2028": 190,
+          "profit_2028": 47.5,
+          "pe": 30,
+          "terminal_equity_yi": 1425.0,
+          "two_year_price_return_pct": 161.43431118938852,
+          "cagr_pct": 61.68930428120114
+        }
+      },
+      "assumptions": [],
+      "profit_for_flat_price_yi": 21.8028,
+      "profit_for_12pct_annual_two_year_yi": 27.349432320000005,
+      "base_discounted_reference_price": 250.78765510552282,
+      "base_reference_price_with_20pct_margin": 200.63012408441827,
+      "base_reference_price_at_15pct_rate": 237.87375014318934
+    },
+    "300476": {
+      "scenarios": {
+        "承压": {
+          "revenue_2027": 270,
+          "profit_2027": 48.6,
+          "revenue_2028": 280,
+          "profit_2028": 47.6,
+          "pe": 20,
+          "terminal_equity_yi": 952.0,
+          "two_year_price_return_pct": -46.27721408981637,
+          "cagr_pct": -26.704170711981412
+        },
+        "基准": {
+          "revenue_2027": 340,
+          "profit_2027": 74.8,
+          "revenue_2028": 410,
+          "profit_2028": 90.2,
+          "pe": 25,
+          "terminal_equity_yi": 2255.0,
+          "two_year_price_return_pct": 27.253027549857233,
+          "cagr_pct": 12.806483656684042
+        },
+        "较强": {
+          "revenue_2027": 420,
+          "profit_2027": 100.8,
+          "revenue_2028": 520,
+          "profit_2028": 124.8,
+          "pe": 30,
+          "terminal_equity_yi": 3744.0,
+          "two_year_price_return_pct": 111.27952778122636,
+          "cagr_pct": 45.35457604809914
+        }
+      },
+      "assumptions": [],
+      "profit_for_flat_price_yi": 70.8824,
+      "profit_for_12pct_annual_two_year_yi": 88.91488256000001,
+      "base_discounted_reference_price": 182.9160825694735,
+      "base_reference_price_with_20pct_margin": 146.33286605557882,
+      "base_reference_price_at_15pct_rate": 173.4971145369736
+    }
+  }
+}
