@@ -1,5 +1,8 @@
 import os
+import subprocess
+import sys
 import tempfile
+import textwrap
 import threading
 import time
 import unittest
@@ -24,6 +27,45 @@ except ImportError:
     DESKTOP = False
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+@unittest.skipUnless(DESKTOP, "需要desktop可选依赖")
+class DesktopStabilityTests(unittest.TestCase):
+    def run_probe(self, *args):
+        # Native binding failures abort the interpreter; also check normal child teardown.
+        result = subprocess.run(
+            [sys.executable, "-X", "faulthandler", *args],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        return result.stdout
+
+    def test_qt_void_calls_preserve_none_references(self):
+        self.run_probe(
+            "-c",
+            textwrap.dedent("""
+                import sys
+                from PySide6.QtCore import QObject
+
+                obj = QObject()
+                for _ in range(20):
+                    obj.setObjectName('warmup')
+                before = sys.getrefcount(None)
+                for _ in range(1000):
+                    obj.setObjectName('probe')
+                delta = sys.getrefcount(None) - before
+                assert delta >= -5, f'Qt void calls changed None refcount by {delta}'
+            """),
+        )
+
+    def test_repeated_chart_mouse_events_and_snapshot_switches(self):
+        output = self.run_probe(
+            "-m", "scripts.check_desktop_stability", "--cycles", "2", "--moves", "250"
+        )
+        self.assertIn('"mouse_moves": 1000', output)
 
 
 @unittest.skipUnless(DESKTOP, "需要desktop可选依赖")

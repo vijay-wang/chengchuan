@@ -18,6 +18,10 @@ python -m venv .venv
 
 Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。安装包尚未构建；不同平台需要分别验收。
 
+依赖已排除PySide6 6.12.0：该版本在Python 3.10/3.11下反复调用Qt方法会损坏`None`引用计数，
+导致鼠标交互时出现`none_dealloc: deallocating None`并退出。已安装旧环境时，重新执行上面的
+`pip install`命令即可切换到已验证的6.11.3，无须更换Python。
+
 默认读取仓库中的久立日线快照；左侧可切换分时快照。Ctrl左键拖动选择时间段，松开后计算，拖动边界调整，Esc清除，Ctrl＋O导入其他旧版标准JSON快照。
 
 ```bash
@@ -46,6 +50,8 @@ Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。安装包尚未构
 .venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py scripts
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m chengchuan \
   --state-dir /tmp/chengchuan-preview --screenshot design/chengchuan-desktop.png
+# Linux桌面交互复验：悬停、点击、Ctrl拖选、Esc和日K/分时切换
+QT_QPA_PLATFORM=xcb .venv/bin/python -m scripts.check_desktop_stability
 ```
 
 离屏检查不能替代真实目标系统和显示器验收。详见[本轮验证记录](docs/VALIDATION.md)。
