@@ -2,9 +2,9 @@
 
 本地股票研究工作台：看行情、选区间、计算特征、追溯证据。
 
-![澄川桌面](design/chengchuan-desktop.png)
+![澄川行情工作台](design/chengchuan-market-daily.png)
 
-当前为**工程基础版**：可以导入本地行情快照、查看真实日K或分钟采样分时、Ctrl拖选区间并分析。实时行情、股票目录、自选、完整分钟K线、复权及Level-2模块按路线逐步加入。
+当前为**0.2行情工作台**：可以按名称、代码或拼音搜索沪深A股，点击切换股票，查看最新公开报价、日K和分钟采样分时，维护自选，并每15秒自动刷新。支持Ctrl拖选区间分析和本地快照导入。周K、复权、完整分钟K线和Level-2按路线继续加入。
 
 ## 启动桌面
 
@@ -22,14 +22,22 @@ Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。安装包尚未构
 导致鼠标交互时出现`none_dealloc: deallocating None`并退出。已安装旧环境时，重新执行上面的
 `pip install`命令即可切换到已验证的6.11.3，无须更换Python。
 
-默认读取仓库中的久立日线快照；左侧可切换分时快照。Ctrl左键拖动选择时间段，松开后计算，拖动边界调整，Esc清除，Ctrl＋O导入其他旧版标准JSON快照。
+默认联网打开上次查看的股票，首次为久立特材002318。左侧输入六位代码回车可直接打开，输入名称或拼音后点击搜索结果；“加入自选”保存当前股票，自选支持拖动排序和移除。图表上方可切换日K／分时、F5刷新、开启或暂停每15秒刷新。
+
+报价时间、图表覆盖时间和取得时间分别显示，统一为北京时间。当前使用腾讯公开行情轮询，可能延迟，不是交易所逐笔推送。收盘后价格保持源提供的最后有效报价；无有效报价、网络失败和历史缓存均有明确提示。刷新同股时保留缩放和选区，切股时清空上一只股票的数据与分析。
+
+Ctrl左键拖动选择时间段，松开后计算，拖动边界调整，Esc清除，Ctrl＋O导入旧版标准JSON快照。本地快照模式不会自动联网更新。
 
 ```bash
+.venv/bin/python -m chengchuan --symbol 600519 --interval day
+# 仅在启动时打开本地示例，不发起行情请求
+.venv/bin/python -m chengchuan --offline
+# 打开指定历史快照
 .venv/bin/python -m chengchuan \
   --dataset reports/jiuli_20261102_full_day.dataset.json
 ```
 
-工作区与轮转日志默认保存到操作系统的应用数据目录，可用`--state-dir PATH`指定。首次图表显示的是保存的数据，不是实时行情。当前单个导入快照上限32MB。
+工作区、自选、行情缓存和轮转日志默认保存到操作系统的应用数据目录，可用`--state-dir PATH`指定。行情缓存按股票和周期隔离，联网失败时保留原数据时间，绝不标为新行情。当前单个导入快照上限32MB。
 
 ## 规划与架构
 
@@ -47,14 +55,16 @@ Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。安装包尚未构
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
-.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py scripts
+.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py scripts
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m chengchuan \
-  --state-dir /tmp/chengchuan-preview --screenshot design/chengchuan-desktop.png
+  --offline --state-dir /tmp/chengchuan-preview --screenshot /tmp/chengchuan-preview.png
 # Linux桌面交互复验：悬停、点击、Ctrl拖选、Esc和日K/分时切换
 QT_QPA_PLATFORM=xcb .venv/bin/python -m scripts.check_desktop_stability
+# 联网实机验收（额外等待一次15秒定时刷新）
+QT_QPA_PLATFORM=xcb .venv/bin/python -m scripts.check_market_workbench --wait-refresh
 ```
 
-离屏检查不能替代真实目标系统和显示器验收。详见[本轮验证记录](docs/VALIDATION.md)。
+离屏检查不能替代真实目标系统和显示器验收。详见[行情工作台验证](docs/VALIDATION_MARKET.md)和[原Qt崩溃排查记录](docs/VALIDATION.md)。
 
 ## 公开数据原型说明（兼容保留）
 

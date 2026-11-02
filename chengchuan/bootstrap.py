@@ -13,6 +13,9 @@ def main(argv=None):
     parser.add_argument("--dataset", type=Path, help="打开已保存的flowradar数据快照")
     parser.add_argument("--state-dir", type=Path, help="本地工作区和日志目录")
     parser.add_argument("--screenshot", type=Path, help="离屏验收：保存窗口截图后退出")
+    parser.add_argument("--symbol", help="启动时打开沪深A股，例如002318或600519")
+    parser.add_argument("--interval", choices=("day", "minute"), help="启动行情周期")
+    parser.add_argument("--offline", action="store_true", help="启动时仅打开本地快照，不联网")
     args = parser.parse_args(argv)
     try:
         from PySide6.QtCore import QStandardPaths, QTimer
@@ -25,8 +28,12 @@ def main(argv=None):
     except ImportError:
         parser.exit(2, "缺少图表依赖，请执行：python -m pip install -e '.[desktop]'\n")
     from chengchuan.application.errors import StorageError
+    from chengchuan.application.market import MarketService
     from chengchuan.application.services import AnalysisService
+    from chengchuan.domain.market import stock_symbol
     from chengchuan.infrastructure.legacy import LegacyAnalysisEngine, LegacyJsonRepository
+    from chengchuan.infrastructure.market_cache import SqliteMarketCache
+    from chengchuan.infrastructure.market_data import TencentMarketProvider
     from chengchuan.infrastructure.workspace import SqliteWorkspaceRepository
 
     app = QApplication.instance() or QApplication([])
@@ -59,22 +66,40 @@ def main(argv=None):
         if path.exists()
     ]
     try:
+        if args.symbol:
+            stock_symbol(args.symbol)
         workspace = SqliteWorkspaceRepository(state_dir / "workspace.sqlite")
+        market = MarketService(
+            TencentMarketProvider(), SqliteMarketCache(state_dir / "market.sqlite")
+        )
         window = MainWindow(
-            LegacyJsonRepository(), AnalysisService(LegacyAnalysisEngine()), workspace, catalog
+            LegacyJsonRepository(),
+            AnalysisService(LegacyAnalysisEngine()),
+            workspace,
+            catalog,
+            market=market,
         )
     except (OSError, ValueError, StorageError) as exc:
         parser.exit(2, "无法打开本地工作区：" + str(exc) + "\n")
     window.show()
-    initial = args.dataset or (daily if daily.exists() else None)
-    if initial:
-        window.open_snapshot(initial)
+    if args.dataset:
+        window.open_snapshot(args.dataset)
+    elif args.offline:
+        if daily.exists():
+            window.open_snapshot(daily)
+    else:
+        state = workspace.load("main")
+        symbol = args.symbol or state.get("symbol") or "002318"
+        interval = args.interval or state.get("interval", "day")
+        window.open_stock(symbol, interval)
     if args.screenshot:
         attempts = [0]
 
         def capture():
             attempts[0] += 1
-            if window.runner.active is not None and attempts[0] < 100:
+            if (
+                window.runner.active is not None or window.market_runner.active is not None
+            ) and attempts[0] < 220:
                 QTimer.singleShot(100, capture)
                 return
             args.screenshot.parent.mkdir(parents=True, exist_ok=True)

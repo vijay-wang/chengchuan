@@ -23,9 +23,12 @@ QLabel#metricValue { font-size: 19px; font-weight: 600; }
 QLabel#notice { color: #c8af73; background: #24251f; border: 1px solid #3b3c30;
                border-radius: 6px; padding: 10px; font-size: 11px; }
 QLabel#status { color: #8193a8; border-top: 1px solid #203044; padding: 7px 16px; }
-QLineEdit { background: #0c1420; border: 1px solid #293b51; border-radius: 6px;
+QLineEdit, QComboBox { background: #0c1420; border: 1px solid #293b51; border-radius: 6px;
             padding: 9px; selection-background-color: #23695e; }
 QLineEdit:focus { border: 1px solid #5ad7bf; }
+QComboBox QAbstractItemView { background: #142233; selection-background-color: #20374a; }
+QCheckBox { spacing: 6px; color: #8193a8; }
+QCheckBox::indicator { width: 14px; height: 14px; }
 QPushButton { background: #172536; border: 1px solid #2a3c51; border-radius: 5px;
               padding: 7px 12px; }
 QPushButton:hover { background: #22364b; border-color: #53718c; }

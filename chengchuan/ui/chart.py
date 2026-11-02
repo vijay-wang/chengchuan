@@ -106,7 +106,17 @@ class MarketChart(QWidget):
         layout.addWidget(self.price, 4)
         layout.addWidget(self.volume, 1)
 
-    def set_snapshot(self, snapshot: MarketSnapshot):
+    def reset(self):
+        self.snapshot = None
+        self._drag_start = None
+        self.price.clear()
+        self.volume.clear()
+        self.axis.times = []
+        self.axis.picture = None
+        self.axis.update()
+
+    def set_snapshot(self, snapshot: MarketSnapshot, preserve_view=False):
+        old_range = self.price.getViewBox().viewRange()[0] if preserve_view else None
         self._updating = True
         self.snapshot = snapshot
         self._drag_start = None
@@ -147,7 +157,10 @@ class MarketChart(QWidget):
         self.price.addItem(self.cross_y, ignoreBounds=True)
         self.region.setBounds((-0.5, len(bars) - 0.5))
         visible = 90 if snapshot.series.interval == "day" else 242
-        self.price.setXRange(max(-1, len(bars) - visible), len(bars), padding=0.02)
+        if old_range is None:
+            self.price.setXRange(max(-1, len(bars) - visible), len(bars), padding=0.02)
+        else:
+            self.price.setXRange(*old_range, padding=0)
         self._fit_visible()
         self._updating = False
 

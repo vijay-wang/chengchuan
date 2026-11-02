@@ -1,6 +1,9 @@
 import logging
+import multiprocessing
+import time
+import traceback
 
-from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal, Slot
+from PySide6.QtCore import QObject, QRunnable, QThreadPool, QTimer, Signal, Slot
 
 from chengchuan.application.services import RequestGate
 
@@ -83,3 +86,92 @@ class LatestTaskRunner(QObject):
         self.closed = True
         self.cancel()
         self.pool.waitForDone(3000)
+
+
+def _process_call(connection, function):
+    """Only trusted, locally constructed callables cross this private process pipe."""
+    try:
+        try:
+            connection.send((True, function(), ""))
+        except Exception as exc:
+            connection.send((False, str(exc), traceback.format_exc()))
+    finally:
+        connection.close()
+
+
+class ProcessTaskRunner(QObject):
+    """网络任务使用可终止进程；新请求直接替换旧请求，关闭不等待网络超时。"""
+
+    ready = Signal(object)
+    failed = Signal(str)
+    busy = Signal(bool)
+
+    def __init__(self, parent=None, timeout_ms=18000):
+        super().__init__(parent)
+        self.context = multiprocessing.get_context("spawn")
+        self.active = None
+        self.connection = None
+        self.closed = False
+        self.timeout_ms = timeout_ms
+        self.timer = QTimer(self)
+        self.timer.setInterval(30)
+        self.timer.timeout.connect(self._poll)
+
+    def submit(self, revision, selection, function):
+        if self.closed:
+            return
+        self.cancel()
+        receive, send = self.context.Pipe(duplex=False)
+        process = self.context.Process(target=_process_call, args=(send, function), daemon=True)
+        try:
+            process.start()
+        except Exception as exc:
+            receive.close()
+            send.close()
+            self.failed.emit("无法启动行情任务：" + str(exc))
+            return
+        send.close()
+        self.active, self.connection = process, receive
+        self.started = time.monotonic()
+        self.busy.emit(True)
+        self.timer.start()
+
+    def _poll(self):
+        if self.active is None:
+            return
+        if self.connection.poll():
+            try:
+                ok, result, details = self.connection.recv()
+            except (EOFError, OSError):
+                ok, result, details = False, "行情任务意外退出，请重试", ""
+            self.cancel()
+            if not ok:
+                log.error("行情任务失败：%s\n%s", result, details)
+            (self.ready if ok else self.failed).emit(result)
+        elif not self.active.is_alive():
+            self.cancel()
+            self.failed.emit("行情任务意外退出，请重试")
+        elif (time.monotonic() - self.started) * 1000 >= self.timeout_ms:
+            self.cancel()
+            self.failed.emit("行情请求超时，请检查网络后刷新")
+
+    def cancel(self):
+        self.timer.stop()
+        process, self.active = self.active, None
+        if process is not None:
+            if process.is_alive():
+                process.terminate()
+            process.join(0.15)
+            if process.is_alive():
+                process.kill()
+                process.join(0.15)
+            if not process.is_alive():
+                process.close()
+        if self.connection is not None:
+            self.connection.close()
+            self.connection = None
+        self.busy.emit(False)
+
+    def shutdown(self):
+        self.closed = True
+        self.cancel()
