@@ -1,4 +1,58 @@
-# FlowRadar：A股资金行为研究原型
+# 澄川 Chengchuan
+
+本地股票研究工作台：看行情、选区间、计算特征、追溯证据。
+
+![澄川桌面](design/chengchuan-desktop.png)
+
+当前为**工程基础版**：可以导入本地行情快照、查看真实日K或分钟采样分时、Ctrl拖选区间并分析。实时行情、股票目录、自选、完整分钟K线、复权及Level-2模块按路线逐步加入。
+
+## 启动桌面
+
+需要Python 3.10或更高版本。在仓库目录执行：
+
+```bash
+python -m venv .venv
+.venv/bin/python -m pip install -c requirements/desktop-tested.txt -e '.[desktop,dev]'
+.venv/bin/python -m chengchuan
+```
+
+Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。安装包尚未构建；不同平台需要分别验收。
+
+默认读取仓库中的久立日线快照；左侧可切换分时快照。Ctrl左键拖动选择时间段，松开后计算，拖动边界调整，Esc清除，Ctrl＋O导入其他旧版标准JSON快照。
+
+```bash
+.venv/bin/python -m chengchuan \
+  --dataset reports/jiuli_20261102_full_day.dataset.json
+```
+
+工作区与轮转日志默认保存到操作系统的应用数据目录，可用`--state-dir PATH`指定。首次图表显示的是保存的数据，不是实时行情。当前单个导入快照上限32MB。
+
+## 规划与架构
+
+- [产品规划与当前功能](docs/PRODUCT.md)
+- [分阶段路线与验收清单](docs/ROADMAP.md)
+- [架构、性能与稳定性约束](docs/ARCHITECTURE.md)
+- [UI设计和操作规范](docs/UI_DESIGN.md)
+- [架构决策](docs/DECISIONS.md)
+- [开发和Git约定](CONTRIBUTING.md)
+- [变更记录](CHANGELOG.md)
+
+新架构采用PySide6＋PyQtGraph，领域和应用层独立于GUI、供应商与数据库。旧分析引擎位于兼容边界，之后可以逐步替换。
+
+## 桌面验证
+
+```bash
+.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py scripts
+QT_QPA_PLATFORM=offscreen .venv/bin/python -m chengchuan \
+  --state-dir /tmp/chengchuan-preview --screenshot design/chengchuan-desktop.png
+```
+
+离屏检查不能替代真实目标系统和显示器验收。详见[本轮验证记录](docs/VALIDATION.md)。
+
+## 公开数据原型说明（兼容保留）
+
+以下说明适用于保留的`flowradar`命令行工具；新GUI当前读取其`.dataset.json`快照。
 
 支持选择数小时、数天或数周的区间，计算量价、相对强弱、订单金额分类和多种阶段解释，并生成本地可打开的交互式 HTML、Markdown、JSON 报告。
 

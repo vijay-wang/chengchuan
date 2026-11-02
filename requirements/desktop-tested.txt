@@ -1,0 +1,8 @@
+# Tested snapshot: Linux x86_64, CPython 3.10, 2026-11-02.
+# Used as pip constraints with -e '.[desktop,dev]'; not an all-platform lock file.
+PySide6-Essentials==6.12.0
+shiboken6==6.12.0
+pyqtgraph==0.14.0
+numpy==2.2.6
+colorama==0.4.6
+ruff==0.17.3

@@ -1,0 +1,43 @@
+{
+  "measured_at_utc": "2026-11-02T13:59:04.703454+00:00",
+  "environment": {
+    "python": "3.10.12",
+    "system": "Linux",
+    "machine": "x86_64",
+    "logical_cpus": 16
+  },
+  "repeat": 50,
+  "results": [
+    {
+      "file": "jiuli_20261019_1102.dataset.json",
+      "loaded_bars": 69,
+      "selected_bars": 11,
+      "uncached_analysis": {
+        "p50_ms": 0.7415,
+        "p95_ms": 0.7987,
+        "max_ms": 0.8076
+      },
+      "cached_use_case": {
+        "p50_ms": 0.0005,
+        "p95_ms": 0.0006,
+        "max_ms": 0.0049
+      }
+    },
+    {
+      "file": "jiuli_20261102_full_day.dataset.json",
+      "loaded_bars": 1210,
+      "selected_bars": 242,
+      "uncached_analysis": {
+        "p50_ms": 9.227,
+        "p95_ms": 16.3129,
+        "max_ms": 31.2454
+      },
+      "cached_use_case": {
+        "p50_ms": 0.0005,
+        "p95_ms": 0.0005,
+        "max_ms": 0.0056
+      }
+    }
+  ],
+  "scope": "本机、小规模已保存真实快照、内存分析；不包含网络、图表绘制、逐笔数据或长时间运行。"
+}
