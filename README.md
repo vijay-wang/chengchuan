@@ -43,6 +43,7 @@ Ctrl左键拖动选择时间段，松开后计算，拖动边界调整，Esc清�
 
 - [产品规划与当前功能](docs/PRODUCT.md)
 - [分阶段路线与验收清单](docs/ROADMAP.md)
+- [量价位置与未来1—2交易日联合预测规划](docs/SHORT_HORIZON_FORECAST.md)（仅规划，未实现或验证）
 - [架构、性能与稳定性约束](docs/ARCHITECTURE.md)
 - [UI设计和操作规范](docs/UI_DESIGN.md)
 - [架构决策](docs/DECISIONS.md)
