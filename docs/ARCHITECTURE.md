@@ -82,6 +82,8 @@ SQLite事务允许请求被终止时保留上一份完整缓存。行情、报�
 
 ## 0.3短周期预测研究边界
 
+2026-11-04需求调整：本节记录既有0.3实现；后续开发以[下一交易日双时点需求](NEXT_DAY_FORECAST.md)为准，P2后置。模式仅盘后／14:35，均预测下一交易日。14:35需新增完整时间戳级历史视图、接收时间与标签成熟检查；当前日级`history_at`及H1／H2结果不能代表已支持14:35。模式和截止时间须进入模型、缓存、预测标识及档案，避免同日两个模式互相覆盖。
+
 实现位于`domain/forecast.py`、`domain/analogue.py`、`application/forecast*.py`，不依赖Qt或第三方ML库。`StageProvider`隔离旧规则，`ForecastJournal`隔离持久化，`forecast.py`与bootstrap分别装配CLI和GUI。以下约束已用于首个研究切片，完整验证仍待完成。
 
 - 特征提取和未来预测作为与区间AnalysisService并列的用例，复用标准行情和数据质量信息；

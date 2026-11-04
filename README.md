@@ -6,6 +6,8 @@
 
 当前为**0.3量价预测研究版**：在行情、自选、Ctrl区间分析基础上，增加未来1／2交易日的方向研究、历史逐日验证、真实结果对照与报告导出。首版模型尚未完成独立封存验证和校准；现有回放使用原始收盘价，只作工程诊断。周K、复权、完整分钟K线和Level-2按路线继续加入。
 
+**2026-11-04需求调整：** 后续只保留盘后、北京时间14:35两个时点预测下一交易日，优先级P2后置，排在行情、稳定性、基础指标和选区体验之后；相关Level-2／GPU增强同样后置。本次只更新文档，既有0.3 H1／H2代码未改动。详见[最新预测需求](docs/NEXT_DAY_FORECAST.md)及[排期](docs/ROADMAP.md)。
+
 ## 启动桌面
 
 需要Python 3.10或更高版本。在仓库目录执行：
@@ -77,7 +79,8 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 
 - [产品规划与当前功能](docs/PRODUCT.md)
 - [分阶段路线与验收清单](docs/ROADMAP.md)
-- [量价位置与未来1—2交易日联合预测设计和实施状态](docs/SHORT_HORIZON_FORECAST.md)
+- [最新预测需求：盘后／14:35预测下一交易日，P2后置](docs/NEXT_DAY_FORECAST.md)
+- [量价联合预测原设计与0.3实施背景](docs/SHORT_HORIZON_FORECAST.md)
 - [历史逐日预测与准确率验证方案](docs/FORECAST_VALIDATION.md)（已实现诊断回放，完整验证仍待完成）
 - [架构、性能与稳定性约束](docs/ARCHITECTURE.md)
 - [UI设计和操作规范](docs/UI_DESIGN.md)
