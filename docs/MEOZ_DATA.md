@@ -1,6 +1,6 @@
 # 猫爪／猫头鹰数据：配置、周期与本地缓存
 
-日期：2026-11-04。版本：0.8.0。预测专项仍为P2，当前交付行情与图表。
+日期：2026-11-04。版本：0.9.0。预测专项仍为P2，当前交付行情、图表与透明逐笔统计。
 
 ## 接入及密钥
 
@@ -88,7 +88,7 @@ python -m chengchuan --provider meoz --symbol 002318 --interval min15
 
 GUI窗口缓存与腾讯分库存储，序列化格式兼容旧版，并保留来源、均价与基准线。跨电脑携带缓存时单独迁移数据文件并配置自己的密钥，不把账号配置提交到Git。
 
-0.8热力图使用`theme_daily(type=hy/gn)`与增加成交额的`screening`，个股热力图和指数统计共用筛选响应；按需加载，不跟随每15秒轮询。资金新页单独使用并标注东方财富公开分类，不占猫爪额度。体验保护保持，专业版高速链路待接入，见[刷新与市场视图](MARKET_VIEWS_AND_REFRESH.md)。
+0.8热力图使用`theme_daily(type=hy/gn)`与增加成交额的`screening`，个股热力图和指数统计共用筛选响应；按需加载，不跟随每15秒轮询。公开分类资金页单独使用并标注东方财富来源，不占猫爪额度。0.9板块下钻增加`theme_members`按类别缓存，复用加入最新价的同日筛选响应。体验保护保持，见[刷新与市场视图](MARKET_VIEWS_AND_REFRESH.md)。
 
 ## 节点及范围
 
@@ -96,4 +96,8 @@ GUI窗口缓存与腾讯分库存储，序列化格式兼容旧版，并保留�
 
 0.7补充核对：[指数日线](https://meoz.cn/docs/query/index/indexdaily)、[指数分钟](https://t.meoz.cn/docs/query/index/minute)、[历史指数分钟](https://t.meoz.cn/docs/query/history/index/minute)、[估值](https://meoz.cn/docs/query/stock/valuation)、[筛选](https://meoz.cn/docs/query/stock/screening)、[资金分类](https://meoz.cn/docs/query/theme/fundflow-kp)、[情绪汇总](https://meoz.cn/docs/query/market/emoindic-daily)。每个接口按已核对的字段及单位解析，不依赖猜测字段别名。
 
-已阅读订阅及下载说明，本轮使用JSON查询实现图表，未启动长期WebSocket或消耗逐笔／文件下载额度。Level-2研究、GPU模型及14:35下一日预测继续后置。真实数据与操作验证见[验证记录](VALIDATION_MEOZ.md)。
+0.4图表验收使用JSON查询，未消费逐笔／文件下载；原记录见[验证](VALIDATION_MEOZ.md)。0.9新增已发布历史的委托／成交／十档JSON分页，走官方历史服务，不消耗Parquet下载额度；每接口本机95次保护和缓存仍生效。分页默认6页／接口、可选8页，失败及中断计数，超过范围显示不完整而不无限取数。当前体验权限与专业版近30个自然日范围以官方契约及服务端为准。
+
+HTTP股票tick五档的量经实测由手转股，历史十档为股；WS源单位未实盘核定，保持原值并标“源数量”。WS票据计入本机调用预留，仅在内存使用；已接入手动订阅和UI合并缓冲，但本机WSS握手HTTP 503，未验证实盘推送。接口不提供真实逐单实时排队；历史队列为可确认原单样本，不宣称交易所全序优先级。
+
+原始委托按原价×原量，撤销整单剔除，包含未成交有效委托；该金额与实际资金流入／流出分开。预测、GPU及14:35下一日预测继续后置。契约、口径和新增19次调用明细见[工作台](ORDER_WORKBENCH.md)与[0.9验证](VALIDATION_ORDER_WORKBENCH.md)。

@@ -13,11 +13,13 @@ from chengchuan.domain.market import (
     SearchResult,
     index_matches,
     instrument_symbol,
+    stock_symbol,
 )
 from chengchuan.domain.market_dashboard import MarketOverview, QuoteDetails
 from chengchuan.domain.market_views import HeatmapSnapshot, MoneyFlow, funds_symbol
 from chengchuan.domain.models import SHANGHAI
 from chengchuan.domain.periods import chart_period
+from chengchuan.domain.sectors import SectorSnapshot
 
 
 class MarketProvider(Protocol):
@@ -37,13 +39,13 @@ class MarketCache(Protocol):
 
     def load_dashboard(
         self, kind: str, key: str
-    ) -> MarketOverview | QuoteDetails | HeatmapSnapshot | MoneyFlow | None: ...
+    ) -> MarketOverview | QuoteDetails | HeatmapSnapshot | MoneyFlow | SectorSnapshot | None: ...
 
     def save_dashboard(
         self,
         kind: str,
         key: str,
-        value: MarketOverview | QuoteDetails | HeatmapSnapshot | MoneyFlow,
+        value: MarketOverview | QuoteDetails | HeatmapSnapshot | MoneyFlow | SectorSnapshot,
     ) -> None: ...
 
 
@@ -57,11 +59,13 @@ class MarketService:
         source_label="",
         connection_notice="",
         offline=False,
+        tape_repository=None,
     ):
         self.provider, self.cache, self.ttl_seconds = provider, cache, ttl_seconds
         self.source_id, self.source_label = source_id, source_label
         self.connection_notice = connection_notice
         self.offline = offline
+        self.tape_repository = tape_repository
         self.automatic_updates = not offline and getattr(provider, "offline", False) is not True
         intervals = getattr(provider, "intervals", None)
         self.intervals = (
@@ -72,6 +76,9 @@ class MarketService:
         self.supports_details = getattr(provider, "supports_details", False) is True
         self.supports_heatmap = getattr(provider, "supports_heatmap", False) is True
         self.supports_funds = getattr(provider, "supports_funds", False) is True
+        self.supports_sector = getattr(provider, "supports_sector", False) is True
+        self.supports_microstructure = getattr(provider, "supports_microstructure", False) is True
+        self.supports_book_stream = getattr(provider, "supports_book_stream", False) is True
 
     def search(self, query: str) -> SearchResult:
         query = query.strip()[:40]
@@ -188,6 +195,8 @@ class MarketService:
                     and candidate.kind != key
                 ):
                     raise StorageError("市场视图缓存身份不一致")
+                if kind == "sector" and candidate.kind + ":" + candidate.code != key:
+                    raise StorageError("板块缓存身份不一致")
                 if (
                     kind == "details"
                     and candidate.symbol
@@ -262,6 +271,42 @@ class MarketService:
             return value
 
         return self._dashboard("funds", symbol, MoneyFlow, fetch, refresh)
+
+    def load_sector(self, kind, code, name, refresh=False):
+        if not self.supports_sector or kind not in ("hy", "gn") or not str(code).isdigit():
+            raise MarketError("当前源未提供该板块成份")
+
+        def fetch():
+            value = self.provider.fetch_sector(kind, code, name)
+            if value.kind != kind or value.code != code:
+                raise MarketError("板块成份返回了其他板块")
+            return value
+
+        return self._dashboard("sector", kind + ":" + code, SectorSnapshot, fetch, refresh)
+
+    def load_order_book(self, symbol):
+        if not self.supports_microstructure:
+            raise MarketError("五档及逐笔数据需要猫爪来源")
+        return self.provider.fetch_order_book(stock_symbol(symbol))
+
+    def load_microstructure(self, symbol, day, max_pages=6):
+        if (
+            not self.supports_microstructure
+            or type(day) is not date
+            or day > datetime.now(SHANGHAI).date()
+        ):
+            raise MarketError("请选择可查询的个股与已发布交易日")
+        return self.provider.fetch_microstructure(stock_symbol(symbol), day, max_pages)
+
+    def stream_order_book(self, symbol, stop):
+        if not self.supports_book_stream or not self.automatic_updates:
+            raise MarketError("当前来源不支持在线五档订阅")
+        return self.provider.stream_order_book(stock_symbol(symbol), stop)
+
+    def load_microstructure_file(self, path):
+        if self.tape_repository is None:
+            raise MarketError("当前环境未配置逐笔文件导入")
+        return self.tape_repository.load(path)
 
 
 class MarketSources(Protocol):

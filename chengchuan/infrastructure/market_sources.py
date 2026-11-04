@@ -14,6 +14,7 @@ from chengchuan.infrastructure.meoz_client import (
     save_private_key,
 )
 from chengchuan.infrastructure.meoz_market import MeozMarketProvider
+from chengchuan.infrastructure.microstructure import JsonOrderTapeRepository
 
 
 class ConfiguredMarketSources:
@@ -41,6 +42,7 @@ class ConfiguredMarketSources:
                 source_id=source,
                 source_label="猫爪／猫头鹰",
                 connection_notice=notice,
+                tape_repository=JsonOrderTapeRepository(),
             )
         return MarketService(
             TencentMarketProvider(),
@@ -49,6 +51,7 @@ class ConfiguredMarketSources:
             source_label="腾讯",
             connection_notice="仅分时／日K；完整12周期请切换猫爪并配置本机API Key",
             offline=self.offline,
+            tape_repository=JsonOrderTapeRepository(),
         )
 
     def configure_key(self, value):

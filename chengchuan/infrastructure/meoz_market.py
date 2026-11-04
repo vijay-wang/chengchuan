@@ -97,6 +97,9 @@ class MeozMarketProvider:
     supports_details = True
     supports_funds = True
     supports_heatmap = True
+    supports_sector = True
+    supports_microstructure = True
+    supports_book_stream = True
 
     def __init__(self, client=None):
         self.client = client or MeozClient()
@@ -116,6 +119,28 @@ class MeozMarketProvider:
         from chengchuan.infrastructure.market_views import fetch_heatmap
 
         return fetch_heatmap(self.client, kind)
+
+    def fetch_sector(self, kind, code, name):
+        from chengchuan.infrastructure.sectors import fetch_sector
+
+        return fetch_sector(self.client, kind, code, name)
+
+    def fetch_order_book(self, symbol):
+        from chengchuan.infrastructure.microstructure import fetch_book
+
+        return fetch_book(self.client, symbol)
+
+    def fetch_microstructure(self, symbol, day, max_pages=6):
+        from chengchuan.infrastructure.microstructure import fetch_tape
+
+        return fetch_tape(self.client, symbol, day, max_pages)
+
+    def stream_order_book(self, symbol, stop):
+        if self.client.offline:
+            raise MarketError("离线模式不建立实时订阅")
+        from chengchuan.infrastructure.meoz_stream import stream_books
+
+        return stream_books(self.client.store, symbol, stop)
 
     def search(self, query):
         # Name/pinyin search consumes no paid MeoZ calls.

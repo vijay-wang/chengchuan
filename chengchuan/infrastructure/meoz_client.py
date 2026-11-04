@@ -78,6 +78,23 @@ class ApiResult:
     cached: bool
     url: str
     notice: str = ""
+    page: dict | None = None
+
+
+def page_metadata(payload):
+    data = payload.get("data") or {}
+    if "has_more" not in data:
+        return None
+    more, cursor = data["has_more"], data.get("next_cursor")
+    if (
+        type(more) is not bool
+        or cursor is not None
+        and not isinstance(cursor, str)
+        or more
+        and not cursor
+    ):
+        raise MarketError("猫爪分页状态无效，拒绝将未完成页当作完整数据")
+    return dict(has_more=more, next_cursor=cursor, tradedate=data.get("tradedate"))
 
 
 class MeozStore:
@@ -284,6 +301,7 @@ class MeozClient:
             datetime.fromtimestamp(fetched, timezone.utc),
             True,
             LIVE_URLS[0] if service == "live" else HISTORY_URL,
+            page=page_metadata(payload),
         )
 
     def query(self, api, params, fields="", service="live", max_age=180, min_fetched=None):
@@ -307,11 +325,16 @@ class MeozClient:
                 True,
                 url,
                 "离线读取本地已存数据",
+                page=page_metadata(payload),
             )
         if cached:
             payload, fetched = cached
             return ApiResult(
-                decode_rows(payload), datetime.fromtimestamp(fetched, timezone.utc), True, url
+                decode_rows(payload),
+                datetime.fromtimestamp(fetched, timezone.utc),
+                True,
+                url,
+                page=page_metadata(payload),
             )
         key_value = private_key()
         # Failure suppression changes when a user changes credentials; cached public data is reusable.
@@ -327,6 +350,7 @@ class MeozClient:
                     True,
                     url,
                     clean_error(exc),
+                    page=page_metadata(payload),
                 )
             raise
         if slot > now:
@@ -351,6 +375,7 @@ class MeozClient:
                     f"猫爪接口{api}：{code} " + clean_error(payload.get("message", "请求失败"))
                 )
             rows = decode_rows(payload)
+            page_metadata(payload)
             # A server is never allowed to reflect a credential into our public cache.
             if key_value in raw.decode("utf-8", errors="replace"):
                 raise MarketError("猫爪响应包含敏感认证信息，拒绝缓存")
@@ -369,6 +394,7 @@ class MeozClient:
                     True,
                     url,
                     message,
+                    page=page_metadata(payload),
                 )
             raise MarketError(message) from None
         except (OSError, URLError, ValueError, TypeError, AttributeError, MarketError) as exc:
@@ -382,10 +408,17 @@ class MeozClient:
                     True,
                     url,
                     "更新失败，保留原数据：" + message,
+                    page=page_metadata(payload),
                 )
             raise MarketError(message) from None
         # The lease/failure key is credential-specific; the response key contains no credential.
         fetched = self.store.finish(
             failure_key, request_id, payload=payload, response_key=cache_key
         )
-        return ApiResult(rows, datetime.fromtimestamp(fetched, timezone.utc), False, url)
+        return ApiResult(
+            rows,
+            datetime.fromtimestamp(fetched, timezone.utc),
+            False,
+            url,
+            page=page_metadata(payload),
+        )

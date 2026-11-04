@@ -32,19 +32,23 @@ from PySide6.QtWidgets import (
 
 from chengchuan import APP_NAME, __version__
 from chengchuan.application.errors import StorageError
-from chengchuan.application.market_refresh import MarketRefreshController
+from chengchuan.application.market_refresh import MarketRefreshController, market_checkpoint
+from chengchuan.application.microstructure import analyze_orders
 from chengchuan.application.quote_metrics import details_from_frame
 from chengchuan.application.settings import SettingsSaveError, SettingsService
+from chengchuan.domain.calendar import CalendarUnavailable
 from chengchuan.domain.market import Instrument, instrument_symbol, is_index
 from chengchuan.domain.models import SHANGHAI, IndexRange, SeriesKind
 from chengchuan.domain.periods import PERIODS, chart_period
 from chengchuan.ui import theme
+from chengchuan.ui.book_stream import BookStreamRunner
 from chengchuan.ui.chart import MarketChart
 from chengchuan.ui.date_navigator import DateNavigator
 from chengchuan.ui.forecast_panel import ForecastPanel
 from chengchuan.ui.market import MarketBrowser
 from chengchuan.ui.market_dashboard import IndexOverviewBar, QuoteDetailsPanel
 from chengchuan.ui.market_views import HeatmapDialog, MoneyFlowPanel
+from chengchuan.ui.microstructure import MicrostructureDialog, MicrostructurePanel
 from chengchuan.ui.settings_dialog import SettingsDialog
 from chengchuan.ui.tasks import LatestTaskRunner, ProcessTaskRunner
 
@@ -113,6 +117,9 @@ class MainWindow(QMainWindow):
             self.preferences = replace(self.preferences, provider=initial_provider)
         self.settings_dialog = None
         self.heatmap_dialog = None
+        self.micro_dialog = None
+        self._l2_tape = self._l2_analysis = None
+        self._l2_requested = None
         self.forecast_service, self.forecast_writer = forecast_service, forecast_writer
         self.forecast_panel = None
         self.network_runner_factory = network_runner_factory
@@ -125,6 +132,21 @@ class MainWindow(QMainWindow):
         self.overview_runner = network_runner_factory(self) if market else None
         self.details_runner = network_runner_factory(self) if market else None
         self.funds_runner = network_runner_factory(self) if market else None
+        self.l2_runner = network_runner_factory(self) if market else None
+        self.book_runner = network_runner_factory(self) if market else None
+        if self.l2_runner:
+            self.l2_runner.timeout_ms = 180000
+            self.l2_runner.ready.connect(self._l2_ready)
+            self.l2_runner.failed.connect(self._micro_error)
+            self.book_runner.ready.connect(self._book_ready)
+            self.book_runner.failed.connect(self._micro_error)
+        self.l2_analysis_runner = LatestTaskRunner(self)
+        self.l2_analysis_runner.ready.connect(self._l2_analysis_ready)
+        self.l2_analysis_runner.failed.connect(self._micro_error)
+        self.book_stream = BookStreamRunner(self)
+        self.book_stream.ready.connect(self._book_ready)
+        self.book_stream.status.connect(self._micro_status)
+        self.book_stream.finished.connect(lambda: self._toggle_book_stream(False))
         self._overview_requested = False
         self._details_refresh = False
         self._refresh_controller = MarketRefreshController()
@@ -349,6 +371,7 @@ class MainWindow(QMainWindow):
         self._persist_preferences()
 
     def _install_market(self, market):
+        self._clear_micro()
         symbol, interval, day = self.online_symbol, self.online_interval, self.history_date
         self.market_runner.cancel()
         self.overview_runner.cancel()
@@ -481,6 +504,10 @@ class MainWindow(QMainWindow):
         self.funds_panel = MoneyFlowPanel()
         self.research_tabs.addTab(self.funds_panel, "资金")
         self.funds_panel.requested.connect(self._request_funds)
+        self.funds_panel.order_bands.requested.connect(lambda: self._request_l2_tape(6))
+        self.micro_panel = MicrostructurePanel()
+        self._wire_micro(self.micro_panel)
+        self.research_tabs.addTab(self.micro_panel, "盘口逐笔")
         self.research_tabs.currentChanged.connect(self._research_tab_changed)
         if self.forecast_service:
             self.forecast_panel = ForecastPanel(
@@ -535,6 +562,7 @@ class MainWindow(QMainWindow):
             self.render_report(self.report)
 
     def _reset_display(self):
+        self._clear_micro()
         self.runner.cancel()
         self.snapshot = self.selection = self.report = None
         if self.forecast_panel:
@@ -727,7 +755,10 @@ class MainWindow(QMainWindow):
         self.watch_button.setEnabled(True)
         self._frame_status()
         self._request_details(self._details_refresh)
-        if self.research_tabs.currentWidget() is self.funds_panel:
+        if (
+            self.research_tabs.currentWidget() is self.funds_panel
+            and self.funds_panel.pages.currentIndex() == 0
+        ):
             self._request_funds(self._details_refresh)
         if self.history_date:
             self._focus_history_date(self.history_date)
@@ -826,6 +857,7 @@ class MainWindow(QMainWindow):
                 want_details=getattr(self.market, "supports_details", False) is True,
                 want_overview=getattr(self.market, "supports_overview", False) is True,
                 want_funds=self.research_tabs.currentWidget() is self.funds_panel
+                and self.funds_panel.pages.currentIndex() == 0
                 and getattr(self.market, "supports_funds", False) is True,
             )
             self.auto_refresh.setToolTip(
@@ -861,8 +893,169 @@ class MainWindow(QMainWindow):
         self.heatmap_dialog = None
 
     def _research_tab_changed(self, unused=None):
-        if self.research_tabs.currentWidget() is self.funds_panel:
+        if (
+            self.research_tabs.currentWidget() is self.funds_panel
+            and self.funds_panel.pages.currentIndex() == 0
+        ):
             self._request_funds()
+
+    def _wire_micro(self, panel):
+        panel.snapshot_requested.connect(self._request_book)
+        panel.tape_requested.connect(self._request_l2_tape)
+        panel.stream_requested.connect(self._toggle_book_stream)
+        panel.replay_requested.connect(self._replay_l2)
+        panel.import_requested.connect(self._import_l2)
+        panel.expand_requested.connect(self._expand_micro)
+
+    def _micro_panels(self):
+        return (
+            (self.micro_panel, self.micro_dialog.panel)
+            if self.micro_dialog
+            else (self.micro_panel,)
+        )
+
+    def _micro_context(self):
+        if self.frame is None or not self.online_symbol or is_index(self.online_symbol):
+            raise ValueError("盘口及原始委托分档适用于已打开的沪深个股；不将指数当作个股查询")
+        return self.online_symbol, self.frame.snapshot.series.bars[-1].timestamp.astimezone(
+            SHANGHAI
+        ).date()
+
+    def _micro_status(self, message):
+        for panel in self._micro_panels():
+            panel.status.setText(message)
+
+    def _micro_error(self, message):
+        self._micro_status("读取／分析未完成，已有数据保留：" + message)
+        self.funds_panel.order_bands.caption.setText("读取／分析未完成：" + message)
+
+    def _clear_micro(self):
+        self.book_stream.stop()
+        if self.l2_runner:
+            self.l2_runner.cancel()
+            self.book_runner.cancel()
+        self.l2_analysis_runner.cancel()
+        self._l2_tape = self._l2_analysis = self._l2_requested = None
+        if hasattr(self, "micro_panel"):
+            for panel in self._micro_panels():
+                panel.clear()
+
+    def _request_book(self):
+        try:
+            symbol, day = self._micro_context()
+        except ValueError as error:
+            self._micro_error(str(error))
+            return
+        self.book_runner.submit(symbol, None, partial(self.market.load_order_book, symbol))
+        self._micro_status("正在读取五档快照；数量将标明单位，优先使用缓存。")
+
+    def _book_ready(self, book):
+        try:
+            symbol, day = self._micro_context()
+        except ValueError:
+            return
+        if book.symbol != symbol or book.time.date() != day:
+            self._micro_status("快照证券／日期与当前图表不符，已拒绝；历史盘口请读取已发布逐笔。")
+            return
+        for panel in self._micro_panels():
+            panel.render_book(book)
+
+    def _toggle_book_stream(self, enabled):
+        self.book_stream.stop()
+        if enabled:
+            try:
+                symbol, day = self._micro_context()
+                if (
+                    self.history_date is not None
+                    or not market_checkpoint(datetime.now(SHANGHAI)).live
+                ):
+                    raise ValueError("历史浏览或休市中，不启动实时订阅；可读取快照或已发布逐笔。")
+                if getattr(self.market, "supports_book_stream", False) is not True:
+                    raise ValueError("当前来源不支持五档订阅")
+            except (ValueError, CalendarUnavailable) as error:
+                self._micro_status(str(error))
+                enabled = False
+            else:
+                self.book_stream.start(partial(self.market.stream_order_book, symbol))
+        for panel in self._micro_panels():
+            panel.stream_button.blockSignals(True)
+            panel.stream_button.setChecked(enabled)
+            panel.stream_button.blockSignals(False)
+
+    def _request_l2_tape(self, max_pages=6):
+        try:
+            symbol, day = self._micro_context()
+        except ValueError as error:
+            self._micro_error(str(error))
+            return
+        if getattr(self.market, "supports_microstructure", False) is not True:
+            self._micro_error("逐笔需切换猫爪数据源，或导入本地JSON")
+            return
+        self._toggle_book_stream(False)
+        self._l2_requested = (symbol, day)
+        self._micro_status(
+            f"读取{day:%Y-%m-%d}已发布原始委托、成交及十档；每类最多{max_pages}页，本地优先，数据不齐不发布饼图。"
+        )
+        self.l2_runner.submit(
+            symbol + str(day),
+            None,
+            partial(self.market.load_microstructure, symbol, day, max_pages),
+        )
+
+    def _l2_ready(self, tape):
+        try:
+            expected = self._micro_context()
+        except ValueError:
+            return
+        if (tape.symbol, tape.day) != expected:
+            self._micro_error("逐笔证券／日期与当前图表不符；请先切到对应日期")
+            return
+        self._l2_tape = tape
+        self._replay_l2(self.micro_panel.cutoff.time().toPython())
+
+    def _replay_l2(self, clock):
+        if self._l2_tape is None:
+            self._micro_error("请先读取或导入对应日期的逐笔数据")
+            return
+        self._toggle_book_stream(False)
+        cutoff = datetime.combine(self._l2_tape.day, clock, SHANGHAI)
+        self.l2_analysis_runner.submit(
+            str(cutoff), None, partial(analyze_orders, self._l2_tape, cutoff)
+        )
+
+    def _l2_analysis_ready(self, analysis):
+        if self._l2_tape is None or (analysis.symbol, analysis.day) != (
+            self._l2_tape.symbol,
+            self._l2_tape.day,
+        ):
+            return
+        self._l2_analysis = analysis
+        for panel in self._micro_panels():
+            panel.render_analysis(self._l2_tape, analysis)
+        self.funds_panel.order_bands.render(analysis)
+
+    def _import_l2(self):
+        try:
+            self._micro_context()
+        except ValueError as error:
+            self._micro_error(str(error))
+            return
+        path, _ = QFileDialog.getOpenFileName(self, "导入逐笔JSON数据包", "", "逐笔数据包 (*.json)")
+        if path:
+            self.l2_runner.submit(
+                "file:" + path, None, partial(self.market.load_microstructure_file, Path(path))
+            )
+
+    def _expand_micro(self):
+        if self.micro_dialog is None:
+            self.micro_dialog = MicrostructureDialog(self)
+            self._wire_micro(self.micro_dialog.panel)
+        if self._l2_tape and self._l2_analysis:
+            self.micro_dialog.panel.render_analysis(self._l2_tape, self._l2_analysis)
+        elif self.micro_panel.book:
+            self.micro_dialog.panel.render_book(self.micro_panel.book)
+        self.micro_dialog.show()
+        self.micro_dialog.raise_()
 
     def _request_funds(self, refresh=False):
         if self.market is None or self.frame is None or self.history_date is not None:
@@ -1082,6 +1275,10 @@ class MainWindow(QMainWindow):
         self.status.setText("选区已清除  ·  当前行情保持不变")
 
     def closeEvent(self, event):
+        self.book_stream.shutdown()
+        self.l2_analysis_runner.shutdown()
+        if self.micro_dialog:
+            self.micro_dialog.close()
         if self.settings_dialog is not None:
             self.settings_dialog.reject()
         self.refresh_timer.stop()
@@ -1095,6 +1292,8 @@ class MainWindow(QMainWindow):
             self.overview_runner.shutdown()
             self.details_runner.shutdown()
             self.funds_runner.shutdown()
+            self.l2_runner.shutdown()
+            self.book_runner.shutdown()
         self.runner.shutdown()
         state = {"splitter": self.splitter.sizes()}
         if self.market:

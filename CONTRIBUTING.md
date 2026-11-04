@@ -12,8 +12,8 @@
 python -m venv .venv
 .venv/bin/python -m pip install -c requirements/desktop-tested.txt -e '.[desktop,dev]'
 .venv/bin/python -m unittest discover -s tests -v
-.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py tests/test_meoz*.py tests/test_chart*.py tests/test_settings*.py tests/test_*dashboard*.py scripts
-.venv/bin/ruff format --check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py tests/test_meoz*.py tests/test_chart*.py tests/test_settings*.py tests/test_*dashboard*.py scripts
+.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py tests/test_meoz*.py tests/test_chart*.py tests/test_settings*.py tests/test_*dashboard*.py tests/test_microstructure*.py tests/test_sectors.py scripts
+.venv/bin/ruff format --check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py tests/test_meoz*.py tests/test_chart*.py tests/test_settings*.py tests/test_*dashboard*.py tests/test_microstructure*.py tests/test_sectors.py scripts
 ```
 
 Windows将`.venv/bin/python`替换为`.venv\Scripts\python`。

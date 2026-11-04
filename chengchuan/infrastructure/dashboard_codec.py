@@ -12,17 +12,19 @@ from chengchuan.domain.market_dashboard import (
     QuoteMetric,
 )
 from chengchuan.domain.market_views import FlowBucket, HeatmapSnapshot, HeatTile, MoneyFlow
+from chengchuan.domain.sectors import SectorMember, SectorSnapshot
 
 
 def encode_dashboard(value):
     return json.dumps(
         dict(
-            version=3,
+            version=4,
             kind={
                 QuoteDetails: "details",
                 MarketOverview: "overview",
                 HeatmapSnapshot: "heatmap",
                 MoneyFlow: "funds",
+                SectorSnapshot: "sector",
             }[type(value)],
             data=asdict(value),
         ),
@@ -34,13 +36,18 @@ def encode_dashboard(value):
 
 def decode_dashboard(raw):
     obj = json.loads(raw)
-    if obj["version"] not in (1, 2, 3):
+    if obj["version"] not in (1, 2, 3, 4):
         raise ValueError("指标缓存版本不受支持")
     row = obj["data"]
     if obj["version"] == 1:
         # Old records did not confirm all constituent response acquisition times.
         row["complete"] = False
     row["retrieved_at"] = datetime.fromisoformat(row["retrieved_at"])
+    if obj["kind"] == "sector":
+        row["day"] = date.fromisoformat(row["day"])
+        row["membership_at"] = datetime.fromisoformat(row["membership_at"])
+        row["members"] = tuple(SectorMember(**m) for m in row["members"])
+        return SectorSnapshot(**row)
     if obj["kind"] in ("heatmap", "funds"):
         row["day"] = date.fromisoformat(row["day"])
         if obj["kind"] == "heatmap":

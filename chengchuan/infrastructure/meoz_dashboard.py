@@ -29,7 +29,7 @@ from chengchuan.infrastructure.meoz_market import (
 
 VALUATION_FIELDS = "tradedate,symbol,name,code,close,turnover_rate,turnover_rate_f,volume_ratio,pe_ttm,pb,total_mv,circ_mv"
 FLOW_FIELDS = "tradedate,symbol,name,main_net_amount,main_buy_amount,main_sell_amount"
-SCREENING_FIELDS = "tradedate,symbol,code,name,pct_chg,main_net_amount,amount"
+SCREENING_FIELDS = "tradedate,symbol,code,name,pct_chg,main_net_amount,amount,close"
 EMOTION_FIELDS = "tradedate,s2,s6,s10,am,mf_main"
 INDEX_SYMBOLS = ",".join(symbol[-6:] for symbol, _, _ in INDEX_CATALOG)
 

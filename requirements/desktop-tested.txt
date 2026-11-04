@@ -7,3 +7,5 @@ pyqtgraph==0.14.0
 numpy==2.2.6
 colorama==0.4.6
 ruff==0.17.3
+websockets==16.1.1
+python-socks==2.8.2
