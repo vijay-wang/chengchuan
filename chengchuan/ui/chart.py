@@ -76,6 +76,7 @@ class Candles(pg.GraphicsObject):
 
 class MarketChart(QWidget):
     range_selected = Signal(object)
+    user_range_selected = Signal()
     hover_text = Signal(str)
 
     def __init__(self, parent=None):
@@ -325,6 +326,7 @@ class MarketChart(QWidget):
                 *self.region.getRegion(), len(self.snapshot.series.bars)
             )
             self.set_selection(selection)
+            self.user_range_selected.emit()
 
     def eventFilter(self, watched, event):
         if event.type() in (QEvent.Type.Leave, QEvent.Type.WindowDeactivate):
@@ -361,6 +363,7 @@ class MarketChart(QWidget):
             if kind == QEvent.Type.MouseButtonRelease:
                 self._drag_start = None
                 self.set_selection(selection)
+                self.user_range_selected.emit()
                 return True
         return super().eventFilter(watched, event)
 

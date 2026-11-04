@@ -9,7 +9,22 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from chengchuan.application.errors import MarketError
-from chengchuan.domain.market import Instrument, MarketFrame, Quote, stock_symbol
+from chengchuan.application.quote_metrics import base_metrics, number
+from chengchuan.domain.market import (
+    INDEX_CATALOG,
+    Instrument,
+    MarketFrame,
+    Quote,
+    instrument_symbol,
+    market_code,
+    stock_symbol,
+)
+from chengchuan.domain.market_dashboard import (
+    IndexSummary,
+    MarketOverview,
+    QuoteDetails,
+    QuoteMetric,
+)
 from chengchuan.domain.models import SHANGHAI, MarketBar, MarketSeries, MarketSnapshot, SeriesKind
 from flowradar.data import parse_minute_days
 
@@ -43,11 +58,11 @@ def parse_search(raw):
 
 
 def parse_quote(raw, symbol):
-    match = re.search(r"v_" + re.escape(symbol) + r'="([^"\r\n]*)"', raw)
+    match = re.search(r"v_" + re.escape(market_code(symbol)) + r'="([^"\r\n]*)"', raw)
     if not match:
         raise ValueError("没有该证券的有效报价")
     fields = match[1].split("~")
-    if len(fields) < 31 or fields[2] != symbol[2:]:
+    if len(fields) < 31 or fields[2] != symbol[-6:]:
         raise ValueError("报价格式或证券代码不一致")
     return Quote(
         Instrument(symbol, fields[1]),
@@ -57,7 +72,99 @@ def parse_quote(raw, symbol):
     )
 
 
+def parse_quote_details(raw, symbol):
+    quote = parse_quote(raw, symbol)
+    match = re.search(r"v_" + re.escape(market_code(symbol)) + r'="([^"\r\n]*)"', raw)
+    fields = match[1].split("~")
+
+    def field(index):
+        return number(fields[index]) if len(fields) > index else None
+
+    amount = field(57) if field(57) is not None else field(37)
+    row = dict(
+        close=quote.price,
+        pre_close=quote.previous_close,
+        open=field(5),
+        high=field(33),
+        low=field(34),
+        vol=field(6),
+        amount=amount * 10000 if amount is not None else None,
+    )
+    note = f"报价时间 {quote.timestamp:%Y-%m-%d %H:%M:%S}；腾讯公开报价，可能延迟"
+    metrics = base_metrics(symbol, row, "腾讯公开报价", note)
+    for key, label, unit, index, scale in (
+        ("volume_ratio", "量比", "倍", 49, 1),
+        ("turnover_rate", "换手率", "%", 38, 1),
+        ("pe_ttm", "市盈率TTM", "倍", 39, 1),
+        ("pb", "市净率", "倍", 46, 1),
+        ("circ_mv", "流通市值", "元", 44, 1e8),
+        ("total_mv", "总市值", "元", 45, 1e8),
+    ):
+        value = field(index)
+        metrics.append(
+            QuoteMetric(
+                key,
+                label,
+                value * scale if value is not None and value >= 0 else None,
+                unit,
+                "腾讯公开报价",
+                note,
+            )
+        )
+    return QuoteDetails(
+        symbol,
+        quote.timestamp.astimezone(SHANGHAI).date(),
+        tuple(metrics),
+        datetime.now(timezone.utc),
+    )
+
+
 class TencentMarketProvider:
+    supports_overview = True
+    supports_details = True
+
+    def fetch_overview(self):
+        raw = http_text(
+            "https://qt.gtimg.cn/q=" + ",".join(market_code(s) for s, _, _ in INDEX_CATALOG),
+            "gb18030",
+        )
+        indices = []
+        issues = []
+        for symbol, name, _ in INDEX_CATALOG:
+            try:
+                quote = parse_quote(raw, symbol)
+                details = parse_quote_details(raw, symbol)
+                amount = next(m.value for m in details.metrics if m.key == "amount")
+                indices.append(
+                    IndexSummary(
+                        symbol,
+                        name,
+                        quote.timestamp.astimezone(SHANGHAI).date(),
+                        quote.price,
+                        quote.previous_close,
+                        amount,
+                        quote.timestamp,
+                    )
+                )
+            except (ValueError, TypeError, KeyError):
+                issues.append(name + "暂无报价")
+        if not indices:
+            raise MarketError("指数摘要暂不可用")
+        return MarketOverview(
+            tuple(indices), (), datetime.now(timezone.utc), notice="；".join(issues)
+        )
+
+    def fetch_details(self, symbol, as_of=None):
+        symbol = instrument_symbol(symbol)
+        if as_of is not None:
+            raise MarketError("腾讯基础源不支持补取历史指标，请使用猫爪历史数据")
+        try:
+            return parse_quote_details(
+                http_text("https://qt.gtimg.cn/q=" + market_code(symbol), "gb18030"), symbol
+            )
+        except (OSError, ValueError, TypeError, KeyError, IndexError):
+            raise MarketError("详细行情暂不可用") from None
+
     def search(self, query):
         try:
             url = "https://smartbox.gtimg.cn/s3/?" + urlencode({"q": query, "t": "all"})
@@ -66,28 +173,31 @@ class TencentMarketProvider:
             raise MarketError("股票搜索暂不可用，请输入六位代码重试") from exc
 
     def fetch(self, symbol, interval):
-        symbol = stock_symbol(symbol)
+        symbol = instrument_symbol(symbol)
+        raw_symbol = market_code(symbol)
         if interval not in ("day", "minute"):
             raise ValueError("不支持的行情周期")
         quote, warning = None, ""
         try:
-            quote = parse_quote(http_text("https://qt.gtimg.cn/q=" + symbol, "gb18030"), symbol)
+            quote = parse_quote(http_text("https://qt.gtimg.cn/q=" + raw_symbol, "gb18030"), symbol)
         except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError) as exc:
             warning = "最新报价未取得；图表末价不代表当前报价"
             quote_error = exc
         try:
             if interval == "day":
                 url = "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?" + urlencode(
-                    {"param": f"{symbol},day,,,320,"}
+                    {"param": f"{raw_symbol},day,,,320,"}
                 )
             else:
                 url = "https://web.ifzq.gtimg.cn/appstock/app/day/query?" + urlencode(
-                    {"code": symbol}
+                    {"code": raw_symbol}
                 )
             payload = json.loads(http_text(url))
-            obj = payload.get("data", {}).get(symbol, {})
+            obj = payload.get("data", {}).get(raw_symbol, {})
             name = (
-                quote.instrument.name if quote else obj.get("qt", {}).get(symbol, ["", symbol])[1]
+                quote.instrument.name
+                if quote
+                else obj.get("qt", {}).get(raw_symbol, ["", raw_symbol])[1]
             )
             if interval == "day":
                 bars = tuple(
@@ -107,7 +217,7 @@ class TencentMarketProvider:
                 )
             else:
                 # The provider lists newest days first; cumulative values reset per day.
-                rows = sorted(parse_minute_days(payload, symbol), key=lambda b: b.timestamp)
+                rows = sorted(parse_minute_days(payload, raw_symbol), key=lambda b: b.timestamp)
                 bars = tuple(
                     MarketBar(
                         datetime.fromisoformat(b.timestamp).replace(tzinfo=SHANGHAI),
@@ -139,7 +249,7 @@ class TencentMarketProvider:
                 quote,
                 datetime.now(timezone.utc),
                 notice=warning,
-                sources=("https://qt.gtimg.cn/q=" + symbol, url),
+                sources=("https://qt.gtimg.cn/q=" + raw_symbol, url),
             )
         except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError) as exc:
             detail = "请检查网络或证券代码，稍后刷新"

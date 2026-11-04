@@ -7,7 +7,17 @@ from datetime import date, datetime, time, timedelta, timezone
 
 from chengchuan.application.errors import MarketError
 from chengchuan.application.resampling import calendar_bars, minute_bars
-from chengchuan.domain.market import Instrument, MarketFrame, Quote, stock_symbol
+from chengchuan.domain.market import (
+    INDEX_CATALOG,
+    INDEX_NAMES,
+    Instrument,
+    MarketFrame,
+    Quote,
+    instrument_symbol,
+    is_index,
+    market_code,
+    stock_symbol,
+)
 from chengchuan.domain.models import SHANGHAI, MarketBar, MarketSeries, MarketSnapshot, SeriesKind
 from chengchuan.domain.periods import PERIOD_BY_CODE, chart_period
 from chengchuan.infrastructure.market_data import TencentMarketProvider
@@ -15,13 +25,33 @@ from chengchuan.infrastructure.meoz_client import ApiResult, MeozClient, clean_e
 
 DAILY_FIELDS = "tradedate,symbol,name,open,high,low,close,pre_close,vol,amount"
 MINUTE_FIELDS = "tradedate,symbol,trademin,time,open,high,low,close,vol,amount,vwap"
+INDEX_DAILY_FIELDS = (
+    "tradedate,symbol,name,open,high,low,close,pre_close,change,pct_chg,vol,amount,servertime"
+)
+INDEX_MINUTE_FIELDS = "tradedate,symbol,trademin,time,open,high,low,close,vol,amount"
+INDEX_BATCH_SYMBOLS = ",".join(s[-6:] for s, _, _ in INDEX_CATALOG)
+
+
+def daily_contract(symbol):
+    return ("indexdaily", INDEX_DAILY_FIELDS) if is_index(symbol) else ("daily", DAILY_FIELDS)
+
+
+def index_amount(row):
+    # Historical bare-code indexdaily records currently disagree with the
+    # documented yuan unit (verified against minute totals). Do not silently
+    # interpret their raw amount as yuan or infer a universal conversion.
+    if "." not in str(row.get("symbol", "")):
+        return None
+    return float(row["amount"]) if row.get("amount") is not None else None
 
 
 def matches_symbol(value, symbol):
     text = str(value).strip().lower()
     if "." in text:
         code, exchange = text.rsplit(".", 1)
-        return exchange in ("sh", "sz") and exchange + code.zfill(6) == symbol
+        return exchange in ("sh", "sz") and exchange + code.zfill(6) == market_code(symbol)
+    if is_index(symbol):
+        return text.zfill(6) == symbol[-6:]
     return stock_symbol(text.zfill(6)) == symbol
 
 
@@ -44,7 +74,9 @@ def parse_rows(rows, symbol, intraday=False):
                 stamp,
                 float(row["close"]),
                 float(row["vol"]) * 100,
-                float(row["amount"]) if row.get("amount") is not None else None,
+                index_amount(row)
+                if is_index(symbol) and not intraday
+                else (float(row["amount"]) if row.get("amount") is not None else None),
                 float(row["open"]),
                 float(row["high"]),
                 float(row["low"]),
@@ -59,6 +91,8 @@ def parse_rows(rows, symbol, intraday=False):
 class MeozMarketProvider:
     intervals = tuple(PERIOD_BY_CODE)
     supports_history = True
+    supports_overview = True
+    supports_details = True
 
     def __init__(self, client=None):
         self.client = client or MeozClient()
@@ -71,7 +105,7 @@ class MeozMarketProvider:
 
     def fetch(self, symbol, interval):
         try:
-            return self._fetch(stock_symbol(symbol), chart_period(interval))
+            return self._fetch(instrument_symbol(symbol), chart_period(interval))
         except (ValueError, KeyError, TypeError, OverflowError) as exc:
             raise MarketError("猫爪行情字段无效或缺失：" + clean_error(exc)) from None
 
@@ -79,7 +113,7 @@ class MeozMarketProvider:
         if type(as_of) is not date or as_of > datetime.now(SHANGHAI).date():
             raise MarketError("请选择今天或更早的日期")
         try:
-            return self._fetch(stock_symbol(symbol), chart_period(interval), as_of=as_of)
+            return self._fetch(instrument_symbol(symbol), chart_period(interval), as_of=as_of)
         except (ValueError, KeyError, TypeError, OverflowError) as exc:
             raise MarketError("历史行情字段无效：" + clean_error(exc)) from None
 
@@ -101,13 +135,7 @@ class MeozMarketProvider:
                 "https://sz.meoz.cn:6688/api",
                 "复用本地日线定位历史日期",
             )
-        result = self.client.query(
-            "daily",
-            dict(symbols=symbol[2:], startdate="20000101", enddate=end),
-            DAILY_FIELDS,
-            max_age=None,
-            min_fetched=complete_after,
-        )
+        result = self._query_daily(symbol, "20000101", end, None, complete_after)
         if any(str(r["tradedate"]) > end for r in result.rows):
             raise MarketError("历史日线返回所选日期之后的数据，拒绝显示")
         parse_rows(result.rows, symbol)
@@ -170,13 +198,7 @@ class MeozMarketProvider:
             max(str(r["tradedate"]) for r in archive[0]) if archive and archive[0] else "20000101"
         )
         try:
-            result = self.client.query(
-                "daily",
-                dict(symbols=symbol[2:], startdate=start, enddate=today),
-                DAILY_FIELDS,
-                max_age=freshness,
-                min_fetched=min_fetched,
-            )
+            result = self._query_daily(symbol, start, today, freshness, min_fetched)
             parse_rows(result.rows, symbol)
         except MarketError as exc:
             if not archive:
@@ -208,6 +230,60 @@ class MeozMarketProvider:
             )
         return result
 
+    def _query_daily(self, symbol, start, end, max_age, min_fetched):
+        api, fields = daily_contract(symbol)
+        params = dict(symbols=market_code(symbol)[2:], startdate=start, enddate=end)
+        if not is_index(symbol):
+            return self.client.query(api, params, fields, max_age=max_age, min_fetched=min_fetched)
+        if self.client.store.daily_history(symbol):
+            recent = self.client.peek(
+                "indexdaily", dict(symbols=INDEX_BATCH_SYMBOLS), INDEX_DAILY_FIELDS
+            )
+            if recent:
+                age = datetime.now(timezone.utc).timestamp() - recent.fetched_at.timestamp()
+                fresh = (max_age is None or 0 <= age < max_age) and (
+                    min_fetched is None or recent.fetched_at.timestamp() >= min_fetched
+                )
+                rows = tuple(
+                    r
+                    for r in recent.rows
+                    if matches_symbol(r["symbol"], symbol) and start <= str(r["tradedate"]) <= end
+                )
+                if fresh and rows:
+                    return replace(
+                        recent, rows=rows, notice=recent.notice or "复用指数摘要更新日线末段"
+                    )
+        rows, results = [], []
+        for page in range(3):
+            result = self.client.query(
+                api,
+                dict(params, limit=6000, offset=page * 6000, order_by="tradedate", order_dir="asc"),
+                fields,
+                max_age=max_age,
+                min_fetched=min_fetched,
+            )
+            rows.extend(result.rows)
+            results.append(result)
+            if len(result.rows) < 6000:
+                return ApiResult(
+                    tuple(rows),
+                    max(r.fetched_at for r in results),
+                    all(r.cached for r in results),
+                    result.url,
+                    "；".join(filter(None, (r.notice for r in results))),
+                )
+        raise MarketError("指数日线超过分页保护范围，未将截断数据作为完整历史")
+
+    def fetch_overview(self):
+        from chengchuan.infrastructure.meoz_dashboard import MeozDashboard
+
+        return MeozDashboard(self).overview()
+
+    def fetch_details(self, symbol, as_of=None):
+        from chengchuan.infrastructure.meoz_dashboard import MeozDashboard
+
+        return MeozDashboard(self).details(instrument_symbol(symbol), as_of)
+
     def _fetch(self, symbol, period, as_of=None):
         now = datetime.now(SHANGHAI)
         after_close = now.time() >= time(15, 15)
@@ -228,8 +304,17 @@ class MeozMarketProvider:
         daily_rows = sorted(daily.rows, key=lambda r: str(r["tradedate"]))
         last_day = daily_bars[-1].timestamp.strftime("%Y%m%d")
         last_row = next(r for r in reversed(daily_rows) if str(r["tradedate"]) == last_day)
-        name = next((str(r["name"]) for r in reversed(daily_rows) if r.get("name")), symbol[2:])
+        name = next(
+            (str(r["name"]) for r in reversed(daily_rows) if r.get("name")),
+            INDEX_NAMES.get(symbol, symbol[-6:]),
+        )
         results, notes = [daily], ["不复权；成交量由手统一为股，成交额为元。"]
+        if is_index(symbol):
+            notes.append("指数点位，非股票价格；指数不启用个股阶段规则或预测。")
+            if any(index_amount(r) is None and r.get("amount") is not None for r in daily_rows):
+                notes.append(
+                    "历史指数日线成交额与文档单位存在差异，未确认记录保持缺失；分钟成交额按元。"
+                )
         if skipped:
             notes.append(f"日线有{skipped}条缺少有效价量，未补造记录。")
         vwap, baseline, quote = (), None, None
@@ -238,6 +323,17 @@ class MeozMarketProvider:
             kind = SeriesKind.OHLC
             if period.code != "day":
                 notes.append("由已取得真实日线按自然周期聚合；当前周期结束前末根仍会变化。")
+            if is_index(symbol):
+                from chengchuan.infrastructure.meoz_dashboard import snapshot_time
+
+                observed = snapshot_time(last_row)
+                if observed and last_row.get("pre_close"):
+                    quote = Quote(
+                        Instrument(symbol, name),
+                        float(last_row["close"]),
+                        float(last_row["pre_close"]),
+                        observed,
+                    )
         else:
             if as_of is not None:
                 dates, calendar = self._date_calendar(
@@ -268,14 +364,18 @@ class MeozMarketProvider:
             missing_dates = []
             for day in dates:
                 historical = day < now.strftime("%Y%m%d")
-                params = dict(symbols=symbol[2:], period="1m")
+                params = dict(symbols=market_code(symbol)[2:], period="1m")
+                minute_api = "index_minute" if is_index(symbol) else "minute"
+                minute_fields = INDEX_MINUTE_FIELDS if is_index(symbol) else MINUTE_FIELDS
+                if is_index(symbol):
+                    params["symbols"] = INDEX_BATCH_SYMBOLS
                 if historical:
                     params["tradedate"] = day
                 try:
                     result = self.client.query(
-                        "minute",
+                        minute_api,
                         params,
-                        MINUTE_FIELDS,
+                        minute_fields,
                         service="history" if historical else "live",
                         max_age=None if historical else freshness,
                         min_fetched=None if historical else min_fetched,
@@ -284,13 +384,30 @@ class MeozMarketProvider:
                     if not self.client.offline or not historical:
                         raise
                     result = self.client.query(
-                        "minute", dict(symbols=symbol[2:], period="1m"), MINUTE_FIELDS
+                        minute_api,
+                        dict(
+                            symbols=INDEX_BATCH_SYMBOLS
+                            if is_index(symbol)
+                            else market_code(symbol)[2:],
+                            period="1m",
+                        ),
+                        minute_fields,
                     )
                     if any(str(r["tradedate"]) != day for r in result.rows):
                         raise MarketError(f"本地缺少{day}分钟数据，请联网补取") from None
                 results.append(result)
                 if len(result.rows) >= 6000:
                     raise MarketError("分钟响应达到6000行截断边界，拒绝当成完整数据")
+                if is_index(symbol):
+                    if any(
+                        not any(matches_symbol(r["symbol"], s) for s, _, _ in INDEX_CATALOG)
+                        for r in result.rows
+                    ):
+                        raise MarketError("指数批次返回未知证券，拒绝拼接")
+                    result = replace(
+                        result,
+                        rows=tuple(r for r in result.rows if matches_symbol(r["symbol"], symbol)),
+                    )
                 if any(str(r["tradedate"]) != day for r in result.rows):
                     raise MarketError("分钟接口返回日期与请求不一致，拒绝拼接")
                 if not result.rows:
@@ -357,7 +474,7 @@ class MeozMarketProvider:
         )
         usage = self.client.store.usage()
         calls = "、".join(f"{api} {n}/95" for api, n in usage["interfaces"].items())
-        notice = f"本机今日请求{usage['total']}次（含失败预留）；{calls}。计数不含其他客户端。"
+        notice = f"本次行情取得时本机今日请求{usage['total']}次（含失败预留）；{calls}。最新计数见设置，且不含其他客户端。"
         notice += " 自动刷新最短复用180秒缓存；盘后确认后当日缓存复用。"
         if as_of is not None:
             notice += f" 历史日期{as_of:%Y-%m-%d}；实际图表截至{bars[-1].timestamp:%Y-%m-%d}。"
@@ -365,7 +482,11 @@ class MeozMarketProvider:
         if warnings:
             notice += " " + "；".join(warnings)
         if not period.daily:
-            notice += " 分钟历史最近5交易日，均价线为源提供的当日累计VWAP。"
+            notice += (
+                " 指数分钟批次共享最近5交易日，未提供指数VWAP。"
+                if is_index(symbol)
+                else " 分钟历史最近5交易日，均价线为源提供的当日累计VWAP。"
+            )
             if missing_dates:
                 notice += " 分钟未发布／无记录：" + "、".join(missing_dates)
         return MarketFrame(

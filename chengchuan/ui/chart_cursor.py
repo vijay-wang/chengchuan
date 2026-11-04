@@ -5,6 +5,7 @@ from PySide6.QtCore import QObject, Qt, Signal
 from PySide6.QtWidgets import QLabel
 
 from chengchuan.application.chart_tools import ChartInspector
+from chengchuan.domain.market import is_index
 from chengchuan.domain.models import SHANGHAI
 from chengchuan.ui import theme
 
@@ -111,8 +112,11 @@ class ChartCursor(QObject):
         )
         stamp = bar.timestamp.astimezone(SHANGHAI).strftime("%Y-%m-%d %H:%M:%S")
         name = "收盘价" if bar.open is not None else "分时价"
+        index_asset = is_index(self.inspector.series.symbol)
+        if index_asset:
+            name = "收盘点位" if bar.open is not None else "分时点位"
         details = (
-            f"光标价 {pos.y():.2f}"
+            f"{'光标点位' if index_asset else '光标价'} {pos.y():.2f}"
             if plot is self.price
             else f"该条成交量 {bar.volume_shares / 10000:,.2f}万股"
         )

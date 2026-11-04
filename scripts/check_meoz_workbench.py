@@ -59,6 +59,8 @@ def check(symbol, folder, allow_network=False):
                     and window.report is not None
                     and window.runner.active is None
                     and window.market_runner.active is None
+                    and window.overview_runner.active is None
+                    and window.details_runner.active is None
                 )
             )
             QTest.qWait(80)

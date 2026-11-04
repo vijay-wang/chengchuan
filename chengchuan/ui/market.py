@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from chengchuan.application.errors import StorageError
-from chengchuan.domain.market import Instrument, stock_symbol
+from chengchuan.domain.market import Instrument, instrument_symbol
 
 
 class MarketBrowser(QWidget):
@@ -42,7 +42,7 @@ class MarketBrowser(QWidget):
         self.results.hide()
         self.results.itemClicked.connect(self._open_item)
         layout.addWidget(self.results)
-        layout.addWidget(QLabel("自选股票"))
+        layout.addWidget(QLabel("自选证券"))
         self.watchlist = QListWidget()
         self.watchlist.setDragDropMode(QListWidget.DragDropMode.InternalMove)
         self.watchlist.setMinimumHeight(90)
@@ -66,7 +66,7 @@ class MarketBrowser(QWidget):
         self.watchlist.model().rowsMoved.connect(self._save)
 
     def _add_item(self, target, instrument):
-        item = QListWidgetItem(f"{instrument.name}  {instrument.symbol[2:]}")
+        item = QListWidgetItem(f"{instrument.name}  {instrument.symbol[-6:]}")
         item.setData(Qt.ItemDataRole.UserRole, instrument)
         target.addItem(item)
 
@@ -95,7 +95,7 @@ class MarketBrowser(QWidget):
         self.timer.stop()
         query = self.search.text().strip()
         try:
-            symbol = stock_symbol(query)
+            symbol = instrument_symbol(query)
         except ValueError:
             self.search_now()
         else:

@@ -32,8 +32,9 @@ from PySide6.QtWidgets import (
 
 from chengchuan import APP_NAME, __version__
 from chengchuan.application.errors import StorageError
+from chengchuan.application.quote_metrics import details_from_frame
 from chengchuan.application.settings import SettingsSaveError, SettingsService
-from chengchuan.domain.market import Instrument, stock_symbol
+from chengchuan.domain.market import Instrument, instrument_symbol, is_index
 from chengchuan.domain.models import SHANGHAI, IndexRange, SeriesKind
 from chengchuan.domain.periods import PERIODS, chart_period
 from chengchuan.ui import theme
@@ -41,6 +42,7 @@ from chengchuan.ui.chart import MarketChart
 from chengchuan.ui.date_navigator import DateNavigator
 from chengchuan.ui.forecast_panel import ForecastPanel
 from chengchuan.ui.market import MarketBrowser
+from chengchuan.ui.market_dashboard import IndexOverviewBar, QuoteDetailsPanel
 from chengchuan.ui.settings_dialog import SettingsDialog
 from chengchuan.ui.tasks import LatestTaskRunner, ProcessTaskRunner
 
@@ -117,9 +119,17 @@ class MainWindow(QMainWindow):
         self.history_date = None
         self.current_path = None
         self.market_runner = network_runner_factory(self) if market else None
+        self.overview_runner = network_runner_factory(self) if market else None
+        self.details_runner = network_runner_factory(self) if market else None
+        self._overview_requested = False
+        self._details_refresh = False
         if self.market_runner:
             self.market_runner.ready.connect(self._market_ready)
             self.market_runner.failed.connect(self._market_failed)
+            self.overview_runner.ready.connect(self._overview_ready)
+            self.overview_runner.failed.connect(self._overview_failed)
+            self.details_runner.ready.connect(self._details_ready)
+            self.details_runner.failed.connect(self._details_failed)
         self.runner = LatestTaskRunner(self)
         self.runner.ready.connect(self._task_ready)
         self.runner.failed.connect(self._task_failed)
@@ -133,6 +143,10 @@ class MainWindow(QMainWindow):
         outer = QVBoxLayout(root)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(0)
+        self.index_bar = IndexOverviewBar() if market else None
+        if self.index_bar:
+            self.index_bar.open_requested.connect(self.open_stock)
+            outer.addWidget(self.index_bar)
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
         outer.addWidget(self.splitter, 1)
         self._build_sidebar(catalog)
@@ -281,6 +295,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.ohlc)
         self.chart = MarketChart()
         self.chart.range_selected.connect(self.analyze_selection)
+        self.chart.user_range_selected.connect(
+            lambda: self.research_tabs.setCurrentWidget(self.analysis_view)
+        )
         self.chart.hover_text.connect(self.ohlc.setText)
         layout.addWidget(self.chart, 1)
         self.date_nav = DateNavigator()
@@ -324,6 +341,10 @@ class MainWindow(QMainWindow):
     def _install_market(self, market):
         symbol, interval, day = self.online_symbol, self.online_interval, self.history_date
         self.market_runner.cancel()
+        self.overview_runner.cancel()
+        self.details_runner.cancel()
+        self._overview_requested = False
+        self.index_bar.reset()
         self.browser.set_market(market)
         self.market = market
         self.source_box.blockSignals(True)
@@ -433,20 +454,22 @@ class MainWindow(QMainWindow):
         layout.addWidget(
             label("阶段为候选解释。规则分数尚未校准，\n不代表概率或真实机构持仓。", "notice", True)
         )
+        self.analysis_view = analysis_view
+        self.research_tabs = QTabWidget()
+        self.quote_panel = QuoteDetailsPanel()
+        self.research_tabs.addTab(self.quote_panel, "行情")
+        self.research_tabs.addTab(analysis_view, "区间分析")
         if self.forecast_service:
-            self.research_tabs = QTabWidget()
             self.forecast_panel = ForecastPanel(
                 self.forecast_service, report_writer=self.forecast_writer
             )
-            self.research_tabs.addTab(analysis_view, "区间分析")
             forecast_view = QWidget()
+            self.forecast_tab = forecast_view
             forecast_layout = QVBoxLayout(forecast_view)
             forecast_layout.setContentsMargins(14, 10, 14, 12)
             forecast_layout.addWidget(self.forecast_panel)
             self.research_tabs.addTab(forecast_view, "量价预测")
-            shell.addWidget(self.research_tabs)
-        else:
-            shell.addWidget(analysis_view)
+        shell.addWidget(self.research_tabs)
         self.splitter.addWidget(inspector)
 
     def _filter_catalog(self, text):
@@ -462,9 +485,12 @@ class MainWindow(QMainWindow):
     def open_snapshot(self, path: Path):
         if self.market_runner:
             self.market_runner.cancel()
+            self.overview_runner.cancel()
+            self.details_runner.cancel()
         self.online_symbol = None
         self.history_date = None
         self.frame = None
+        self.research_tabs.setCurrentWidget(self.analysis_view)
         self._reset_display()
         self.market_status.setText("本地历史快照 · 不自动更新")
         if self.market:
@@ -490,6 +516,9 @@ class MainWindow(QMainWindow):
         if self.forecast_panel:
             self.forecast_panel.set_context(None)
         self.chart.reset()
+        self.quote_panel.clear()
+        if self.details_runner:
+            self.details_runner.cancel()
         self.date_nav.set_context(
             bool(self.online_symbol),
             self.history_date,
@@ -516,22 +545,30 @@ class MainWindow(QMainWindow):
         self.snapshot = snapshot
         if self.forecast_panel:
             self.forecast_panel.set_context(
-                snapshot,
+                None if is_index(snapshot.series.symbol) else snapshot,
                 self.frame.retrieved_at if self.frame else None,
                 self.frame.quote.timestamp if self.frame and self.frame.quote else None,
             )
+            if is_index(snapshot.series.symbol):
+                self.forecast_panel.status.setText(
+                    "当前指数提供图表与区间统计；预测研究暂未覆盖指数。"
+                )
         self._loading = False
         self.chart.setEnabled(True)
         series, bars = snapshot.series, snapshot.series.bars
         self.stock_title.setText(f"{series.name}  {series.symbol[-6:]}")
         self.stock_subtitle.setText(
-            "沪深A股 / 公开行情研究" if self.online_symbol else "本地快照 / 沪深市场研究"
+            ("沪深指数 / 市场研究" if is_index(series.symbol) else "沪深A股 / 公开行情研究")
+            if self.online_symbol
+            else "本地快照 / 沪深市场研究"
         )
         self.quote.setText(f"{bars[-1].close:.2f}")
         self.quote_caption.setText("图表末价")
         period = chart_period(series.interval)
         detail = (
-            "不复权"
+            "指数点位"
+            if is_index(series.symbol)
+            else "不复权"
             if period.daily
             else ("真实分钟OHLC" if series.kind == SeriesKind.OHLC else "分钟价")
         )
@@ -549,6 +586,8 @@ class MainWindow(QMainWindow):
         )
         if unchanged:
             return
+        if self.frame:
+            self.quote_panel.render(details_from_frame(self.frame))
         self.runner.cancel()
         self.chart.set_snapshot(
             snapshot,
@@ -591,17 +630,21 @@ class MainWindow(QMainWindow):
         if self.market is None:
             return
         try:
-            symbol = stock_symbol(symbol)
+            symbol = instrument_symbol(symbol)
         except ValueError as exc:
             self.status.setText(str(exc))
             return
         interval = interval or self.period.currentData()
+        if symbol != self.online_symbol:
+            self.research_tabs.setCurrentWidget(self.quote_panel)
         switching = (symbol, interval, as_of) != (
             self.online_symbol,
             self.online_interval,
             self.history_date,
         )
         self.online_symbol, self.online_interval = symbol, interval
+        self._details_refresh = refresh
+        self.index_bar.select(symbol)
         self.history_date = as_of
         self.current_path = None
         self.period.setEnabled(True)
@@ -630,6 +673,8 @@ class MainWindow(QMainWindow):
         self.market_runner.submit(
             symbol + interval + (as_of.isoformat() if as_of else ""), None, task
         )
+        if not self._overview_requested or refresh and as_of is None:
+            self._request_overview(refresh)
 
     def _market_ready(self, frame):
         series = frame.snapshot.series
@@ -644,6 +689,7 @@ class MainWindow(QMainWindow):
         self._show_snapshot(frame.snapshot, preserve)
         self.watch_button.setEnabled(True)
         self._frame_status()
+        self._request_details(self._details_refresh)
         if self.history_date:
             self._focus_history_date(self.history_date)
 
@@ -726,7 +772,45 @@ class MainWindow(QMainWindow):
             and self.history_date is None
             and self.market_runner.active is None
         ):
-            self.refresh_market()
+            self.open_stock(self.online_symbol, self.online_interval)
+            self._request_overview()
+
+    def _request_overview(self, refresh=False):
+        if (
+            getattr(self.market, "supports_overview", False) is not True
+            or self.overview_runner.active is not None
+        ):
+            return
+        self._overview_requested = True
+        self.overview_runner.submit(
+            "market-overview", None, partial(self.market.load_overview, refresh=refresh)
+        )
+
+    def _overview_ready(self, overview):
+        self.index_bar.render(overview)
+
+    def _overview_failed(self, message):
+        self.index_bar.failed(message)
+
+    def _request_details(self, refresh=False):
+        if self.frame is None or getattr(self.market, "supports_details", False) is not True:
+            return
+        symbol, day = self.online_symbol, self.history_date
+        self.details_runner.submit(
+            symbol + "@" + str(day),
+            None,
+            partial(self.market.load_details, symbol, as_of=day, refresh=refresh),
+        )
+
+    def _details_ready(self, details):
+        if self.frame is not None and (details.symbol, details.as_of) == (
+            self.online_symbol,
+            self.history_date,
+        ):
+            self.quote_panel.render(details)
+
+    def _details_failed(self, message):
+        self.quote_panel.notice.setText("详细指标更新未完成：" + message)
 
     def _period_changed(self):
         if self.online_symbol:
@@ -888,6 +972,8 @@ class MainWindow(QMainWindow):
         if self.market:
             self.browser.shutdown()
             self.market_runner.shutdown()
+            self.overview_runner.shutdown()
+            self.details_runner.shutdown()
         self.runner.shutdown()
         state = {"splitter": self.splitter.sizes()}
         if self.market:

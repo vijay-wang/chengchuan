@@ -17,6 +17,43 @@ def stock_symbol(value: str) -> str:
     return value
 
 
+# Index identities are explicit: bare 000001 remains 平安银行, never 上证指数.
+INDEX_CATALOG = (
+    ("index:sh000001", "上证指数", "上证,沪指,szzs"),
+    ("index:sz399001", "深证成指", "深证,深成指,szcz"),
+    ("index:sz399006", "创业板指", "创业板,创业,cybz"),
+    ("index:sh000300", "沪深300", "沪深,hs300"),
+    ("index:sh000688", "科创50", "科创,kc50"),
+    ("index:sh000905", "中证500", "中证,zz500"),
+)
+INDEX_NAMES = {symbol: name for symbol, name, _ in INDEX_CATALOG}
+
+
+def is_index(symbol):
+    return symbol.startswith("index:")
+
+
+def instrument_symbol(value):
+    text = value.strip().lower()
+    candidate = text if text.startswith("index:") else "index:" + text
+    if candidate in INDEX_NAMES:
+        return candidate
+    return stock_symbol(text)
+
+
+def market_code(symbol):
+    return symbol.removeprefix("index:")
+
+
+def index_matches(query):
+    query = query.strip().lower()
+    return tuple(
+        Instrument(symbol, name, aliases)
+        for symbol, name, aliases in INDEX_CATALOG
+        if query and query in (symbol + name + aliases).lower()
+    )
+
+
 @dataclass(frozen=True)
 class Instrument:
     symbol: str
@@ -24,7 +61,7 @@ class Instrument:
     initials: str = ""
 
     def __post_init__(self):
-        if stock_symbol(self.symbol) != self.symbol or not self.name.strip():
+        if instrument_symbol(self.symbol) != self.symbol or not self.name.strip():
             raise ValueError("无效证券信息")
 
 

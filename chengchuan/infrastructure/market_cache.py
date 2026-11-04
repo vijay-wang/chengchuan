@@ -10,6 +10,7 @@ from pathlib import Path
 from chengchuan.application.errors import StorageError
 from chengchuan.domain.market import Instrument, MarketFrame, Quote
 from chengchuan.domain.models import MarketBar, MarketSeries, MarketSnapshot, SeriesKind
+from chengchuan.infrastructure.dashboard_codec import decode_dashboard, encode_dashboard
 
 
 def encode_frame(frame):
@@ -95,6 +96,9 @@ class SqliteMarketCache:
                 "CREATE TABLE IF NOT EXISTS instruments (symbol TEXT PRIMARY KEY, "
                 "name TEXT NOT NULL, initials TEXT NOT NULL)"
             )
+            con.execute(
+                "CREATE TABLE IF NOT EXISTS dashboard (kind TEXT,key TEXT,retrieved TEXT,data TEXT,PRIMARY KEY(kind,key))"
+            )
             con.execute("PRAGMA user_version=1")
 
     @contextmanager
@@ -168,3 +172,20 @@ class SqliteMarketCache:
                 (query.lower(), query, query.lower()),
             ).fetchall()
         return tuple(Instrument(*row) for row in rows)
+
+    def load_dashboard(self, kind, key):
+        with self._connect() as con:
+            row = con.execute(
+                "SELECT data FROM dashboard WHERE kind=? AND key=?", (kind, key)
+            ).fetchone()
+            return decode_dashboard(row[0]) if row else None
+
+    def save_dashboard(self, kind, key, value):
+        with self._connect() as con:
+            con.execute(
+                "INSERT INTO dashboard VALUES (?,?,?,?) ON CONFLICT(kind,key) DO UPDATE SET retrieved=excluded.retrieved,data=excluded.data",
+                (kind, key, value.retrieved_at.isoformat(), encode_dashboard(value)),
+            )
+            con.execute(
+                "DELETE FROM dashboard WHERE rowid NOT IN (SELECT rowid FROM dashboard ORDER BY retrieved DESC LIMIT 201)"
+            )

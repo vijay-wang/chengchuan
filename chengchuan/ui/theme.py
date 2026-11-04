@@ -67,4 +67,11 @@ QFrame#settingsCard QCheckBox { background: transparent; }
 QWidget#settingsFooter { border-top: 1px solid #203044; }
 QSlider::groove:horizontal { background: #293b51; height: 5px; border-radius: 2px; }
 QSlider::handle:horizontal { background: #5ad7bf; width: 14px; margin: -5px 0; border-radius: 7px; }
+QWidget#indexOverview { background: #101a27; border-bottom: 1px solid #203044; }
+QPushButton#indexCard { background: #132130; border: 1px solid #24364a; border-radius: 6px; padding: 0; }
+QPushButton#indexCard:hover { border-color: #53718c; background: #192c3e; }
+QPushButton#indexCard:checked { border-color: #5ad7bf; background: #193631; }
+QPushButton#indexCard QLabel { background: transparent; border: none; }
+QFrame#quoteCell { background: #132130; border: 1px solid #24364a; border-radius: 5px; }
+QFrame#quoteCell QLabel { background: transparent; border: none; }
 """

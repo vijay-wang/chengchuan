@@ -54,7 +54,7 @@ def check(dataset, output_dir, before):
         snapshot, observed, quote = load_input(dataset)
         window._show_snapshot(snapshot)
         panel.set_context(snapshot, observed, quote)
-        window.research_tabs.setCurrentIndex(1)
+        window.research_tabs.setCurrentWidget(window.forecast_tab)
         panel.predict_button.click()
         wait(lambda: panel.run is not None)
         prediction = panel.run

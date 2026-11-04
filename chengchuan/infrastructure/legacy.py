@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from chengchuan.domain.market import is_index
 from chengchuan.domain.models import (
     SHANGHAI,
     AnalysisReport,
@@ -98,7 +99,7 @@ class LegacyAnalysisEngine:
 
     def analyze(self, snapshot: MarketSnapshot, selection: IndexRange) -> AnalysisReport:
         series = snapshot.series
-        if series.interval not in ("day", "minute"):
+        if is_index(series.symbol) or series.interval not in ("day", "minute"):
             return self._period_statistics(snapshot, selection)
         flows = [
             Flow(
@@ -160,8 +161,11 @@ class LegacyAnalysisEngine:
             Metric(
                 "vwap",
                 "区间成交均价",
-                amount / volume if amount is not None and volume else None,
+                amount / volume
+                if amount is not None and volume and not is_index(snapshot.series.symbol)
+                else None,
                 "价格",
+                "指数不适用" if is_index(snapshot.series.symbol) else "缺少数据",
             ),
             Metric("relative", "相对基准", None, "百分点"),
             Metric("volume", "区间成交量", volume, "股"),
@@ -170,7 +174,9 @@ class LegacyAnalysisEngine:
         return AnalysisReport(
             snapshot.revision,
             selection,
-            "当前周期展示区间基础统计；阶段规则尚未在此周期核验。",
+            "指数展示区间基础统计，未套用个股阶段规则。"
+            if is_index(snapshot.series.symbol)
+            else "当前周期展示区间基础统计；阶段规则尚未在此周期核验。",
             metrics,
             (),
             snapshot.quality_notes

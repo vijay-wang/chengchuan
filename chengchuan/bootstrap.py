@@ -41,7 +41,7 @@ def main(argv=None):
     from chengchuan.application.services import AnalysisService
     from chengchuan.application.settings import SettingsService
     from chengchuan.domain.analogue import AnalogueModel
-    from chengchuan.domain.market import stock_symbol
+    from chengchuan.domain.market import instrument_symbol
     from chengchuan.infrastructure.forecast_input import ForecastSnapshotRepository
     from chengchuan.infrastructure.forecast_journal import SqliteForecastJournal
     from chengchuan.infrastructure.forecast_reports import write_run
@@ -81,7 +81,7 @@ def main(argv=None):
     ]
     try:
         if args.symbol:
-            stock_symbol(args.symbol)
+            instrument_symbol(args.symbol)
         workspace = SqliteWorkspaceRepository(state_dir / "workspace.sqlite")
         state = workspace.load("main")
         market_sources = ConfiguredMarketSources(state_dir, offline=args.offline)

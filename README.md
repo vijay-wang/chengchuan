@@ -2,11 +2,11 @@
 
 本地股票研究工作台：看行情、选区间、计算特征、追溯证据。
 
-![澄川行情工作台](design/chengchuan-market-daily.png)
+![澄川指数与行情工作台](design/chengchuan-index-quote.png)
 
-当前为**0.6统一设置版**：左侧“设置”或Ctrl＋逗号打开配置窗口，可输入API Key、选择数据源、设置更新检查和图表悬停。保留12周期、历史日期跳转、半透明浮窗、持久缓存与额度保护，预测增强仍按P2后置。
+当前为**0.7指数与行情概览版**：顶部常用指数摘要可点击切图，右侧新增个股／指数行情面板。保留统一设置、12周期、历史日期、半透明浮窗、持久缓存与额度保护，预测增强仍按P2后置。
 
-**2026-11-04需求调整：** 后续只保留盘后、北京时间14:35两个时点预测下一交易日，优先级P2后置，排在行情、稳定性、基础指标和选区体验之后；相关Level-2／GPU增强同样后置。本次只更新文档，既有0.3 H1／H2代码未改动。详见[最新预测需求](docs/NEXT_DAY_FORECAST.md)及[排期](docs/ROADMAP.md)。
+**2026-11-04预测需求调整：** 后续只保留盘后、北京时间14:35两个时点预测下一交易日，优先级P2后置，排在行情、稳定性、基础指标和选区体验之后；相关Level-2／GPU增强同样后置。该预测需求调整仅更新文档，既有0.3 H1／H2代码未改动。详见[最新预测需求](docs/NEXT_DAY_FORECAST.md)及[排期](docs/ROADMAP.md)。
 
 ## 启动桌面
 
@@ -18,7 +18,7 @@ python -m venv .venv
 .venv/bin/python -m chengchuan
 ```
 
-Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。安装包尚未构建；不同平台需要分别验收。
+Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。独立可执行安装包尚未发布；不同平台需要分别验收。
 
 依赖已排除PySide6 6.12.0：该版本在Python 3.10/3.11下反复调用Qt方法会损坏`None`引用计数，
 导致鼠标交互时出现`none_dealloc: deallocating None`并退出。已安装旧环境时，重新执行上面的
@@ -27,6 +27,17 @@ Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。安装包尚未构
 默认联网打开上次查看的股票，首次为久立特材002318。左侧输入六位代码回车可直接打开，输入名称或拼音后点击搜索结果；“加入自选”保存当前股票，自选支持拖动排序和移除。图表上方可选择周期、F5刷新、开启或暂停自动更新；检查间隔默认15秒，可在设置中调整。
 
 已配置猫爪密钥时，启动默认使用猫爪／猫头鹰数据，周期下拉框提供全部12种图表。未配置时保留腾讯日K／采样分时。数据源分别缓存，不会混淆来源；当前全部价格不复权。
+
+顶部提供**上证指数、深证成指、创业板指、沪深300、科创50、中证500**摘要，点击沿用当前周期切换到该指数最新图表。猫爪支持指数全部12周期及历史日期，腾讯基础源支持指数日K／采样分时。指数名称或带交易所代码也可用于搜索；裸`000001`仍是平安银行，上证指数使用`sh000001`或点击摘要，证券与缓存身份不会混淆。
+
+右侧**行情**页提供昨收、今开、高低、涨跌额／幅、振幅、成交量／额、量比、换手率、自由流通换手率、PE／PB、市值及主力买卖分类。行情指标按交易日加载，切周K／月K仍显示对应交易日指标；不是拿整周／整月量额当今日数据。Ctrl拖选后自动切回区间分析。
+
+指数行情页额外展示相应**市场范围**的涨跌家数和主力净额：沪市、深市、创业板、科创板，或全市场。页面明确说明这些是市场／板块统计，**不是指数成分股统计**；资金覆盖不完整会显示覆盖家数。指数量比单独标注计算口径，来源缺失字段显示“—”。详情参见[指数与指标口径](docs/INDEX_DASHBOARD.md)。
+
+```bash
+# 上证分时；裸000001仍按股票解释
+.venv/bin/python -m chengchuan --provider meoz --symbol sh000001 --interval minute
+```
 
 **另一台电脑只看到分时／日K：** 这是腾讯基础源的能力。0.5.1在周期上方增加**数据源**，可选择“猫爪 · 12周期”；若本机尚未配置，点击**配置猫爪**，通过隐藏输入保存API Key。配置成功自动切换猫爪，之后可选全部12周期，并记住数据源选择。密钥仅保存在那台电脑，不随Git同步；腾讯下其他周期会置灰并说明原因，不再直接消失。`--provider auto|meoz|tencent`可覆盖保存的选择。
 
@@ -114,6 +125,8 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 - [0.5日期跳转与半透明浮窗验证](docs/VALIDATION_CHART_NAVIGATION.md)
 - [0.5.1边缘重绘、数据源及跨电脑配置验证](docs/VALIDATION_CHART_FIXES.md)
 - [0.6设置页与保存／恢复验证](docs/VALIDATION_SETTINGS.md)
+- [0.7指数摘要、个股指标及统计范围](docs/INDEX_DASHBOARD.md)
+- [0.7真实指数图表与回归验证](docs/VALIDATION_DASHBOARD.md)
 - [最新预测需求：盘后／14:35预测下一交易日，P2后置](docs/NEXT_DAY_FORECAST.md)
 - [量价联合预测原设计与0.3实施背景](docs/SHORT_HORIZON_FORECAST.md)
 - [历史逐日预测与准确率验证方案](docs/FORECAST_VALIDATION.md)（已实现诊断回放，完整验证仍待完成）
@@ -129,7 +142,7 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
-.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py tests/test_meoz*.py tests/test_chart*.py tests/test_settings*.py scripts
+.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py tests/test_meoz*.py tests/test_chart*.py tests/test_settings*.py tests/test_*dashboard*.py scripts
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m chengchuan \
   --offline --state-dir /tmp/chengchuan-preview --screenshot /tmp/chengchuan-preview.png
 # Linux桌面交互复验：悬停、点击、Ctrl拖选、Esc和日K/分时切换
