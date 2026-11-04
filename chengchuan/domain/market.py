@@ -54,9 +54,19 @@ class MarketFrame:
     cached: bool = False
     notice: str = ""
     sources: tuple[str, ...] = ()
+    vwap_points: tuple[tuple[datetime, float], ...] = ()
+    baseline_price: float | None = None
+    provider_name: str = ""
 
     def __post_init__(self):
         object.__setattr__(self, "sources", tuple(self.sources))
+        object.__setattr__(self, "vwap_points", tuple(self.vwap_points))
+        if self.baseline_price is not None and (
+            not isfinite(self.baseline_price) or self.baseline_price <= 0
+        ):
+            raise ValueError("图表基准价无效")
+        if any(t.utcoffset() is None or not isfinite(v) or v <= 0 for t, v in self.vwap_points):
+            raise ValueError("分时均价点无效")
         if self.retrieved_at.utcoffset() is None:
             raise ValueError("行情取得时间须包含时区")
         if self.quote and self.quote.instrument.symbol != self.snapshot.series.symbol:

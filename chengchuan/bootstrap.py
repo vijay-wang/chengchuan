@@ -14,7 +14,15 @@ def main(argv=None):
     parser.add_argument("--state-dir", type=Path, help="本地工作区和日志目录")
     parser.add_argument("--screenshot", type=Path, help="离屏验收：保存窗口截图后退出")
     parser.add_argument("--symbol", help="启动时打开沪深A股，例如002318或600519")
-    parser.add_argument("--interval", choices=("day", "minute"), help="启动行情周期")
+    from chengchuan.domain.periods import PERIOD_BY_CODE
+
+    parser.add_argument("--interval", choices=tuple(PERIOD_BY_CODE), help="启动行情周期")
+    parser.add_argument(
+        "--provider",
+        choices=("auto", "meoz", "tencent"),
+        default="auto",
+        help="行情源，auto在已配置猫爪密钥时优先使用",
+    )
     parser.add_argument("--offline", action="store_true", help="启动时仅打开本地快照，不联网")
     args = parser.parse_args(argv)
     try:
@@ -41,6 +49,8 @@ def main(argv=None):
     from chengchuan.infrastructure.legacy import LegacyAnalysisEngine
     from chengchuan.infrastructure.market_cache import SqliteMarketCache
     from chengchuan.infrastructure.market_data import TencentMarketProvider
+    from chengchuan.infrastructure.meoz_client import MeozClient, configured
+    from chengchuan.infrastructure.meoz_market import MeozMarketProvider
     from chengchuan.infrastructure.workspace import SqliteWorkspaceRepository
 
     app = QApplication.instance() or QApplication([])
@@ -76,8 +86,13 @@ def main(argv=None):
         if args.symbol:
             stock_symbol(args.symbol)
         workspace = SqliteWorkspaceRepository(state_dir / "workspace.sqlite")
+        use_meoz = args.provider == "meoz" or (args.provider == "auto" and configured())
         market = MarketService(
-            TencentMarketProvider(), SqliteMarketCache(state_dir / "market.sqlite")
+            MeozMarketProvider(MeozClient(offline=args.offline))
+            if use_meoz
+            else TencentMarketProvider(),
+            SqliteMarketCache(state_dir / ("meoz-market.sqlite" if use_meoz else "market.sqlite")),
+            ttl_seconds=180 if use_meoz else 15,
         )
         window = MainWindow(
             ForecastSnapshotRepository(),
@@ -97,14 +112,20 @@ def main(argv=None):
     window.show()
     if args.dataset:
         window.open_snapshot(args.dataset)
-    elif args.offline:
+    elif args.offline and not (args.symbol and use_meoz):
         if daily.exists():
             window.open_snapshot(daily)
     else:
         state = workspace.load("main")
         symbol = args.symbol or state.get("symbol") or "002318"
         interval = args.interval or state.get("interval", "day")
+        if interval not in market.intervals:
+            if args.interval:
+                parser.exit(2, "当前行情源不支持此周期，请配置猫爪数据或使用日K／分时\n")
+            interval = "day"
         window.open_stock(symbol, interval)
+        if args.offline:
+            window.auto_refresh.setChecked(False)
     if args.screenshot:
         attempts = [0]
 

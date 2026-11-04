@@ -34,6 +34,7 @@ class CalendarUnavailable(ValueError):
 
 class TradingCalendar:
     version = CALENDAR_VERSION
+    first_supported = date(min(_CLOSED), 1, 1)
 
     def is_session(self, day: date) -> bool:
         if day.year not in _CLOSED:

@@ -6,6 +6,8 @@ from enum import Enum
 from math import floor, isfinite
 from zoneinfo import ZoneInfo
 
+from chengchuan.domain.periods import PERIOD_BY_CODE
+
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 
@@ -84,8 +86,8 @@ class MarketSeries:
             raise ValueError("行情序列类型须明确指定")
         if not self.bars:
             raise ValueError("行情序列为空")
-        if self.interval not in ("day", "minute"):
-            raise ValueError("当前仅支持日线及分钟采样")
+        if self.interval not in PERIOD_BY_CODE:
+            raise ValueError("不支持的行情周期")
         times = [b.timestamp for b in self.bars]
         if any(a >= b for a, b in zip(times, times[1:])):
             raise ValueError("行情须按时间严格递增，不允许重复")

@@ -94,10 +94,12 @@ def _legacy_bars(series):
 
 
 class LegacyAnalysisEngine:
-    version = "flowradar-heuristic-v0.1-unvalidated/adapter-1"
+    version = "flowradar-heuristic-v0.1-unvalidated/adapter-2"
 
     def analyze(self, snapshot: MarketSnapshot, selection: IndexRange) -> AnalysisReport:
         series = snapshot.series
+        if series.interval not in ("day", "minute"):
+            return self._period_statistics(snapshot, selection)
         flows = [
             Flow(
                 f.timestamp.astimezone(SHANGHAI).replace(tzinfo=None).isoformat(),
@@ -139,5 +141,39 @@ class LegacyAnalysisEngine:
             metrics,
             findings,
             tuple(result["quality_notes"]),
+            self.version,
+        )
+
+    def _period_statistics(self, snapshot, selection):
+        bars = snapshot.series.bars[selection.start : selection.stop]
+        previous = snapshot.series.bars[selection.start - 1] if selection.start else None
+        reference = previous.close if previous else (bars[0].open or bars[0].close)
+        volume = sum(b.volume_shares for b in bars)
+        amount = (
+            sum(b.amount_yuan for b in bars)
+            if all(b.amount_yuan is not None for b in bars)
+            else None
+        )
+        metrics = (
+            Metric("return", "区间涨跌", (bars[-1].close / reference - 1) * 100, "%"),
+            Metric("amount", "区间成交额", amount, "元"),
+            Metric(
+                "vwap",
+                "区间成交均价",
+                amount / volume if amount is not None and volume else None,
+                "价格",
+            ),
+            Metric("relative", "相对基准", None, "百分点"),
+            Metric("volume", "区间成交量", volume, "股"),
+            Metric("institutional", "机构净买入", None, "元", "无法识别"),
+        )
+        return AnalysisReport(
+            snapshot.revision,
+            selection,
+            "当前周期展示区间基础统计；阶段规则尚未在此周期核验。",
+            metrics,
+            (),
+            snapshot.quality_notes
+            + ("区间涨跌以选区前一条收盘价为基准；无前序时使用首条开盘／分时价。",),
             self.version,
         )

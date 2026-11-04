@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chengchuan"
-version = "0.3.0"
+version = "0.4.0"
 description = "澄川：可扩展的本地股票研究工作台"
 readme = "README.md"
 requires-python = ">=3.10"

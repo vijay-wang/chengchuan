@@ -15,7 +15,7 @@ from chengchuan.domain.models import MarketBar, MarketSeries, MarketSnapshot, Se
 def encode_frame(frame):
     return json.dumps(
         {
-            "version": 1,
+            "version": 2,
             "series": asdict(frame.snapshot.series),
             "revision": frame.snapshot.revision,
             "source": frame.snapshot.source,
@@ -24,6 +24,9 @@ def encode_frame(frame):
             "quote": asdict(frame.quote) if frame.quote else None,
             "notice": frame.notice,
             "sources": frame.sources,
+            "vwap_points": [(t.isoformat(), v) for t, v in frame.vwap_points],
+            "baseline_price": frame.baseline_price,
+            "provider_name": frame.provider_name,
         },
         default=lambda value: value.isoformat(),
         ensure_ascii=False,
@@ -33,7 +36,7 @@ def encode_frame(frame):
 
 def decode_frame(raw):
     obj = json.loads(raw)
-    if obj["version"] != 1:
+    if obj["version"] not in (1, 2):
         raise ValueError("行情缓存版本不受支持")
     series = obj["series"]
     bars = tuple(
@@ -63,6 +66,9 @@ def decode_frame(raw):
         datetime.fromisoformat(obj["retrieved_at"]),
         notice=obj.get("notice", ""),
         sources=tuple(obj.get("sources", ())),
+        vwap_points=tuple((datetime.fromisoformat(t), v) for t, v in obj.get("vwap_points", [])),
+        baseline_price=obj.get("baseline_price"),
+        provider_name=obj.get("provider_name", ""),
     )
 
 

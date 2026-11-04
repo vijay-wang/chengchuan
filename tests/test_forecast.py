@@ -126,6 +126,21 @@ class ForecastTests(unittest.TestCase):
         for p in a.predictions:
             self.assertLessEqual(date.fromisoformat(p.training_label_through), day)
 
+    def test_long_chart_history_does_not_break_existing_research_calendar(self):
+        old = replace(
+            self.snapshot.series.bars[0], timestamp=datetime(2010, 1, 4, 15, tzinfo=SHANGHAI)
+        )
+        extended = replace(
+            self.snapshot,
+            revision="long-chart",
+            series=replace(self.snapshot.series, bars=(old,) + self.snapshot.series.bars),
+        )
+        day = bar_date(self.snapshot.series.bars[100])
+        a = service().predict(self.snapshot, day, self.config, now=NOW)
+        b = service().predict(extended, day, self.config, now=NOW)
+        self.assertEqual(a.features, b.features)
+        self.assertEqual(a.predictions, b.predictions)
+
     def test_nominal_1500_does_not_confirm_a_live_day(self):
         day = date(2026, 11, 3)
         noon = datetime(2026, 11, 3, 13, tzinfo=SHANGHAI)

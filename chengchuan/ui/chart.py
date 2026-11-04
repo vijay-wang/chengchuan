@@ -8,6 +8,7 @@ from PySide6.QtGui import QColor, QPainter, QPicture
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
 from chengchuan.domain.models import SHANGHAI, IndexRange, MarketSnapshot, SeriesKind
+from chengchuan.domain.periods import chart_period
 from chengchuan.ui import theme
 
 pg.setConfigOptions(antialias=True, background=theme.BACKGROUND, foreground=theme.MUTED)
@@ -25,7 +26,16 @@ class TradingAxis(pg.AxisItem):
             i = round(x)
             if abs(x - i) < 0.1 and 0 <= i < len(self.times):
                 stamp = self.times[i].astimezone(SHANGHAI)
-                result.append(stamp.strftime("%m-%d" if self.interval == "day" else "%m-%d %H:%M"))
+                fmt = (
+                    "%Y"
+                    if self.interval == "year"
+                    else (
+                        "%Y-%m"
+                        if self.interval in ("month", "quarter")
+                        else ("%m-%d" if chart_period(self.interval).daily else "%m-%d %H:%M")
+                    )
+                )
+                result.append(stamp.strftime(fmt))
             else:
                 result.append("")
         return result
@@ -69,6 +79,8 @@ class MarketChart(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.snapshot = None
+        self._vwap = {}
+        self._baseline = None
         self._drag_start = None
         self._updating = False
         self.axis = TradingAxis()
@@ -115,24 +127,75 @@ class MarketChart(QWidget):
         self.axis.picture = None
         self.axis.update()
 
-    def set_snapshot(self, snapshot: MarketSnapshot, preserve_view=False):
+    def set_snapshot(
+        self, snapshot: MarketSnapshot, preserve_view=False, vwap_points=(), baseline_price=None
+    ):
         old_range = self.price.getViewBox().viewRange()[0] if preserve_view else None
         self._updating = True
         self.snapshot = snapshot
+        self._vwap, self._baseline = dict(vwap_points), baseline_price
         self._drag_start = None
         bars = snapshot.series.bars
         self.price.clear()
         self.volume.clear()
         self.axis.times = [b.timestamp for b in bars]
         self.axis.interval = snapshot.series.interval
+        self.axis.setTicks(None)
         self.axis.picture = None
         self.axis.update()
         if snapshot.series.kind == SeriesKind.OHLC:
             self.price.addItem(Candles(bars))
         else:
-            self.price.plot(
-                range(len(bars)), [b.close for b in bars], pen=pg.mkPen(theme.ACCENT, width=1.7)
+            xs, prices, averages = [], [], []
+            previous_day = None
+            for i, bar in enumerate(bars):
+                day = bar.timestamp.astimezone(SHANGHAI).date()
+                if previous_day is not None and day != previous_day:
+                    xs.append(i - 0.5)
+                    prices.append(float("nan"))
+                    averages.append(float("nan"))
+                xs.append(i)
+                prices.append(bar.close)
+                averages.append(self._vwap.get(bar.timestamp, float("nan")))
+                previous_day = day
+            self.price.plot(xs, prices, pen=pg.mkPen(theme.ACCENT, width=1.7), connect="finite")
+            if vwap_points:
+                self.price.plot(
+                    xs,
+                    averages,
+                    pen=pg.mkPen("#e2bb66", width=1.3),
+                    connect="finite",
+                )
+            if baseline_price:
+                self.price.addItem(
+                    pg.InfiniteLine(
+                        pos=baseline_price,
+                        angle=0,
+                        pen=pg.mkPen("#65758b", style=Qt.PenStyle.DashLine),
+                    )
+                )
+        if snapshot.series.interval == "five_day":
+            spans = {}
+            for i, bar in enumerate(bars):
+                day = bar.timestamp.astimezone(SHANGHAI).date()
+                spans.setdefault(day, []).append(i)
+            self.axis.setTicks(
+                [
+                    [
+                        (sum((indices[0], indices[-1])) / 2, day.strftime("%m-%d"))
+                        for day, indices in spans.items()
+                    ]
+                ]
             )
+            for indices in list(spans.values())[1:]:
+                for plot in (self.price, self.volume):
+                    plot.addItem(
+                        pg.InfiniteLine(
+                            pos=indices[0] - 0.5,
+                            angle=90,
+                            pen=pg.mkPen("#283d50", style=Qt.PenStyle.DashLine),
+                        )
+                    )
         colors = [
             pg.mkBrush(
                 theme.UP
@@ -156,7 +219,11 @@ class MarketChart(QWidget):
         self.price.addItem(self.cross_x, ignoreBounds=True)
         self.price.addItem(self.cross_y, ignoreBounds=True)
         self.region.setBounds((-0.5, len(bars) - 0.5))
-        visible = 90 if snapshot.series.interval == "day" else 242
+        visible = (
+            90
+            if chart_period(snapshot.series.interval).daily
+            else (len(bars) if snapshot.series.interval == "five_day" else 242)
+        )
         if old_range is None:
             self.price.setXRange(max(-1, len(bars) - visible), len(bars), padding=0.02)
         else:
@@ -174,6 +241,11 @@ class MarketChart(QWidget):
         bars = all_bars[start:stop]
         low = min(b.low if b.low is not None else b.close for b in bars)
         high = max(b.high if b.high is not None else b.close for b in bars)
+        extra = [self._vwap[b.timestamp] for b in bars if b.timestamp in self._vwap]
+        if self.snapshot.series.kind == SeriesKind.SAMPLED_CLOSE and self._baseline:
+            extra.append(self._baseline)
+        if extra:
+            low, high = min(low, min(extra)), max(high, max(extra))
         padding = max((high - low) * 0.08, 0.01)
         self.price.setYRange(low - padding, high + padding, padding=0)
         self.volume.setYRange(
@@ -253,4 +325,6 @@ class MarketChart(QWidget):
             )
         else:
             prices = f"采样价 {bar.close:.2f}"
+        if bar.timestamp in self._vwap:
+            prices += f"   当日均价 {self._vwap[bar.timestamp]:.3f}"
         self.hover_text.emit(f"{stamp}   {prices}   量 {bar.volume_shares / 10000:,.2f}万股")

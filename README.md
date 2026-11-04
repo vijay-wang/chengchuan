@@ -4,7 +4,7 @@
 
 ![澄川行情工作台](design/chengchuan-market-daily.png)
 
-当前为**0.3量价预测研究版**：在行情、自选、Ctrl区间分析基础上，增加未来1／2交易日的方向研究、历史逐日验证、真实结果对照与报告导出。首版模型尚未完成独立封存验证和校准；现有回放使用原始收盘价，只作工程诊断。周K、复权、完整分钟K线和Level-2按路线继续加入。
+当前为**0.4多周期行情版**：配置猫爪后支持分时、五日、日／周／月／季／年K，以及1／5／15／30／60分钟K；分时与五日包含源提供的累计均价线。增加本地持久缓存、日线增量更新和共享调用额度保护。0.3预测研究及原有区间分析继续保留，预测增强仍按P2后置。
 
 **2026-11-04需求调整：** 后续只保留盘后、北京时间14:35两个时点预测下一交易日，优先级P2后置，排在行情、稳定性、基础指标和选区体验之后；相关Level-2／GPU增强同样后置。本次只更新文档，既有0.3 H1／H2代码未改动。详见[最新预测需求](docs/NEXT_DAY_FORECAST.md)及[排期](docs/ROADMAP.md)。
 
@@ -24,9 +24,25 @@ Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。安装包尚未构
 导致鼠标交互时出现`none_dealloc: deallocating None`并退出。已安装旧环境时，重新执行上面的
 `pip install`命令即可切换到已验证的6.11.3，无须更换Python。
 
-默认联网打开上次查看的股票，首次为久立特材002318。左侧输入六位代码回车可直接打开，输入名称或拼音后点击搜索结果；“加入自选”保存当前股票，自选支持拖动排序和移除。图表上方可切换日K／分时、F5刷新、开启或暂停每15秒刷新。
+默认联网打开上次查看的股票，首次为久立特材002318。左侧输入六位代码回车可直接打开，输入名称或拼音后点击搜索结果；“加入自选”保存当前股票，自选支持拖动排序和移除。图表上方可选择周期、F5刷新、开启或暂停每15秒检查更新。
 
-报价时间、图表覆盖时间和取得时间分别显示，统一为北京时间。当前使用腾讯公开行情轮询，可能延迟，不是交易所逐笔推送。收盘后价格保持源提供的最后有效报价；无有效报价、网络失败和历史缓存均有明确提示。刷新同股时保留缩放和选区，切股时清空上一只股票的数据与分析。
+已配置猫爪密钥时，启动默认使用猫爪／猫头鹰数据，周期下拉框提供全部12种图表。未配置时保留腾讯日K／采样分时。数据源分别缓存，不会混淆来源；当前全部价格不复权。
+
+```bash
+# 本机已有配置时可直接运行；其他PC先通过隐藏输入配置密钥
+.venv/bin/python -m chengchuan.meoz configure-key
+.venv/bin/python -m chengchuan --provider meoz --symbol 002318 --interval min15
+# 查看本机今日调用计数、缓存路径和配置状态（不会打印密钥）
+.venv/bin/python -m chengchuan.meoz status
+# 同一已缓存日期的全部周期可离线查看
+.venv/bin/python -m chengchuan --provider meoz --offline --symbol 002318 --interval five_day
+```
+
+密钥读取`MEOZ_API_KEY`或`~/.meoz/config.json`，不随仓库分发。接口响应、完整日线及调用账本位于`~/.meoz/chengchuan.sqlite`，窗口缓存仍在应用工作区。日线首次查询2000年起实际可得数据，后续仅更新末段；分钟K默认最近5个交易日，这是当前加载策略，并非套餐历史权限上限。
+
+体验版官方上限为每日10万次、每高频接口100次／日、3次／秒。本机保守按每接口95次、总计90000次保护，所有请求先持久预留，失败和中断也计数；两站共用限流，缓存命中不计。付费数据盘中最短180秒复用，F5不会绕过此保护；盘后确认后复用当日数据。每15秒仅检查更新，并不每次重新请求付费接口。其他软件／设备用量无法由本机推知，账号总额仍以服务端为准。详见[数据接入说明](docs/MEOZ_DATA.md)。
+
+报价时间、图表覆盖时间和取得时间分别显示，统一为北京时间。当前采用查询和缓存，可能延迟，尚未持续订阅WebSocket。收盘后价格保持源提供的最后有效报价；缺少报价时间时不伪造实时报价。刷新同股时保留缩放和选区，切股时清空上一只股票的数据与分析。
 
 Ctrl左键拖动选择时间段，松开后计算，拖动边界调整，Esc清除，Ctrl＋O导入旧版标准JSON快照。本地快照模式不会自动联网更新。
 
@@ -79,6 +95,8 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 
 - [产品规划与当前功能](docs/PRODUCT.md)
 - [分阶段路线与验收清单](docs/ROADMAP.md)
+- [猫爪数据接入、缓存与调用额度](docs/MEOZ_DATA.md)
+- [0.4多周期真实数据验证](docs/VALIDATION_MEOZ.md)
 - [最新预测需求：盘后／14:35预测下一交易日，P2后置](docs/NEXT_DAY_FORECAST.md)
 - [量价联合预测原设计与0.3实施背景](docs/SHORT_HORIZON_FORECAST.md)
 - [历史逐日预测与准确率验证方案](docs/FORECAST_VALIDATION.md)（已实现诊断回放，完整验证仍待完成）
@@ -94,7 +112,7 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
-.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py scripts
+.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py tests/test_meoz*.py scripts
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m chengchuan \
   --offline --state-dir /tmp/chengchuan-preview --screenshot /tmp/chengchuan-preview.png
 # Linux桌面交互复验：悬停、点击、Ctrl拖选、Esc和日K/分时切换
@@ -104,6 +122,8 @@ QT_QPA_PLATFORM=xcb .venv/bin/python -m scripts.check_market_workbench --wait-re
 # 已保存日线的预测、回测、导出与界面验收
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m scripts.check_forecast_workbench \
   --dataset .chengchuan/forecast/inputs/sz002318.json --before 2026-11-03
+# 猫爪12周期验收：默认只读已有本地数据，不消耗API额度
+QT_QPA_PLATFORM=offscreen .venv/bin/python -m scripts.check_meoz_workbench
 ```
 
 离屏检查不能替代真实目标系统和显示器验收。详见[行情工作台验证](docs/VALIDATION_MARKET.md)和[原Qt崩溃排查记录](docs/VALIDATION.md)。

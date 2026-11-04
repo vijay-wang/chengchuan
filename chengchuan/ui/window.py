@@ -32,6 +32,7 @@ from chengchuan import APP_NAME, __version__
 from chengchuan.application.errors import StorageError
 from chengchuan.domain.market import Instrument, stock_symbol
 from chengchuan.domain.models import SHANGHAI, IndexRange, SeriesKind
+from chengchuan.domain.periods import chart_period
 from chengchuan.ui import theme
 from chengchuan.ui.chart import MarketChart
 from chengchuan.ui.forecast_panel import ForecastPanel
@@ -219,8 +220,8 @@ class MainWindow(QMainWindow):
         if self.market:
             controls = QHBoxLayout()
             self.period = QComboBox()
-            self.period.addItem("日K · 不复权", "day")
-            self.period.addItem("分时 · 分钟采样", "minute")
+            for code in getattr(self.market, "intervals", ("day", "minute")):
+                self.period.addItem(chart_period(code).label, code)
             self.period.setEnabled(False)
             self.period.currentIndexChanged.connect(self._period_changed)
             controls.addWidget(self.period)
@@ -368,9 +369,14 @@ class MainWindow(QMainWindow):
         )
         self.quote.setText(f"{bars[-1].close:.2f}")
         self.quote_caption.setText("图表末价")
-        self.kind_label.setText(
-            "日K · 不复权" if series.kind == SeriesKind.OHLC else "分时 · 分钟采样"
+        period = chart_period(series.interval)
+        detail = (
+            "不复权"
+            if period.daily
+            else ("真实分钟OHLC" if series.kind == SeriesKind.OHLC else "分钟价")
         )
+        self.kind_label.setText(f"{period.label} · {detail}")
+        self.kind_label.setToolTip("\n".join(snapshot.quality_notes))
         self.coverage.setText(
             f"{snapshot.source}  ·  {bars[0].timestamp:%Y-%m-%d} — "
             f"{bars[-1].timestamp:%Y-%m-%d}  ·  {len(bars):,} 条记录"
@@ -378,12 +384,17 @@ class MainWindow(QMainWindow):
         if unchanged:
             return
         self.runner.cancel()
-        self.chart.set_snapshot(snapshot, preserve_view=preserve)
+        self.chart.set_snapshot(
+            snapshot,
+            preserve_view=preserve,
+            vwap_points=self.frame.vwap_points if self.frame else (),
+            baseline_price=self.frame.baseline_price if self.frame else None,
+        )
         self.report = None
         if preserve and old_selection is None:
             self.chart.clear_selection()
             return
-        count = min(11 if series.interval == "day" else 121, len(bars))
+        count = min(11 if period.daily else 121, len(bars))
         selection = IndexRange(len(bars) - count, len(bars))
         if preserve and old_snapshot and old_selection:
             indices = {b.timestamp: i for i, b in enumerate(bars)}
@@ -455,7 +466,7 @@ class MainWindow(QMainWindow):
         chart_time = bar.timestamp.astimezone(SHANGHAI)
         # Daily bars are labelled at the session close, even while still forming.
         chart_label = chart_time.strftime(
-            "%Y-%m-%d" if self.online_interval == "day" else "%m-%d %H:%M"
+            "%Y-%m-%d" if chart_period(self.online_interval).daily else "%m-%d %H:%M"
         )
         now = datetime.now(SHANGHAI)
         trading_hours = now.weekday() < 5 and (
@@ -463,11 +474,15 @@ class MainWindow(QMainWindow):
             or "13:00" <= now.strftime("%H:%M") <= "15:00"
         )
         stale = quote is None or (now - quote.timestamp.astimezone(SHANGHAI)).total_seconds() > 180
-        mode = "历史缓存" if frame.cached else ("报价时间较早" if stale else "已联网")
+        mode = (
+            "历史缓存"
+            if frame.cached
+            else ("已取得行情" if quote is None else ("报价时间较早" if stale else "已联网"))
+        )
         session = "交易时段（节假日以数据源为准）" if trading_hours else "非连续竞价时段"
         text = (
-            f"{mode} · 腾讯财经 · {session}\n报价时间 {quote_time} · 图表截至 {chart_label} · "
-            f"取得于 {frame.retrieved_at.astimezone(SHANGHAI):%m-%d %H:%M:%S} · 北京时间 · 公开行情可能延迟"
+            f"{mode} · {frame.provider_name or '腾讯财经'} · {session}\n报价时间 {quote_time} · 图表截至 {chart_label} · "
+            f"取得于 {frame.retrieved_at.astimezone(SHANGHAI):%m-%d %H:%M:%S} · 北京时间 · 行情可能延迟"
         )
         if frame.notice:
             text += "\n" + frame.notice

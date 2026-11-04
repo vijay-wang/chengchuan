@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import date, datetime, time, timezone
 from typing import Protocol
 
@@ -80,6 +80,22 @@ class ForecastService:
     def __init__(self, extractor, model, journal=None):
         self.extractor, self.model, self.journal = extractor, model, journal
         self.calendar = extractor.calendar
+
+    def _research_input(self, snapshot):
+        """Long chart history may exceed the calendar checked by the existing research model."""
+        first = self.calendar.first_supported
+        bars = tuple(b for b in snapshot.series.bars if bar_date(b) >= first)
+        if not bars:
+            raise ValueError("行情不在已核对的预测交易日历范围内")
+        if len(bars) == len(snapshot.series.bars):
+            return snapshot
+        return replace(
+            snapshot,
+            series=replace(snapshot.series, bars=bars),
+            flows=tuple(
+                f for f in snapshot.flows if f.timestamp.astimezone(SHANGHAI).date() >= first
+            ),
+        )
 
     def latest_date(self, snapshot, now, observed_at=None, quote_at=None):
         for b in reversed(snapshot.series.bars):
@@ -218,7 +234,8 @@ class ForecastService:
         day = as_of or self.latest_date(snapshot, now, observed_at, quote_at)
         if not completed_session(day, now, observed_at, quote_at):
             raise ValueError("该日线尚未完成／来源完成状态未确认，请选择已完成历史交易日")
-        features = self._features(snapshot, day)
+        research = self._research_input(snapshot)
+        features = self._features(research, day)
         if day not in features:
             raise ValueError("指定基准日不在日线数据中")
         manifest = self._manifest(
@@ -231,7 +248,7 @@ class ForecastService:
             completion_policy="historical-date-or-1515-observed-and-1500-quote-v1",
         )
         experiment_id = digest(manifest)
-        prefix = history_at(snapshot, day)
+        prefix = history_at(research, day)
         rows = tuple(self._predict(prefix, features, day, h, "C", config) for h in (1, 2))
         if self.journal:
             self.journal.predictions(manifest, snapshot, rows)
@@ -247,7 +264,8 @@ class ForecastService:
         days = [bar_date(b) for b in snapshot.series.bars if bar_date(b) < before]
         if not days:
             raise ValueError("评估上界之前没有数据")
-        features = self._features(snapshot, max(days))
+        research = self._research_input(snapshot)
+        features = self._features(research, max(days))
         days = sorted(features)
         manifest = self._manifest(
             snapshot,
@@ -262,7 +280,7 @@ class ForecastService:
         for day in days:
             if start and day < start:
                 continue
-            prefix = history_at(snapshot, day)
+            prefix = history_at(research, day)
             available = {d: f for d, f in features.items() if d <= day}
             for h in (1, 2):
                 for group in groups:

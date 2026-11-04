@@ -12,13 +12,15 @@
 python -m venv .venv
 .venv/bin/python -m pip install -c requirements/desktop-tested.txt -e '.[desktop,dev]'
 .venv/bin/python -m unittest discover -s tests -v
-.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market.py tests/test_market_desktop.py tests/test_forecast*.py scripts
-.venv/bin/ruff format --check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market.py tests/test_market_desktop.py tests/test_forecast*.py scripts
+.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market.py tests/test_market_desktop.py tests/test_forecast*.py tests/test_meoz*.py scripts
+.venv/bin/ruff format --check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market.py tests/test_market_desktop.py tests/test_forecast*.py tests/test_meoz*.py scripts
 ```
 
 Windows将`.venv/bin/python`替换为`.venv\Scripts\python`。
 
 只开发领域和应用层可不装desktop依赖；桌面测试将跳过。Qt离屏测试不代替Windows/Linux实机、字体、高DPI与安装包验收。
+
+自动测试不得读取真实API Key或发出付费数据请求。猫爪实机脚本默认离线，显式`--allow-network`才允许有本地额度保护的HTTP请求；原始行情、接口文档下载和账号配置不进入Git。
 
 ## 扩展要求
 

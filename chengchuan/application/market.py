@@ -6,6 +6,7 @@ from typing import Protocol
 
 from chengchuan.application.errors import MarketError, StorageError
 from chengchuan.domain.market import Instrument, MarketFrame, SearchResult, stock_symbol
+from chengchuan.domain.periods import chart_period
 
 
 class MarketProvider(Protocol):
@@ -27,6 +28,10 @@ class MarketCache(Protocol):
 class MarketService:
     def __init__(self, provider: MarketProvider, cache: MarketCache, ttl_seconds=15):
         self.provider, self.cache, self.ttl_seconds = provider, cache, ttl_seconds
+        intervals = getattr(provider, "intervals", None)
+        self.intervals = (
+            tuple(intervals) if isinstance(intervals, (tuple, list)) else ("day", "minute")
+        )
 
     def search(self, query: str) -> SearchResult:
         query = query.strip()[:40]
@@ -44,8 +49,9 @@ class MarketService:
 
     def load(self, symbol: str, interval: str, refresh=False) -> MarketFrame:
         symbol = stock_symbol(symbol)
-        if interval not in ("day", "minute"):
-            raise ValueError("当前联网行情支持日K和分时")
+        chart_period(interval)
+        if interval not in self.intervals:
+            raise ValueError("当前数据源不支持此周期；完整周期需配置猫爪数据")
         cache_notice = ""
         try:
             cached = self.cache.load(symbol, interval)
