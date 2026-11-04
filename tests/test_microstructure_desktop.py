@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 import test_market_views_desktop as harness
-from test_microstructure import tape
+from test_microstructure import order, tape, trade
 
 DESKTOP = harness.DESKTOP
 if DESKTOP:
@@ -155,6 +155,171 @@ class MicrostructureDesktopTests(unittest.TestCase):
         self.assertEqual(len(self.market.tape_calls), 1)
         self.assertEqual(w.micro_panel.order_model.rowCount(), 4)
         self.assertEqual(w.micro_panel.restored_model.rowCount(), 4)
+
+    def test_table_alternate_rows_use_dark_palette(self):
+        from PySide6.QtGui import QPalette
+
+        w = self.window
+        w._l2_ready(sample_tape(self.day))
+        self.wait_until(lambda: w._l2_analysis is not None)
+        w._expand_micro()
+        panel = w.micro_dialog.panel
+        panel.tabs.setCurrentWidget(panel.restored_page)
+        self.app.processEvents()
+        palette = panel.restored_table.palette()
+        self.assertEqual(palette.color(QPalette.ColorRole.Base).name(), "#101a27")
+        self.assertEqual(palette.color(QPalette.ColorRole.AlternateBase).name(), "#152335")
+        image = panel.restored_table.viewport().grab().toImage()
+        for row in (0, 1):
+            y = (
+                panel.restored_table.rowViewportPosition(row)
+                + panel.restored_table.rowHeight(row)
+                - 7
+            )
+            self.assertLess(image.pixelColor(8, y).lightness(), 100)
+
+    def test_band_filters_sync_across_views_without_data_requests(self):
+        w = self.window
+        source = sample_tape(self.day)
+        source = replace(
+            source, trades=(*source.trades, replace(source.trades[0], kind="C", bid_id=1, ask_id=0))
+        )
+        w._l2_ready(source)
+        self.wait_until(lambda: w._l2_analysis is not None)
+        w._expand_micro()
+        controls = w.funds_panel.order_bands.filters
+        controls.cancelled.setChecked(True)
+        controls.unfilled.setChecked(False)
+        self.assertTrue(w.micro_dialog.panel.bands.filters.cancelled.isChecked())
+        self.assertFalse(w.micro_panel.bands.filters.unfilled.isChecked())
+        self.assertEqual(w.chart_orders.filters, controls.value())
+        self.assertEqual(sum(b.orders for b in w.funds_panel.order_bands.pies[0].bands), 1)
+        self.assertEqual(self.market.tape_calls, [])
+
+    def test_filtered_row_opens_correct_original_and_merges_three_execution_cells(self):
+        w = self.window
+        source = sample_tape(self.day)
+        source = replace(
+            source,
+            orders=(
+                replace(order(5, shares=300), time=source.orders[0].time),
+                replace(order(1, shares=300), time=source.orders[0].time),
+                *(
+                    replace(order(i, "S", shares=100), time=source.orders[0].time)
+                    for i in (10, 11, 12)
+                ),
+            ),
+            trades=tuple(
+                replace(trade(i + 1, bid=1, ask=10 + i, shares=100), time=source.trades[i].time)
+                for i in range(3)
+            ),
+        )
+        w._l2_ready(source)
+        self.wait_until(lambda: w._l2_analysis is not None)
+        panel = w.micro_panel
+        panel.restored_filters.unfilled.setChecked(False)
+        self.assertEqual(panel.restored_model.rowCount(), 4)
+        panel._show_fills(panel.restored_model.index(0, 0))
+        dialog = panel.matches_dialog
+        self.assertEqual(dialog.order.exchange_id, 1)
+        self.assertEqual(dialog.model.rowCount(), 3)
+        self.assertEqual(dialog.table.rowSpan(0, 0), 3)
+        self.assertEqual(dialog.table.rowSpan(0, 2), 1)
+        self.assertIn("20.00元 × 100股", dialog.model.rows[0][1])
+        dialog.close()
+
+    def test_sell_anchor_merges_right_column_and_pagination_has_bounded_rows(self):
+        from chengchuan.application.microstructure import analyze_orders
+        from chengchuan.ui.order_matches import OrderMatchDialog
+
+        source = tape(
+            orders=[order(10, "S", shares=30100), order(1, shares=30100)],
+            trades=[trade(i + 1, bid=1, ask=10, shares=100) for i in range(301)],
+        )
+        a = analyze_orders(source)
+        selected = next(o for o in a.restored if o.side == "S")
+        dialog = OrderMatchDialog(source, a, selected, self.window)
+        dialog.show()
+        self.assertEqual(dialog.model.rowCount(), 300)
+        self.assertEqual(dialog.table.rowSpan(0, 2), 300)
+        self.assertEqual(dialog.table.rowSpan(0, 0), 300)
+        dialog.next.click()
+        self.assertEqual(dialog.model.rowCount(), 1)
+        self.assertFalse(dialog.next.isEnabled())
+        self.assertTrue(dialog.previous.isEnabled())
+        dialog.previous.click()
+        self.assertEqual(dialog.table.rowSpan(0, 2), 300)
+        dialog.close()
+
+    def test_parent_close_stops_chart_timer_and_closes_match_dialog(self):
+        w = self.window
+        w._l2_ready(sample_tape(self.day))
+        self.wait_until(lambda: w._l2_analysis is not None)
+        w._expand_micro()
+        panel = w.micro_dialog.panel
+        panel._show_fills(panel.restored_model.index(0, 0))
+        dialog = panel.matches_dialog
+        w.chart_orders._schedule_markers()
+        w.close()
+        self.assertFalse(dialog.isVisible())
+        self.assertFalse(w.chart_orders.timer.isActive())
+
+    def test_minute_hover_and_multicolor_marks_are_local_and_clear_on_switch(self):
+        from PySide6.QtCore import QPointF
+
+        from chengchuan.application.microstructure import analyze_orders
+
+        w = self.window
+        w.open_stock("002318", "minute")
+        self.wait_until(self.opened)
+        series = w.chart.snapshot.series
+        stamp = series.bars[0].timestamp.replace(second=0, microsecond=0)
+        source = replace(
+            tape(orders=[order(1, shares=10000), order(2, shares=25000)], trades=[]),
+            day=stamp.date(),
+            orders=(
+                replace(order(1, shares=10000), time=stamp),
+                replace(order(2, shares=25000), time=stamp),
+            ),
+            retrieved_at=stamp,
+        )
+        controller = w.chart_orders
+        controller.set_analysis(analyze_orders(source))
+        controller.show_minute.setChecked(True)
+        controller.show_marks.setChecked(True)
+        controller._render_markers()
+        self.assertEqual([s["data"] for s in controller.marker_spots], [(0, 1), (0, 2)])
+        self.assertLess(controller.marker_spots[0]["pos"][0], controller.marker_spots[1]["pos"][0])
+        point = w.chart.price.getViewBox().mapViewToScene(QPointF(0, series.bars[0].close))
+        w.chart.cursor.move(point, w.chart.price)
+        self.assertTrue(controller.overlay.isVisible())
+        self.assertIn("20–50万", controller.overlay.text())
+        self.assertIn("50–100万", controller.overlay.text())
+        controller.show_minute.setChecked(False)
+        self.assertFalse(controller.overlay.isVisible())
+        controller.show_minute.setChecked(True)
+        controller.clear()
+        controller._render_markers()
+        self.assertFalse(controller.overlay.isVisible())
+        self.assertEqual(controller.marker_spots, [])
+        self.assertEqual(self.market.tape_calls, [])
+
+    def test_partial_data_disables_minute_overlay_and_markers(self):
+        from chengchuan.application.microstructure import analyze_orders
+
+        w = self.window
+        w.open_stock("002318", "minute")
+        self.wait_until(self.opened)
+        source = replace(sample_tape(self.day), trades_complete=False)
+        controller = w.chart_orders
+        controller.set_analysis(analyze_orders(source))
+        controller.show_minute.setChecked(True)
+        controller.show_marks.setChecked(True)
+        controller._render_markers()
+        controller._hover(0)
+        self.assertFalse(controller.overlay.isVisible())
+        self.assertEqual(controller.marker_spots, [])
+        self.assertIn("分页未齐", controller.hint.text())
 
     def test_incomplete_tape_suppresses_pie_and_final_values(self):
         w = self.window

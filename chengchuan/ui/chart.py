@@ -84,6 +84,7 @@ class MarketChart(QWidget):
     range_selected = Signal(object)
     user_range_selected = Signal()
     hover_text = Signal(str)
+    snapshot_changed = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -92,13 +93,15 @@ class MarketChart(QWidget):
         self._baseline = None
         self._drag_start = None
         self._updating = False
+        self.volume_headroom = 1.08
         self.axis = TradingAxis()
         self.price = pg.PlotWidget()
         self.volume = pg.PlotWidget(axisItems={"bottom": self.axis})
         self.volume.setXLink(self.price)
         self.price.hideAxis("bottom")
         self.volume.setMaximumHeight(160)
-        self.price.setMinimumHeight(280)
+        self.volume.setMinimumHeight(80)
+        self.price.setMinimumHeight(240)
         self.price.showGrid(x=True, y=True, alpha=0.13)
         self.volume.showGrid(y=True, alpha=0.1)
         for plot in (self.price, self.volume):
@@ -149,6 +152,7 @@ class MarketChart(QWidget):
         self.axis.times = []
         self.axis.picture = None
         self.axis.update()
+        self.snapshot_changed.emit(None)
 
     def set_snapshot(
         self,
@@ -296,6 +300,7 @@ class MarketChart(QWidget):
             self.price.setXRange(*old_range, padding=0)
         self._fit_visible()
         self._updating = False
+        self.snapshot_changed.emit(snapshot)
 
     def focus_date(self, day):
         if self.snapshot is None:
@@ -341,7 +346,9 @@ class MarketChart(QWidget):
         padding = max((high - low) * 0.08, 0.01)
         self.price.setYRange(low - padding, high + padding, padding=0)
         self.volume.setYRange(
-            0, max(0.01, max(b.volume_shares for b in bars) / 10000) * 1.08, padding=0
+            0,
+            max(0.01, max(b.volume_shares for b in bars) / 10000) * self.volume_headroom,
+            padding=0,
         )
 
     def set_selection(self, selection: IndexRange, notify=True):

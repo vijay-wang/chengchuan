@@ -103,6 +103,10 @@ class ReconstructedOrder:
         return self.price_fen * self.original_shares
 
     @property
+    def average_price(self):
+        return self.executed_fen / self.executed_shares / 100 if self.executed_shares else None
+
+    @property
     def remaining_shares(self):
         return (
             0
@@ -127,6 +131,37 @@ class PriceVolume:
 
 
 @dataclass(frozen=True)
+class OrderFilter:
+    include_unfilled: bool = True
+    include_cancelled: bool = False
+
+    def accepts(self, order):
+        return (self.include_unfilled or order.executed_shares > 0) and (
+            self.include_cancelled or not order.cancelled
+        )
+
+
+@dataclass(frozen=True)
+class OrderBandGroup:
+    unfilled: bool
+    cancelled: bool
+    buy: tuple[AmountBand, ...]
+    sell: tuple[AmountBand, ...]
+
+
+@dataclass(frozen=True)
+class MinuteOrderBands:
+    minute: datetime
+    groups: tuple[OrderBandGroup, ...]
+
+
+@dataclass(frozen=True)
+class OrderMatchGroup:
+    counterpart: ReconstructedOrder | None
+    trades: tuple[TradeEvent, ...]
+
+
+@dataclass(frozen=True)
 class OrderAnalysis:
     symbol: str
     day: date
@@ -142,3 +177,7 @@ class OrderAnalysis:
     unmatched_trade_refs: int
     unpriced_orders: int
     notice: str
+    band_groups: tuple[OrderBandGroup, ...] = ()
+    minute_groups: tuple[MinuteOrderBands, ...] = ()
+    all_ambiguous_orders: int = 0
+    all_unpriced_orders: int = 0

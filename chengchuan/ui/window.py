@@ -43,6 +43,7 @@ from chengchuan.domain.periods import PERIODS, chart_period
 from chengchuan.ui import theme
 from chengchuan.ui.book_stream import BookStreamRunner
 from chengchuan.ui.chart import MarketChart
+from chengchuan.ui.chart_orders import ChartOrderController
 from chengchuan.ui.date_navigator import DateNavigator
 from chengchuan.ui.forecast_panel import ForecastPanel
 from chengchuan.ui.market import MarketBrowser
@@ -336,6 +337,9 @@ class MainWindow(QMainWindow):
         self.date_nav.requested.connect(self.jump_to_date)
         self.date_nav.latest_requested.connect(self.return_to_latest)
         layout.addWidget(self.date_nav)
+        self.chart_orders = ChartOrderController(self.chart, self)
+        self.chart_orders.requested.connect(lambda: self._request_l2_tape(6))
+        layout.addWidget(self.chart_orders.controls)
         self.coverage = label("", "eyebrow", True)
         layout.addWidget(self.coverage)
         self.splitter.addWidget(center)
@@ -505,6 +509,7 @@ class MainWindow(QMainWindow):
         self.research_tabs.addTab(self.funds_panel, "资金")
         self.funds_panel.requested.connect(self._request_funds)
         self.funds_panel.order_bands.requested.connect(lambda: self._request_l2_tape(6))
+        self.funds_panel.order_bands.filters_changed.connect(self._band_filters_changed)
         self.micro_panel = MicrostructurePanel()
         self._wire_micro(self.micro_panel)
         self.research_tabs.addTab(self.micro_panel, "盘口逐笔")
@@ -906,6 +911,18 @@ class MainWindow(QMainWindow):
         panel.replay_requested.connect(self._replay_l2)
         panel.import_requested.connect(self._import_l2)
         panel.expand_requested.connect(self._expand_micro)
+        panel.bands.filters_changed.connect(self._band_filters_changed)
+        panel.restored_filters_changed.connect(self._restored_filters_changed)
+
+    def _band_filters_changed(self, filters):
+        self.funds_panel.order_bands.set_filters(filters)
+        for panel in self._micro_panels():
+            panel.bands.set_filters(filters)
+        self.chart_orders.set_filters(filters)
+
+    def _restored_filters_changed(self, filters):
+        for panel in self._micro_panels():
+            panel.set_restored_filters(filters)
 
     def _micro_panels(self):
         return (
@@ -936,6 +953,7 @@ class MainWindow(QMainWindow):
             self.book_runner.cancel()
         self.l2_analysis_runner.cancel()
         self._l2_tape = self._l2_analysis = self._l2_requested = None
+        self.chart_orders.clear()
         if hasattr(self, "micro_panel"):
             for panel in self._micro_panels():
                 panel.clear()
@@ -1033,6 +1051,7 @@ class MainWindow(QMainWindow):
         for panel in self._micro_panels():
             panel.render_analysis(self._l2_tape, analysis)
         self.funds_panel.order_bands.render(analysis)
+        self.chart_orders.set_analysis(analysis)
 
     def _import_l2(self):
         try:
@@ -1050,6 +1069,8 @@ class MainWindow(QMainWindow):
         if self.micro_dialog is None:
             self.micro_dialog = MicrostructureDialog(self)
             self._wire_micro(self.micro_dialog.panel)
+            self.micro_dialog.panel.bands.set_filters(self.funds_panel.order_bands.filters.value())
+            self.micro_dialog.panel.set_restored_filters(self.micro_panel.restored_filters.value())
         if self._l2_tape and self._l2_analysis:
             self.micro_dialog.panel.render_analysis(self._l2_tape, self._l2_analysis)
         elif self.micro_panel.book:
@@ -1277,6 +1298,10 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self.book_stream.shutdown()
         self.l2_analysis_runner.shutdown()
+        self.chart_orders.shutdown()
+        for panel in self._micro_panels():
+            if panel.matches_dialog is not None:
+                panel.matches_dialog.close()
         if self.micro_dialog:
             self.micro_dialog.close()
         if self.settings_dialog is not None:

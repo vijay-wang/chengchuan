@@ -2,9 +2,9 @@
 
 本地股票研究工作台：看行情、选区间、计算特征、追溯证据。
 
-![澄川原始委托工作台](design/chengchuan-original-order-bands.png)
+![澄川分钟委托分档与标记](design/chengchuan-minute-order-signals.png)
 
-当前为**0.9板块与逐笔工作台**：热力图最大化、缩放和板块个股列表；五档快照、历史十档／委托／还原／量价分布；原始委托九档金额、笔数和买卖双饼图。保留指数摘要、统一设置、12周期、原位刷新、历史日期和额度保护，预测增强仍按P2后置。
+当前为**0.10委托筛选与分钟标记版**：修复深色表格隔行，未成交／撤单可选，新增买卖成交配对格子、实际成交价、分钟悬停分档和量柱多色档位标记。保留板块下钻、五档及历史逐笔、九档双饼图、12周期、缓存和额度保护；预测增强仍按P2后置。
 
 **2026-11-04预测需求调整：** 后续只保留盘后、北京时间14:35两个时点预测下一交易日，优先级P2后置，排在行情、稳定性、基础指标和选区体验之后；相关Level-2／GPU增强同样后置。该预测需求调整仅更新文档，既有0.3 H1／H2代码未改动。详见[最新预测需求](docs/NEXT_DAY_FORECAST.md)及[排期](docs/ROADMAP.md)。
 
@@ -34,7 +34,9 @@ Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。独立可执行安
 
 热力图支持**最大化／还原、Ctrl＋滚轮缩放和完整列表**；点击行业或概念进入成份股，默认涨幅降序、同涨幅按主力净流入降序，可搜索及双击切股。当前成份名单与所选日期行情分别标明。
 
-右侧**盘口逐笔**可展开工作台，手动读取五档、读取已发布历史逐笔或导入本地JSON，再按时点回放。**资金 → 原始委托分档**按原始价格×数量分九档，每档金额、委托笔数及占比，买卖各一饼图。同一原单多次成交只计一笔，撤销整单排除（含部分成交后撤剩余）。它是委托名义金额，包含未成交有效单，不能当作实际资金净流入。分页未齐时不发布最终分档。
+右侧**盘口逐笔**可展开工作台，手动读取五档、读取已发布历史逐笔或导入本地JSON，再按时点回放。**资金 → 原始委托分档**按原始价格×数量分九档，每档金额、委托笔数及占比，买卖各一饼图。同一原单只计一笔，默认含未成交、排除撤销整单（含部分成交后撤剩余），可独立勾选统计。它是委托名义金额，不能当作实际资金净流入。分页未齐时不发布最终分档。
+
+**逐笔还原**可选显示未成交／已撤销，新增原始价格及成交均价；双击原单打开左右买卖合并格子和中间每笔实际成交价、股数。图表下方勾选**悬停显示分钟委托分档**或**量柱标记**，选择需要的九档颜色；同一分钟有多档就并排标记。分钟按原单提交时间归属，撤单／成交状态以当前回放截止为准，统计筛选与资金页同步；这些操作复用本地逐笔，不随鼠标取数。详见[操作、时间口径与验证](docs/ORDER_INSPECTION.md)。
 
 实时五档订阅适配已接入，本机供应商WSS握手返回HTTP 503，尚未验证实盘推送；接口没有实时逐单排队明细。十档、委托与还原使用已发布历史，队列为有数据范围内的还原样本。详见[功能、操作及数据口径](docs/ORDER_WORKBENCH.md)和[真实数据验证](docs/VALIDATION_ORDER_WORKBENCH.md)。
 
@@ -143,6 +145,7 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 - [0.8真实界面、调用与重绘验证](docs/VALIDATION_MARKET_VIEWS.md)
 - [0.9热力图下钻、盘口逐笔及原始委托分档](docs/ORDER_WORKBENCH.md)
 - [0.9原始委托、原生窗口、预算及订阅验证](docs/VALIDATION_ORDER_WORKBENCH.md)
+- [0.10委托筛选、成交配对、分钟分档与多色标记](docs/ORDER_INSPECTION.md)
 - [最新预测需求：盘后／14:35预测下一交易日，P2后置](docs/NEXT_DAY_FORECAST.md)
 - [量价联合预测原设计与0.3实施背景](docs/SHORT_HORIZON_FORECAST.md)
 - [历史逐日预测与准确率验证方案](docs/FORECAST_VALIDATION.md)（已实现诊断回放，完整验证仍待完成）
@@ -176,6 +179,9 @@ QT_QPA_PLATFORM=offscreen .venv/bin/python -m scripts.check_chart_navigation \
 # 板块、原单分档、十档及量价：默认离线，需已有对应本地缓存
 QT_QPA_PLATFORM=xcb .venv/bin/python -m scripts.check_microstructure_workbench \
   --output-dir .chengchuan/l2-native-check
+# 委托筛选、成交格子与分钟标记：只使用已有缓存
+QT_QPA_PLATFORM=xcb .venv/bin/python -m scripts.check_order_inspection \
+  --symbol 002318 --date 2026-11-04
 ```
 
 离屏检查不能替代真实目标系统和显示器验收。详见[行情工作台验证](docs/VALIDATION_MARKET.md)和[原Qt崩溃排查记录](docs/VALIDATION.md)。

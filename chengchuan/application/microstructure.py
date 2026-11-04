@@ -6,7 +6,11 @@ from datetime import datetime, time
 
 from chengchuan.domain.microstructure import (
     AmountBand,
+    MinuteOrderBands,
     OrderAnalysis,
+    OrderBandGroup,
+    OrderFilter,
+    OrderMatchGroup,
     PriceVolume,
     ReconstructedOrder,
 )
@@ -26,6 +30,88 @@ BAND_LABELS = (
 )
 TRADE_CODES = frozenset(("0", "0X00", "F", "T"))
 CANCEL_CODES = frozenset(("C", "4", "D"))
+BAND_LIMITS_FEN = tuple(v * 100 for v in BAND_LIMITS_YUAN)
+
+
+def band_index(amount_fen):
+    return bisect_right(BAND_LIMITS_FEN, amount_fen)
+
+
+def _groups(rows):
+    totals = defaultdict(
+        lambda: {"B": [[0, 0] for _ in BAND_LABELS], "S": [[0, 0] for _ in BAND_LABELS]}
+    )
+    for order in rows:
+        if order.ambiguous or order.original_fen <= 0:
+            continue
+        group = totals[(order.executed_shares == 0, order.cancelled)]
+        bucket = group[order.side][band_index(order.original_fen)]
+        bucket[0] += order.original_fen
+        bucket[1] += 1
+    return tuple(
+        OrderBandGroup(
+            unfilled,
+            cancelled,
+            tuple(AmountBand(label, *v) for label, v in zip(BAND_LABELS, sides["B"])),
+            tuple(AmountBand(label, *v) for label, v in zip(BAND_LABELS, sides["S"])),
+        )
+        for (unfilled, cancelled), sides in sorted(totals.items())
+    )
+
+
+def select_bands(groups, filters=OrderFilter()):
+    selected = [
+        g
+        for g in groups
+        if (filters.include_unfilled or not g.unfilled)
+        and (filters.include_cancelled or not g.cancelled)
+    ]
+    return tuple(
+        tuple(
+            AmountBand(
+                label,
+                sum(getattr(g, side)[i].amount_fen for g in selected),
+                sum(getattr(g, side)[i].orders for g in selected),
+            )
+            for i, label in enumerate(BAND_LABELS)
+        )
+        for side in ("buy", "sell")
+    )
+
+
+def match_groups(tape, analysis, selected):
+    """Group real execution links by unique opposing original order, never by price guesses."""
+    if selected.ambiguous or selected.exchange_id <= 0:
+        return ()
+    opposite = "S" if selected.side == "B" else "B"
+    originals = defaultdict(list)
+    for order in analysis.restored:
+        if order.side == opposite:
+            originals[order.exchange_id].append(order)
+    grouped = defaultdict(list)
+    for trade in tape.trades:
+        if (
+            trade.time > analysis.cutoff
+            or trade.kind.upper() not in TRADE_CODES
+            or trade.price_fen <= 0
+            or trade.shares <= 0
+        ):
+            continue
+        anchor_id = trade.bid_id if selected.side == "B" else trade.ask_id
+        if anchor_id == selected.exchange_id:
+            grouped[trade.ask_id if selected.side == "B" else trade.bid_id].append(trade)
+    result = []
+    for order_id, trades in grouped.items():
+        candidates = originals.get(order_id, ())
+        counterpart = (
+            candidates[0]
+            if order_id > 0 and len(candidates) == 1 and not candidates[0].ambiguous
+            else None
+        )
+        result.append(
+            OrderMatchGroup(counterpart, tuple(sorted(trades, key=lambda t: (t.time, t.trade_id))))
+        )
+    return tuple(sorted(result, key=lambda g: (g.trades[0].time, g.trades[0].trade_id)))
 
 
 def analyze_orders(tape, cutoff=None):
@@ -35,6 +121,7 @@ def analyze_orders(tape, cutoff=None):
     records = defaultdict(list)
     cancelled = set()
     cancelled_any = set()
+    uncertain = set()
     unknown, unmatched = 0, 0
     for event in tape.orders:
         if event.time > cutoff:
@@ -65,11 +152,11 @@ def analyze_orders(tape, cutoff=None):
             continue
         if kind not in TRADE_CODES or event.price_fen <= 0 or event.shares <= 0:
             unknown += 1
-            # Do not allow an unclassified event to leave a referenced order in
-            # the "definitely not cancelled" statistics.
+            # Unknown events are ambiguity, not confirmed cancels. Even opting
+            # into cancelled orders must never reintroduce these into statistics.
             for side, order_id in refs:
                 if order_id > 0:
-                    cancelled_any.add(order_id)
+                    uncertain.add((side, order_id))
             continue
         bucket = price_volume[event.price_fen]
         bucket[0 if event.side == "B" else 1 if event.side == "S" else 2] += event.shares
@@ -83,7 +170,7 @@ def analyze_orders(tape, cutoff=None):
             aggregate[2] += 1
     restored = []
     for (side, order_id), events in records.items():
-        ambiguous = order_id <= 0 or len(events) != 1
+        ambiguous = order_id <= 0 or len(events) != 1 or (side, order_id) in uncertain
         for event in events:
             executed, amount, count = fills[(side, order_id)] if not ambiguous else (0, 0, 0)
             impossible = executed > event.shares
@@ -115,7 +202,7 @@ def analyze_orders(tape, cutoff=None):
         if order.original_fen <= 0:
             unpriced += 1
             continue
-        index = bisect_right(tuple(v * 100 for v in BAND_LIMITS_YUAN), order.original_fen)
+        index = band_index(order.original_fen)
         totals[order.side][index][0] += order.original_fen
         totals[order.side][index][1] += 1
     complete = tape.orders_complete and tape.trades_complete
@@ -126,6 +213,9 @@ def analyze_orders(tape, cutoff=None):
     )
     if not complete:
         note = "分页未齐，尚不能完整排除后续撤单；金额及饼图暂不发布。" + note
+    minutes = defaultdict(list)
+    for order in restored:
+        minutes[order.time.astimezone(SHANGHAI).replace(second=0, microsecond=0)].append(order)
     return OrderAnalysis(
         tape.symbol,
         tape.day,
@@ -144,6 +234,10 @@ def analyze_orders(tape, cutoff=None):
         unmatched,
         unpriced,
         note,
+        _groups(restored),
+        tuple(MinuteOrderBands(minute, _groups(rows)) for minute, rows in sorted(minutes.items())),
+        sum(r.ambiguous for r in restored),
+        sum(not r.ambiguous and r.original_fen <= 0 for r in restored),
     )
 
 

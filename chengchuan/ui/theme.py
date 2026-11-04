@@ -53,7 +53,11 @@ QToolTip { background: #213348; color: #dce6f0; border: 1px solid #445b72; }
 QTabWidget::pane { border: none; }
 QTabBar::tab { background: #101a27; color: #8193a8; padding: 12px 18px; border-bottom: 2px solid #203044; }
 QTabBar::tab:selected { color: #5ad7bf; border-bottom: 2px solid #5ad7bf; }
-QTextBrowser, QTableWidget { background: #101a27; border: 1px solid #233548; border-radius: 5px; font-size: 12px; }
+QTextBrowser, QTableView { background: #101a27; color: #dce6f0;
+    alternate-background-color: #152335; selection-background-color: #28465e;
+    selection-color: #f2f7fc; gridline-color: #233548;
+    border: 1px solid #233548; border-radius: 5px; font-size: 12px; }
+QTableView::item:selected { background: #28465e; color: #f2f7fc; }
 QHeaderView::section { background: #172536; color: #8193a8; border: none; padding: 5px; }
 QDateEdit, QSpinBox { background: #142233; border: 1px solid #293b51; padding: 4px; }
 QMenu { background: #132130; border: 1px solid #354d65; padding: 6px; }

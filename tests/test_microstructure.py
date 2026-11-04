@@ -7,8 +7,13 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from chengchuan.application.errors import MarketError
-from chengchuan.application.microstructure import analyze_orders, order_queue
-from chengchuan.domain.microstructure import OrderEvent, OrderTape, TradeEvent
+from chengchuan.application.microstructure import (
+    analyze_orders,
+    match_groups,
+    order_queue,
+    select_bands,
+)
+from chengchuan.domain.microstructure import OrderEvent, OrderFilter, OrderTape, TradeEvent
 from chengchuan.domain.models import SHANGHAI
 from chengchuan.infrastructure.meoz_client import ApiResult, page_metadata
 from chengchuan.infrastructure.meoz_stream import STREAM_FIELDS, parse_stream_book, request_ticket
@@ -64,6 +69,92 @@ def tape(orders=None, trades=None, complete=True):
 
 
 class OriginalOrderTests(unittest.TestCase):
+    def test_independent_unfilled_and_cancelled_filters_keep_original_amount(self):
+        source = tape(
+            orders=[
+                order(1, shares=300),
+                order(2, shares=100),
+                order(3, shares=200),
+                order(4, shares=500),
+            ],
+            trades=[
+                trade(bid=1, ask=0, shares=50),
+                trade(2, bid=3, ask=0, shares=40),
+                trade(3, bid=3, ask=0, kind="C"),
+                trade(4, bid=4, ask=0, kind="C"),
+            ],
+        )
+        a = analyze_orders(source)
+        expected = {
+            (False, False): (1, 600000),
+            (True, False): (2, 800000),
+            (False, True): (2, 1000000),
+            (True, True): (4, 2200000),
+        }
+        for (unfilled, cancelled), totals in expected.items():
+            filters = OrderFilter(unfilled, cancelled)
+            buy, sell = select_bands(a.band_groups, filters)
+            self.assertEqual((sum(b.orders for b in buy), sum(b.amount_fen for b in buy)), totals)
+            self.assertEqual(sum(b.orders for b in sell), 0)
+            visible = [o for o in a.restored if filters.accepts(o)]
+            self.assertEqual(sum(o.original_fen for o in visible), totals[1])
+
+    def test_minute_groups_sum_to_day_and_use_original_submission_not_fill_time(self):
+        source = tape(
+            orders=[order(1, shares=100), order(2, shares=200, seconds=60)],
+            trades=[trade(bid=1, ask=0, shares=50, seconds=121)],
+        )
+        a = analyze_orders(source)
+        self.assertEqual([m.minute.strftime("%H:%M") for m in a.minute_groups], ["09:30", "09:31"])
+        for u in (True, False):
+            for c in (True, False):
+                filters = OrderFilter(u, c)
+                day_buy, _ = select_bands(a.band_groups, filters)
+                minute_amount = sum(
+                    b.amount_fen
+                    for m in a.minute_groups
+                    for b in select_bands(m.groups, filters)[0]
+                )
+                self.assertEqual(minute_amount, sum(b.amount_fen for b in day_buy))
+        self.assertEqual(
+            select_bands(a.minute_groups[0].groups, OrderFilter(False, False))[0][0].orders, 1
+        )
+        before = analyze_orders(source, START + timedelta(seconds=61))
+        self.assertEqual(
+            sum(
+                b.orders
+                for m in before.minute_groups
+                for b in select_bands(m.groups, OrderFilter(False, False))[0]
+            ),
+            0,
+        )
+
+    def test_match_groups_preserve_three_counterpart_orders_and_real_execution_prices(self):
+        source = tape(
+            orders=[
+                order(1, price=1700, shares=300),
+                *(order(i, "S", price=1700, shares=100) for i in (10, 11, 12)),
+            ],
+            trades=[
+                replace(trade(i + 1, ask=10 + i, shares=100), price_fen=1700 + i) for i in range(3)
+            ],
+        )
+        a = analyze_orders(source)
+        selected = next(o for o in a.restored if o.side == "B")
+        groups = match_groups(source, a, selected)
+        self.assertEqual([g.counterpart.exchange_id for g in groups], [10, 11, 12])
+        self.assertEqual([g.trades[0].price_fen for g in groups], [1700, 1701, 1702])
+        self.assertAlmostEqual(selected.average_price, 17.01)
+        self.assertEqual(len(match_groups(source, a, a.restored[1])), 1)
+
+    def test_match_missing_and_duplicate_counterparts_are_not_invented(self):
+        for originals in ([order()], [order(), order(10, "S"), order(10, "S", seconds=1)]):
+            source = tape(orders=originals, trades=[trade()])
+            a = analyze_orders(source)
+            group = match_groups(source, a, a.restored[0])[0]
+            self.assertIsNone(group.counterpart)
+            self.assertEqual(group.trades[0].shares, 10000)
+
     def test_split_executions_are_one_original_order_at_original_not_executed_amount(self):
         result = analyze_orders(tape())
         self.assertEqual(sum(b.orders for b in result.buy), 1)
@@ -124,6 +215,14 @@ class OriginalOrderTests(unittest.TestCase):
         self.assertEqual(result.unpriced_orders, 1)
         self.assertEqual(sum(b.orders for b in result.buy), 0)
 
+    def test_cancelled_unpriced_orders_remain_excluded_when_cancels_are_included(self):
+        result = analyze_orders(tape(orders=[order(price=0)], trades=[trade(ask=0, kind="C")]))
+        self.assertEqual(result.cancelled_orders, 1)
+        self.assertEqual(result.all_unpriced_orders, 1)
+        self.assertEqual(
+            sum(b.orders for b in select_bands(result.band_groups, OrderFilter(True, True))[0]), 0
+        )
+
     def test_incomplete_pages_do_not_claim_final_bands(self):
         result = analyze_orders(tape(complete=False))
         self.assertFalse(result.complete)
@@ -133,6 +232,10 @@ class OriginalOrderTests(unittest.TestCase):
         result = analyze_orders(tape(orders=[order()], trades=[trade(kind="UNRECOGNIZED", ask=0)]))
         self.assertEqual(sum(b.orders for b in result.buy), 0)
         self.assertEqual(result.unknown_events, 1)
+        self.assertEqual(result.all_ambiguous_orders, 1)
+        self.assertEqual(
+            sum(b.orders for b in select_bands(result.band_groups, OrderFilter(True, True))[0]), 0
+        )
 
     def test_price_volume_includes_real_fills_and_excludes_cancel_records(self):
         source = tape(

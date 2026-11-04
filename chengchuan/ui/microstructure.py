@@ -7,7 +7,6 @@ from PySide6.QtCore import Qt, QTime, Signal
 from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import (
     QComboBox,
-    QDialog,
     QHBoxLayout,
     QHeaderView,
     QLabel,
@@ -24,23 +23,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from chengchuan.application.microstructure import order_queue
+from chengchuan.application.microstructure import order_queue, select_bands
 from chengchuan.ui import theme
 from chengchuan.ui.market_dashboard import value_text
+from chengchuan.ui.order_matches import OrderMatchDialog
+from chengchuan.ui.order_widgets import COLORS, OrderFilterControls
 from chengchuan.ui.table import ValueTableModel
 from chengchuan.ui.window_geometry import MaximizableDialog
-
-COLORS = (
-    "#4dc5b1",
-    "#56b7d9",
-    "#6b9be8",
-    "#9186de",
-    "#b382d4",
-    "#d183b2",
-    "#e18d86",
-    "#e5b36b",
-    "#c7cc75",
-)
 
 
 class PriceVolumeChart(pg.PlotWidget):
@@ -141,6 +130,7 @@ class OrderPie(QWidget):
 
 class OrderBandsPanel(QWidget):
     requested = Signal()
+    filters_changed = Signal(object)
 
     def __init__(self, compact=False, parent=None):
         super().__init__(parent)
@@ -152,6 +142,9 @@ class OrderBandsPanel(QWidget):
         self.caption = QLabel("原始委托金额分档；整张撤销委托剔除。")
         self.caption.setWordWrap(True)
         outer.addWidget(self.caption)
+        self.filters = OrderFilterControls()
+        self.filters.changed.connect(self._filters_changed)
+        outer.addWidget(self.filters)
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         content = QWidget()
@@ -194,11 +187,27 @@ class OrderBandsPanel(QWidget):
 
     def render(self, analysis):
         self.analysis = analysis
+        self._draw()
+
+    def set_filters(self, filters):
+        self.filters.set_value(filters)
+        if self.analysis is not None:
+            self._draw()
+
+    def _filters_changed(self, filters):
+        if self.analysis is not None:
+            self._draw()
+        self.filters_changed.emit(filters)
+
+    def _draw(self):
+        analysis = self.analysis
+        filters = self.filters.value()
         self.caption.setText(
             f"{analysis.symbol[-6:]} · {analysis.day:%Y-%m-%d} · 截至{analysis.cutoff:%H:%M:%S}\n"
-            f"剔除撤销{analysis.cancelled_orders:,}笔／无法唯一还原{analysis.ambiguous_orders:,}笔／无价{analysis.unpriced_orders:,}笔"
+            f"已撤销{analysis.cancelled_orders:,}笔（{'允许统计' if filters.include_cancelled else '剔除'}）／全体歧义{analysis.all_ambiguous_orders:,}笔／全体无价{analysis.all_unpriced_orders:,}笔"
         )
-        for table, pie, bands in zip(self.tables, self.pies, (analysis.buy, analysis.sell)):
+        selected = select_bands(analysis.band_groups, filters)
+        for table, pie, bands in zip(self.tables, self.pies, selected):
             total = sum(b.amount_fen for b in bands)
             for i, band in enumerate(bands):
                 texts = (
@@ -212,7 +221,15 @@ class OrderBandsPanel(QWidget):
                     if j == 0:
                         table.item(i, j).setForeground(QColor(COLORS[i]))
             pie.set_bands(bands, analysis.complete)
-        self.note.setText(analysis.notice)
+        self.note.setText(
+            "按原始价格×原始数量，每张只计一笔；部分成交仍按整张原单金额。"
+            + ("包含" if filters.include_unfilled else "剔除")
+            + "成交股数为0的委托；"
+            + ("包含" if filters.include_cancelled else "剔除")
+            + "整张已撤销原单（含部分成交后撤余）。"
+            + "无法唯一还原和无原价委托始终不计；非实际成交流入流出。"
+            + ("分页未齐，最终金额及饼图不发布。" if not analysis.complete else "")
+        )
 
 
 def value_table(headers, formats=None, colors=()):
@@ -233,6 +250,7 @@ class MicrostructurePanel(QWidget):
     replay_requested = Signal(object)
     import_requested = Signal()
     expand_requested = Signal()
+    restored_filters_changed = Signal(object)
 
     def __init__(self, expanded=False, parent=None):
         super().__init__(parent)
@@ -241,6 +259,8 @@ class MicrostructurePanel(QWidget):
         self.book = None
         self.symbol = None
         self.streaming = False
+        self._visible_restored = ()
+        self.matches_dialog = None
         box = QVBoxLayout(self)
         top = QHBoxLayout()
         self.snapshot_button = QPushButton("读取五档")
@@ -325,10 +345,28 @@ class MicrostructurePanel(QWidget):
         )
         self.tabs.addTab(self.order_table, "逐笔委托")
         self.restored_table, self.restored_model = value_table(
-            ("原时间", "委托号", "方向", "原始金额", "原始股数", "成交股数", "成交笔数", "状态"),
-            {3: lambda v: value_text(v, "元")},
+            (
+                "原时间",
+                "委托号",
+                "方向",
+                "原始价格",
+                "成交均价",
+                "原始金额",
+                "原始股数",
+                "成交股数",
+                "成交笔数",
+                "状态",
+            ),
+            {3: lambda v: f"{v:.2f}", 4: lambda v: f"{v:.4f}", 5: lambda v: value_text(v, "元")},
         )
-        self.tabs.addTab(self.restored_table, "逐笔还原")
+        self.restored_page = QWidget()
+        restored_box = QVBoxLayout(self.restored_page)
+        self.restored_filters = OrderFilterControls("显示", include_cancelled=True)
+        self.restored_filters.changed.connect(self._restored_filter_changed)
+        restored_box.addWidget(self.restored_filters)
+        restored_box.addWidget(QLabel("双击原单查看买卖配对格子、每笔成交价格与股数。"))
+        restored_box.addWidget(self.restored_table, 1)
+        self.tabs.addTab(self.restored_page, "逐笔还原")
         self.profile_table, self.profile_model = value_table(
             ("成交价", "源B量", "源S量", "未标方向量", "总量"), {0: lambda v: f"{v:.2f}"}
         )
@@ -349,6 +387,10 @@ class MicrostructurePanel(QWidget):
 
     def clear(self, message="选择个股后按需读取；不会自动下载整日逐笔。"):
         self.tape = self.analysis = self.book = None
+        self._visible_restored = ()
+        if self.matches_dialog is not None:
+            self.matches_dialog.close()
+            self.matches_dialog = None
         self.status.setText(message)
         for model in (
             self.book_model,
@@ -390,6 +432,9 @@ class MicrostructurePanel(QWidget):
         self._render_queue()
 
     def render_analysis(self, tape, analysis):
+        if self.matches_dialog is not None:
+            self.matches_dialog.close()
+            self.matches_dialog = None
         self.tape, self.analysis = tape, analysis
         self.bands.render(analysis)
         self.order_model.set_rows(
@@ -406,27 +451,7 @@ class MicrostructurePanel(QWidget):
             for e in tape.orders
             if e.time <= analysis.cutoff
         )
-        self.restored_model.set_rows(
-            (
-                r.time.strftime("%H:%M:%S.%f")[:-3],
-                r.exchange_id,
-                r.side,
-                r.original_fen / 100,
-                r.original_shares,
-                r.executed_shares,
-                r.trade_count,
-                "撤销（剔除）"
-                if r.cancelled
-                else "编号歧义（剔除）"
-                if r.ambiguous
-                else "全部成交"
-                if r.executed_shares >= r.original_shares
-                else "部分成交"
-                if r.executed_shares
-                else "未成交",
-            )
-            for r in analysis.restored
-        )
+        self._render_restored()
         self.profile_model.set_rows(
             (
                 r.price_fen / 100,
@@ -446,6 +471,44 @@ class MicrostructurePanel(QWidget):
             f"截止{analysis.cutoff:%H:%M:%S} · 成交关联缺失{analysis.unmatched_trade_refs:,}次 · 未知／阶段事件{analysis.unknown_events:,}\n{tape.notice}"
         )
         self._render_queue()
+
+    def set_restored_filters(self, filters):
+        self.restored_filters.set_value(filters)
+        self._render_restored()
+
+    def _restored_filter_changed(self, filters):
+        self._render_restored()
+        self.restored_filters_changed.emit(filters)
+
+    def _render_restored(self):
+        self._visible_restored = (
+            tuple(r for r in self.analysis.restored if self.restored_filters.value().accepts(r))
+            if self.analysis
+            else ()
+        )
+        self.restored_model.set_rows(
+            (
+                r.time.strftime("%H:%M:%S.%f")[:-3],
+                r.exchange_id,
+                r.side,
+                r.price_fen / 100,
+                r.average_price,
+                r.original_fen / 100,
+                r.original_shares,
+                r.executed_shares,
+                r.trade_count,
+                "已撤销"
+                if r.cancelled
+                else "编号歧义（剔除）"
+                if r.ambiguous
+                else "全部成交"
+                if r.executed_shares >= r.original_shares
+                else "部分成交"
+                if r.executed_shares
+                else "未成交",
+            )
+            for r in self._visible_restored
+        )
 
     def _render_queue(self, unused=None):
         self.queue_model.set_rows(())
@@ -479,33 +542,22 @@ class MicrostructurePanel(QWidget):
     def _show_fills(self, index):
         if self.tape is None or self.analysis is None:
             return
-        order = self.analysis.restored[index.row()]
+        if not index.isValid() or not 0 <= index.row() < len(self._visible_restored):
+            return
+        order = self._visible_restored[index.row()]
         if order.ambiguous or order.exchange_id <= 0:
             self.status.setText("该委托编号缺失或不唯一，不能展示已确认的成交关联。")
             return
-        dialog = QDialog(self)
-        dialog.setWindowTitle(f"委托{order.exchange_id}的成交／撤单关联明细")
-        dialog.resize(800, 450)
-        box = QVBoxLayout(dialog)
-        table, model = value_table(
-            ("时间", "成交编号", "代码", "价格", "股数", "金额"),
-            {3: lambda v: f"{v:.2f}", 5: lambda v: value_text(v, "元")},
-        )
-        model.set_rows(
-            (
-                t.time.strftime("%H:%M:%S.%f")[:-3],
-                t.trade_id,
-                t.kind,
-                t.price_fen / 100,
-                t.shares,
-                t.price_fen * t.shares / 100,
-            )
-            for t in self.tape.trades
-            if t.time <= self.analysis.cutoff
-            and (t.bid_id if order.side == "B" else t.ask_id) == order.exchange_id
-        )
-        box.addWidget(table)
-        dialog.exec()
+        if self.matches_dialog is not None:
+            self.matches_dialog.close()
+        dialog = OrderMatchDialog(self.tape, self.analysis, order, self)
+        self.matches_dialog = dialog
+        dialog.destroyed.connect(lambda: self._match_closed(dialog))
+        dialog.show()
+
+    def _match_closed(self, dialog):
+        if self.matches_dialog is dialog:
+            self.matches_dialog = None
 
 
 class MicrostructureDialog(MaximizableDialog):

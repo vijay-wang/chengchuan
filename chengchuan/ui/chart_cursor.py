@@ -12,6 +12,7 @@ from chengchuan.ui import theme
 
 class ChartCursor(QObject):
     text = Signal(str)
+    position_changed = Signal(object)
 
     def __init__(self, price, volume, parent=None):
         super().__init__(parent)
@@ -83,6 +84,7 @@ class ChartCursor(QObject):
             tip.hide()
         self.active_plot = None
         if was_active:
+            self.position_changed.emit(None)
             self.price.viewport().update()
             self.volume.viewport().update()
 
@@ -158,3 +160,4 @@ class ChartCursor(QObject):
         self.text.emit(
             f"{stamp}   {prices}   涨跌 {change}   量 {bar.volume_shares / 10000:,.2f}万股"
         )
+        self.position_changed.emit(index)

@@ -101,7 +101,7 @@ def check(folder, allow_network=False):
         capture(full, "historical-book-queue.png")
         full.panel.tabs.setCurrentWidget(full.panel.profile_page)
         capture(full, "price-volume.png")
-        full.panel.tabs.setCurrentWidget(full.panel.restored_table)
+        full.panel.tabs.setCurrentWidget(full.panel.restored_page)
         capture(full, "restored-orders.png")
         full.hide()
         window.funds_panel.pages.setCurrentIndex(1)
