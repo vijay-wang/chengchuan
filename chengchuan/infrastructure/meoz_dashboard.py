@@ -3,12 +3,14 @@
 from datetime import datetime, time
 
 from chengchuan.application.errors import MarketError
+from chengchuan.application.market_refresh import cache_confirmation, market_checkpoint
 from chengchuan.application.quote_metrics import (
     aggregate_breadth,
     base_metrics,
     number,
     volume_ratio,
 )
+from chengchuan.domain.calendar import CalendarUnavailable
 from chengchuan.domain.market import INDEX_CATALOG, INDEX_NAMES, is_index, market_code
 from chengchuan.domain.market_dashboard import (
     IndexSummary,
@@ -27,7 +29,7 @@ from chengchuan.infrastructure.meoz_market import (
 
 VALUATION_FIELDS = "tradedate,symbol,name,code,close,turnover_rate,turnover_rate_f,volume_ratio,pe_ttm,pb,total_mv,circ_mv"
 FLOW_FIELDS = "tradedate,symbol,name,main_net_amount,main_buy_amount,main_sell_amount"
-SCREENING_FIELDS = "tradedate,symbol,code,name,pct_chg,main_net_amount"
+SCREENING_FIELDS = "tradedate,symbol,code,name,pct_chg,main_net_amount,amount"
 EMOTION_FIELDS = "tradedate,s2,s6,s10,am,mf_main"
 INDEX_SYMBOLS = ",".join(symbol[-6:] for symbol, _, _ in INDEX_CATALOG)
 
@@ -51,13 +53,58 @@ def snapshot_time(row):
 
 def cache_policy():
     now = datetime.now(SHANGHAI)
-    age = 180 if now.weekday() < 5 and time(9, 15) <= now.time() < time(15, 15) else 86400
-    minimum = (
-        now.replace(hour=15, minute=15, second=0, microsecond=0).timestamp()
-        if now.time() >= time(15, 15)
-        else None
-    )
+    age = 180 if now.weekday() < 5 and time(9, 15) <= now.time() < time(15, 45) else 86400
+    confirmation = cache_confirmation(now)
+    minimum = confirmation.timestamp() if confirmation else None
     return now, age, minimum
+
+
+def latest_query_age(
+    client,
+    api,
+    params,
+    fields,
+    now,
+    age,
+    minimum,
+    *,
+    expected=None,
+    min_clock=None,
+    symbol=None,
+    service="live",
+):
+    """A late-published previous-day response must not freeze for a full day."""
+    if age is not None and age <= 180:
+        return age
+    try:
+        point = market_checkpoint(now)
+        expected = expected or point.cutoff.date().strftime("%Y%m%d")
+    except CalendarUnavailable:
+        return 180
+    cached = client.peek(api, params, fields, service=service)
+    if (
+        cached is None
+        or not cached.rows
+        or any(str(r.get("tradedate")) != expected for r in cached.rows)
+    ):
+        return 180
+    if minimum is not None and cached.fetched_at.timestamp() < minimum:
+        return 180
+    if min_clock is not None:
+        rows = [r for r in cached.rows if symbol is None or matches_symbol(r.get("symbol"), symbol)]
+        clocks = [str(r.get("trademin", "")).zfill(4) for r in rows]
+        if (
+            not rows
+            or any(len(t) != 4 or not t.isdigit() for t in clocks)
+            or max(clocks) < min_clock
+        ):
+            return 180
+    if api == "indexdaily" and not point.live:
+        if any(
+            snapshot_time(r) is not None and snapshot_time(r) < point.cutoff for r in cached.rows
+        ):
+            return 180
+    return age
 
 
 class MeozDashboard:
@@ -66,10 +113,14 @@ class MeozDashboard:
         self.client = provider.client
 
     def overview(self):
-        _, age, minimum = cache_policy()
+        now, age, minimum = cache_policy()
+        params = dict(symbols=INDEX_SYMBOLS)
+        age = latest_query_age(
+            self.client, "indexdaily", params, INDEX_DAILY_FIELDS, now, age, minimum
+        )
         result = self.client.query(
             "indexdaily",
-            dict(symbols=INDEX_SYMBOLS),
+            params,
             INDEX_DAILY_FIELDS,
             max_age=age,
             min_fetched=minimum,
@@ -107,7 +158,9 @@ class MeozDashboard:
             max(r.fetched_at for r in results),
             all(r.cached for r in results),
             "；".join(dict.fromkeys(filter(None, warnings))),
-            complete=len(indices) == len(INDEX_CATALOG) and len(breadth) > 1,
+            complete=len(indices) == len(INDEX_CATALOG)
+            and len(breadth) > 1
+            and (minimum is None or all(r.fetched_at.timestamp() >= minimum for r in results)),
         )
 
     def _breadth(self, day, age, minimum):
@@ -115,7 +168,7 @@ class MeozDashboard:
         historical = day < datetime.now(SHANGHAI).date()
         if historical:
             age = None
-            minimum = datetime.combine(day, time(15, 15), SHANGHAI).timestamp()
+            minimum = max(minimum or 0, datetime.combine(day, time(15, 15), SHANGHAI).timestamp())
         try:
             market = self.client.query(
                 "screening",
@@ -183,6 +236,8 @@ class MeozDashboard:
         if not bars:
             raise MarketError("没有该日期的行情摘要")
         day = bars[-1].timestamp.astimezone(SHANGHAI).date()
+        if as_of is not None and day < now.date():
+            minimum = None
         rows = [r for r in daily.rows if str(r["tradedate"]) == day.strftime("%Y%m%d")]
         if len(rows) != 1:
             raise MarketError("日行情摘要日期重复")
@@ -228,7 +283,7 @@ class MeozDashboard:
                     note="当前指数接口未提供换手率，不套用个股股本计算",
                 )
             )
-            breadth, extra, issues = self._breadth(day, age, minimum if day == now.date() else None)
+            breadth, extra, issues = self._breadth(day, age, minimum)
             results.extend(extra)
             warnings.extend(issues)
             complete = len(breadth) > 1
@@ -293,6 +348,9 @@ class MeozDashboard:
                         else "该日期暂无资金值或权限未提供",
                     )
                 )
+        confirmation = cache_confirmation(now)
+        if as_of is None and confirmation and day == confirmation.date():
+            complete = complete and all(r.fetched_at >= confirmation for r in results)
         return QuoteDetails(
             symbol,
             day,
@@ -309,7 +367,9 @@ class MeozDashboard:
         try:
             historical = day < datetime.now(SHANGHAI).date()
             if historical:
-                minimum = datetime.combine(day, time(15, 15), SHANGHAI).timestamp()
+                minimum = max(
+                    minimum or 0, datetime.combine(day, time(15, 15), SHANGHAI).timestamp()
+                )
             result = self.client.query(
                 api,
                 dict(symbols=market_code(symbol)[2:], tradedate=day.strftime("%Y%m%d")),

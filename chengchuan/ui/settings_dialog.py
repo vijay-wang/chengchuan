@@ -180,7 +180,9 @@ class SettingsDialog(QDialog):
         group.addLayout(form)
         group.addWidget(
             caption(
-                "检查优先读取缓存；猫爪付费行情仍至少复用180秒，历史浏览暂停自动更新。", "eyebrow"
+                "交易窗口按间隔检查；闭市仅补齐落后缓存，齐全后暂停。失败退避重试且限次；"
+                "猫爪仍至少复用180秒，历史浏览暂停自动更新。",
+                "eyebrow",
             )
         )
         box.addWidget(frame)

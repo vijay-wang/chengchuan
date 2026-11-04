@@ -32,6 +32,7 @@ def value_text(value, unit=""):
 
 class IndexOverviewBar(QWidget):
     open_requested = Signal(str)
+    heatmap_requested = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -46,6 +47,9 @@ class IndexOverviewBar(QWidget):
         self.status = QLabel("点击指数切换到最新图表")
         self.status.setObjectName("eyebrow")
         header.addWidget(self.status, 1, Qt.AlignmentFlag.AlignRight)
+        self.heatmap_button = QPushButton("市场热力图")
+        self.heatmap_button.clicked.connect(self.heatmap_requested)
+        header.addWidget(self.heatmap_button)
         box.addLayout(header)
         row = QHBoxLayout()
         row.setSpacing(8)

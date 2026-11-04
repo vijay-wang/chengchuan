@@ -32,6 +32,7 @@ from PySide6.QtWidgets import (
 
 from chengchuan import APP_NAME, __version__
 from chengchuan.application.errors import StorageError
+from chengchuan.application.market_refresh import MarketRefreshController
 from chengchuan.application.quote_metrics import details_from_frame
 from chengchuan.application.settings import SettingsSaveError, SettingsService
 from chengchuan.domain.market import Instrument, instrument_symbol, is_index
@@ -43,6 +44,7 @@ from chengchuan.ui.date_navigator import DateNavigator
 from chengchuan.ui.forecast_panel import ForecastPanel
 from chengchuan.ui.market import MarketBrowser
 from chengchuan.ui.market_dashboard import IndexOverviewBar, QuoteDetailsPanel
+from chengchuan.ui.market_views import HeatmapDialog, MoneyFlowPanel
 from chengchuan.ui.settings_dialog import SettingsDialog
 from chengchuan.ui.tasks import LatestTaskRunner, ProcessTaskRunner
 
@@ -110,6 +112,7 @@ class MainWindow(QMainWindow):
         if initial_provider is not None:
             self.preferences = replace(self.preferences, provider=initial_provider)
         self.settings_dialog = None
+        self.heatmap_dialog = None
         self.forecast_service, self.forecast_writer = forecast_service, forecast_writer
         self.forecast_panel = None
         self.network_runner_factory = network_runner_factory
@@ -121,8 +124,12 @@ class MainWindow(QMainWindow):
         self.market_runner = network_runner_factory(self) if market else None
         self.overview_runner = network_runner_factory(self) if market else None
         self.details_runner = network_runner_factory(self) if market else None
+        self.funds_runner = network_runner_factory(self) if market else None
         self._overview_requested = False
         self._details_refresh = False
+        self._refresh_controller = MarketRefreshController()
+        self._latest_details = self._latest_overview = None
+        self._funds_requested_symbol = None
         if self.market_runner:
             self.market_runner.ready.connect(self._market_ready)
             self.market_runner.failed.connect(self._market_failed)
@@ -130,6 +137,8 @@ class MainWindow(QMainWindow):
             self.overview_runner.failed.connect(self._overview_failed)
             self.details_runner.ready.connect(self._details_ready)
             self.details_runner.failed.connect(self._details_failed)
+            self.funds_runner.ready.connect(self._funds_ready)
+            self.funds_runner.failed.connect(self._funds_failed)
         self.runner = LatestTaskRunner(self)
         self.runner.ready.connect(self._task_ready)
         self.runner.failed.connect(self._task_failed)
@@ -146,6 +155,7 @@ class MainWindow(QMainWindow):
         self.index_bar = IndexOverviewBar() if market else None
         if self.index_bar:
             self.index_bar.open_requested.connect(self.open_stock)
+            self.index_bar.heatmap_requested.connect(self.open_heatmap)
             outer.addWidget(self.index_bar)
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
         outer.addWidget(self.splitter, 1)
@@ -343,7 +353,12 @@ class MainWindow(QMainWindow):
         self.market_runner.cancel()
         self.overview_runner.cancel()
         self.details_runner.cancel()
+        self.funds_runner.cancel()
+        if self.heatmap_dialog:
+            self.heatmap_dialog.close()
         self._overview_requested = False
+        self._refresh_controller.reset()
+        self._latest_details = self._latest_overview = None
         self.index_bar.reset()
         self.browser.set_market(market)
         self.market = market
@@ -411,11 +426,15 @@ class MainWindow(QMainWindow):
         settings = self.preferences
         if self.market:
             self.auto_refresh.setText(f"每{settings.refresh_seconds}秒检查更新")
+            self.auto_refresh.setToolTip(
+                "交易窗口按间隔检查；闭市仅补齐落后缓存，齐全后暂停；F5可手动刷新"
+            )
         self.chart.cursor.configure(
             settings.show_crosshair, settings.show_tooltip, settings.tooltip_opacity
         )
 
     def _auto_refresh_preference_changed(self, checked):
+        self._refresh_controller.reset()
         self.preferences = replace(self.preferences, auto_refresh=checked)
         self._persist_preferences()
 
@@ -459,6 +478,10 @@ class MainWindow(QMainWindow):
         self.quote_panel = QuoteDetailsPanel()
         self.research_tabs.addTab(self.quote_panel, "行情")
         self.research_tabs.addTab(analysis_view, "区间分析")
+        self.funds_panel = MoneyFlowPanel()
+        self.research_tabs.addTab(self.funds_panel, "资金")
+        self.funds_panel.requested.connect(self._request_funds)
+        self.research_tabs.currentChanged.connect(self._research_tab_changed)
         if self.forecast_service:
             self.forecast_panel = ForecastPanel(
                 self.forecast_service, report_writer=self.forecast_writer
@@ -487,6 +510,7 @@ class MainWindow(QMainWindow):
             self.market_runner.cancel()
             self.overview_runner.cancel()
             self.details_runner.cancel()
+            self.funds_runner.cancel()
         self.online_symbol = None
         self.history_date = None
         self.frame = None
@@ -517,6 +541,7 @@ class MainWindow(QMainWindow):
             self.forecast_panel.set_context(None)
         self.chart.reset()
         self.quote_panel.clear()
+        self.funds_panel.clear()
         if self.details_runner:
             self.details_runner.cancel()
         self.date_nav.set_context(
@@ -586,7 +611,11 @@ class MainWindow(QMainWindow):
         )
         if unchanged:
             return
-        if self.frame:
+        if self.frame and (
+            self._latest_details is None
+            or self._latest_details.symbol != series.symbol
+            or self._latest_details.day != bars[-1].timestamp.astimezone(SHANGHAI).date()
+        ):
             self.quote_panel.render(details_from_frame(self.frame))
         self.runner.cancel()
         self.chart.set_snapshot(
@@ -626,7 +655,7 @@ class MainWindow(QMainWindow):
             references.setdefault(day, self.frame.quote.previous_close)
         return tuple(sorted(references.items()))
 
-    def open_stock(self, symbol, interval=None, refresh=False, as_of=None):
+    def open_stock(self, symbol, interval=None, refresh=False, as_of=None, automatic=False):
         if self.market is None:
             return
         try:
@@ -635,7 +664,10 @@ class MainWindow(QMainWindow):
             self.status.setText(str(exc))
             return
         interval = interval or self.period.currentData()
+        if not automatic:
+            self._refresh_controller.reset()
         if symbol != self.online_symbol:
+            self._latest_details = None
             self.research_tabs.setCurrentWidget(self.quote_panel)
         switching = (symbol, interval, as_of) != (
             self.online_symbol,
@@ -654,11 +686,16 @@ class MainWindow(QMainWindow):
         self.period.setCurrentIndex(self.period.findData(interval))
         self.period.blockSignals(False)
         if switching or self.snapshot is None:
+            self.funds_runner.cancel()
             self.frame = None
             self._reset_display()
             self._loading = True
             self.stock_title.setText(f"{symbol[2:]} · 正在获取行情")
-        self.market_status.setText("正在连接行情源…" if switching else "正在刷新行情…")
+        if switching or self.frame is None:
+            self.market_status.setText("正在连接行情源…")
+        else:
+            # Keep the multiline source block and chart geometry while loading.
+            self.status.setText("正在刷新行情…")
         self.date_nav.set_context(
             True,
             as_of,
@@ -673,7 +710,7 @@ class MainWindow(QMainWindow):
         self.market_runner.submit(
             symbol + interval + (as_of.isoformat() if as_of else ""), None, task
         )
-        if not self._overview_requested or refresh and as_of is None:
+        if not automatic and (not self._overview_requested or refresh and as_of is None):
             self._request_overview(refresh)
 
     def _market_ready(self, frame):
@@ -690,6 +727,8 @@ class MainWindow(QMainWindow):
         self.watch_button.setEnabled(True)
         self._frame_status()
         self._request_details(self._details_refresh)
+        if self.research_tabs.currentWidget() is self.funds_panel:
+            self._request_funds(self._details_refresh)
         if self.history_date:
             self._focus_history_date(self.history_date)
 
@@ -770,10 +809,87 @@ class MainWindow(QMainWindow):
             and self.online_symbol
             and self.auto_refresh.isChecked()
             and self.history_date is None
-            and self.market_runner.active is None
+            and getattr(self.market, "offline", False) is not True
+            and getattr(self.market, "automatic_updates", True) is not False
+            and all(
+                r.active is None
+                for r in (self.market_runner, self.details_runner, self.overview_runner)
+            )
         ):
-            self.open_stock(self.online_symbol, self.online_interval)
-            self._request_overview()
+            plan = self._refresh_controller.plan(
+                datetime.now(SHANGHAI),
+                (getattr(self.market, "source_id", ""), self.online_symbol, self.online_interval),
+                self.frame,
+                self._latest_details,
+                self._latest_overview,
+                self.funds_panel.snapshot,
+                want_details=getattr(self.market, "supports_details", False) is True,
+                want_overview=getattr(self.market, "supports_overview", False) is True,
+                want_funds=self.research_tabs.currentWidget() is self.funds_panel
+                and getattr(self.market, "supports_funds", False) is True,
+            )
+            self.auto_refresh.setToolTip(
+                plan.reason + "；F5仍可手动刷新，付费缓存与额度保护继续生效"
+            )
+            if plan.chart:
+                self.open_stock(
+                    self.online_symbol, self.online_interval, refresh=plan.force, automatic=True
+                )
+            elif plan.details:
+                self._request_details(plan.force)
+            if plan.overview:
+                self._request_overview(plan.force)
+            if plan.funds and not plan.chart:
+                self._request_funds(plan.force)
+
+    def open_heatmap(self):
+        if self.heatmap_dialog is None:
+            symbols = tuple(
+                self.browser.watchlist.item(i).data(Qt.ItemDataRole.UserRole).symbol
+                for i in range(self.browser.watchlist.count())
+            )
+            self.heatmap_dialog = HeatmapDialog(
+                self.market, symbols, self.network_runner_factory, self
+            )
+            self.heatmap_dialog.finished.connect(self._heatmap_closed)
+            self.heatmap_dialog.open_requested.connect(self.open_stock)
+            self.heatmap_dialog.load()
+        self.heatmap_dialog.show()
+        self.heatmap_dialog.raise_()
+
+    def _heatmap_closed(self, unused=None):
+        self.heatmap_dialog = None
+
+    def _research_tab_changed(self, unused=None):
+        if self.research_tabs.currentWidget() is self.funds_panel:
+            self._request_funds()
+
+    def _request_funds(self, refresh=False):
+        if self.market is None or self.frame is None or self.history_date is not None:
+            self.funds_panel.clear("当前资金页提供最新快照；历史日期和本地快照暂未接入。")
+            return
+        if getattr(self.market, "supports_funds", False) is not True:
+            self.funds_panel.clear("当前数据源未提供资金分类。")
+            return
+        symbol = "market:shsz" if self.funds_panel.scope.currentIndex() else self.online_symbol
+        if (
+            self.funds_runner.active is not None
+            and not refresh
+            and symbol == self._funds_requested_symbol
+        ):
+            return
+        self._funds_requested_symbol = symbol
+        self.funds_runner.submit(
+            symbol, None, partial(self.market.load_funds, symbol, refresh=refresh)
+        )
+
+    def _funds_ready(self, snapshot):
+        expected = "market:shsz" if self.funds_panel.scope.currentIndex() else self.online_symbol
+        if self.frame is not None and self.history_date is None and snapshot.symbol == expected:
+            self.funds_panel.render(snapshot)
+
+    def _funds_failed(self, message):
+        self.funds_panel.caption.setText("资金更新未完成，已有数据保留：" + message)
 
     def _request_overview(self, refresh=False):
         if (
@@ -787,6 +903,7 @@ class MainWindow(QMainWindow):
         )
 
     def _overview_ready(self, overview):
+        self._latest_overview = overview
         self.index_bar.render(overview)
 
     def _overview_failed(self, message):
@@ -807,6 +924,7 @@ class MainWindow(QMainWindow):
             self.online_symbol,
             self.history_date,
         ):
+            self._latest_details = details
             self.quote_panel.render(details)
 
     def _details_failed(self, message):
@@ -967,6 +1085,8 @@ class MainWindow(QMainWindow):
         if self.settings_dialog is not None:
             self.settings_dialog.reject()
         self.refresh_timer.stop()
+        if self.heatmap_dialog:
+            self.heatmap_dialog.close()
         if self.forecast_panel:
             self.forecast_panel.shutdown()
         if self.market:
@@ -974,6 +1094,7 @@ class MainWindow(QMainWindow):
             self.market_runner.shutdown()
             self.overview_runner.shutdown()
             self.details_runner.shutdown()
+            self.funds_runner.shutdown()
         self.runner.shutdown()
         state = {"splitter": self.splitter.sizes()}
         if self.market:

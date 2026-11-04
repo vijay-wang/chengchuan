@@ -1,5 +1,6 @@
 import json
 import unittest
+from dataclasses import replace
 from datetime import datetime
 from unittest.mock import Mock, patch
 
@@ -232,3 +233,76 @@ class MeozDashboardTests(unittest.TestCase):
                 self.assertEqual(
                     options["min_fetched"], NOW.replace(day=3, hour=15, minute=15).timestamp()
                 )
+
+    def test_one_fresh_component_does_not_confirm_an_old_fund_response(self):
+        query = self.client.query
+
+        def with_old_funds(api, *args, **kwargs):
+            result = query(api, *args, **kwargs)
+            return (
+                replace(result, fetched_at=NOW.replace(hour=14)) if api == "fundflow_kp" else result
+            )
+
+        self.client.query = with_old_funds
+        details = self.provider.fetch_details("002318")
+        self.assertFalse(details.complete)
+        self.assertEqual(details.retrieved_at, NOW)
+
+    def test_previous_session_statistics_keep_the_stricter_latest_confirmation(self):
+        from chengchuan.infrastructure.meoz_dashboard import MeozDashboard
+
+        minimum = NOW.replace(hour=15, minute=45).timestamp()
+        with patch("chengchuan.infrastructure.meoz_dashboard.datetime", wraps=datetime) as clock:
+            clock.now.return_value = NOW.replace(day=5, hour=8)
+            MeozDashboard(self.provider)._breadth(NOW.date(), 86400, minimum)
+        options = next(options for api, options in self.client.policies if api == "screening")
+        self.assertEqual(options["min_fetched"], minimum)
+
+    def test_fresh_calendar_cannot_disguise_an_old_current_minute_response(self):
+        query = self.client.query
+        old = NOW.replace(hour=14)
+
+        def with_old_minutes(api, params, *args, **kwargs):
+            result = query(api, params, *args, **kwargs)
+            if api == "index_minute" and "tradedate" not in params:
+                result = replace(result, fetched_at=old)
+            return result
+
+        self.client.query = with_old_minutes
+        frame = self.provider.fetch("index:sh000001", "min5")
+        self.assertEqual(frame.retrieved_at, old)
+
+    def test_late_previous_day_overview_does_not_reuse_a_day_long_raw_cache(self):
+        from chengchuan.infrastructure.meoz_dashboard import (
+            INDEX_DAILY_FIELDS,
+            INDEX_SYMBOLS,
+            latest_query_age,
+        )
+
+        self.client.peek = lambda *args, **kwargs: ApiResult(
+            (dict(tradedate="20261103"),), NOW, True, "https://example.invalid"
+        )
+        age = latest_query_age(
+            self.client,
+            "indexdaily",
+            dict(symbols=INDEX_SYMBOLS),
+            INDEX_DAILY_FIELDS,
+            NOW,
+            86400,
+            NOW.replace(hour=15, minute=45).timestamp(),
+        )
+        self.assertEqual(age, 180)
+        minute = dict(tradedate="20261103", symbol="000001.SH", trademin="1130")
+        self.client.peek = lambda *args, **kwargs: ApiResult(
+            (minute,), NOW, True, "https://example.invalid"
+        )
+        options = dict(
+            expected="20261103", min_clock="1500", symbol="index:sh000001", service="history"
+        )
+        self.assertEqual(
+            latest_query_age(self.client, "index_minute", {}, "", NOW, None, None, **options), 180
+        )
+        minute["trademin"] = "1500"
+        self.assertIsNone(
+            latest_query_age(self.client, "index_minute", {}, "", NOW, None, None, **options)
+        )

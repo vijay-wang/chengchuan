@@ -5,6 +5,7 @@ from datetime import date, datetime, time, timezone
 from typing import Protocol
 
 from chengchuan.application.errors import MarketError, StorageError
+from chengchuan.application.market_refresh import cache_confirmation
 from chengchuan.application.settings import SettingsInfo
 from chengchuan.domain.market import (
     Instrument,
@@ -14,6 +15,7 @@ from chengchuan.domain.market import (
     instrument_symbol,
 )
 from chengchuan.domain.market_dashboard import MarketOverview, QuoteDetails
+from chengchuan.domain.market_views import HeatmapSnapshot, MoneyFlow, funds_symbol
 from chengchuan.domain.models import SHANGHAI
 from chengchuan.domain.periods import chart_period
 
@@ -33,9 +35,16 @@ class MarketCache(Protocol):
 
     def remember(self, items: tuple[Instrument, ...]) -> None: ...
 
-    def load_dashboard(self, kind: str, key: str) -> MarketOverview | QuoteDetails | None: ...
+    def load_dashboard(
+        self, kind: str, key: str
+    ) -> MarketOverview | QuoteDetails | HeatmapSnapshot | MoneyFlow | None: ...
 
-    def save_dashboard(self, kind: str, key: str, value: MarketOverview | QuoteDetails) -> None: ...
+    def save_dashboard(
+        self,
+        kind: str,
+        key: str,
+        value: MarketOverview | QuoteDetails | HeatmapSnapshot | MoneyFlow,
+    ) -> None: ...
 
 
 class MarketService:
@@ -53,6 +62,7 @@ class MarketService:
         self.source_id, self.source_label = source_id, source_label
         self.connection_notice = connection_notice
         self.offline = offline
+        self.automatic_updates = not offline and getattr(provider, "offline", False) is not True
         intervals = getattr(provider, "intervals", None)
         self.intervals = (
             tuple(intervals) if isinstance(intervals, (tuple, list)) else ("day", "minute")
@@ -60,6 +70,8 @@ class MarketService:
         self.supports_history = getattr(provider, "supports_history", False) is True
         self.supports_overview = getattr(provider, "supports_overview", False) is True
         self.supports_details = getattr(provider, "supports_details", False) is True
+        self.supports_heatmap = getattr(provider, "supports_heatmap", False) is True
+        self.supports_funds = getattr(provider, "supports_funds", False) is True
 
     def search(self, query: str) -> SearchResult:
         query = query.strip()[:40]
@@ -170,6 +182,13 @@ class MarketService:
             candidate = self.cache.load_dashboard(kind, key)
             if isinstance(candidate, expected):
                 if (
+                    kind == "funds"
+                    and candidate.symbol != key
+                    or kind == "heatmap"
+                    and candidate.kind != key
+                ):
+                    raise StorageError("市场视图缓存身份不一致")
+                if (
                     kind == "details"
                     and candidate.symbol
                     + "@"
@@ -182,11 +201,11 @@ class MarketService:
             pass
         now = datetime.now(timezone.utc)
         ttl = self.ttl_seconds if cached is None or cached.complete else min(self.ttl_seconds, 15)
-        closed = now.astimezone(SHANGHAI).replace(hour=15, minute=15, second=0, microsecond=0)
+        closed = cache_confirmation(now)
         fresh = cached and (
             0 <= (now - cached.retrieved_at).total_seconds() < ttl
             or cached.complete
-            and now >= closed
+            and closed is not None
             and closed <= cached.retrieved_at <= now
             or as_of is not None
             and cached.complete
@@ -218,6 +237,31 @@ class MarketService:
         except StorageError:
             return replace(value, notice=value.notice + "；指标缓存未能保存")
         return value
+
+    def load_heatmap(self, kind="hy", refresh=False):
+        if not self.supports_heatmap or kind not in ("hy", "gn", "stocks"):
+            raise MarketError("行业／个股热力图需要猫爪数据源")
+
+        def fetch():
+            value = self.provider.fetch_heatmap(kind)
+            if value.kind != kind:
+                raise MarketError("热力图类型与请求不一致")
+            return value
+
+        return self._dashboard("heatmap", kind, HeatmapSnapshot, fetch, refresh)
+
+    def load_funds(self, symbol, refresh=False):
+        if not self.supports_funds:
+            raise MarketError("当前来源未配置资金分类查询")
+        symbol = funds_symbol(symbol)
+
+        def fetch():
+            value = self.provider.fetch_funds(symbol)
+            if value.symbol != symbol:
+                raise MarketError("资金返回其他证券")
+            return value
+
+        return self._dashboard("funds", symbol, MoneyFlow, fetch, refresh)
 
 
 class MarketSources(Protocol):

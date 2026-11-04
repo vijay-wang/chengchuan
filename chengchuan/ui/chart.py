@@ -48,6 +48,11 @@ class Candles(pg.GraphicsObject):
 
     def __init__(self, bars):
         super().__init__()
+        self.bounds = QRectF()
+        self.set_bars(bars)
+
+    def set_bars(self, bars):
+        self.prepareGeometryChange()
         self.picture = QPicture()
         painter = QPainter(self.picture)
         for i, bar in enumerate(bars):
@@ -66,6 +71,7 @@ class Candles(pg.GraphicsObject):
         painter.end()
         low, high = min(b.low for b in bars), max(b.high for b in bars)
         self.bounds = QRectF(-0.5, low, len(bars), max(0.01, high - low))
+        self.update()
 
     def paint(self, painter, option, widget=None):
         painter.drawPicture(0, 0, self.picture)
@@ -152,23 +158,49 @@ class MarketChart(QWidget):
         baseline_price=None,
         reference_closes=(),
     ):
+        self.setUpdatesEnabled(False)
+        try:
+            self._update_snapshot(
+                snapshot, preserve_view, vwap_points, baseline_price, reference_closes
+            )
+        finally:
+            self.setUpdatesEnabled(True)
+
+    def _update_snapshot(
+        self, snapshot, preserve_view, vwap_points, baseline_price, reference_closes
+    ):
+        previous = self.snapshot.series if self.snapshot else None
+        incremental = bool(
+            preserve_view
+            and previous
+            and (previous.symbol, previous.interval, previous.kind)
+            == (snapshot.series.symbol, snapshot.series.interval, snapshot.series.kind)
+        )
         old_range = self.price.getViewBox().viewRange()[0] if preserve_view else None
         self._updating = True
-        self.cursor.hide()
-        self.cursor.inspector = None
+        if not incremental:
+            self.cursor.hide()
+            self.cursor.inspector = None
         self.snapshot = snapshot
         self._vwap, self._baseline = dict(vwap_points), baseline_price
         self._drag_start = None
         bars = snapshot.series.bars
-        self.price.clear()
-        self.volume.clear()
+        if not incremental:
+            self.price.clear()
+            self.volume.clear()
+            self._day_lines = []
+            self._day_positions = ()
         self.axis.times = [b.timestamp for b in bars]
         self.axis.interval = snapshot.series.interval
         self.axis.setTicks(None)
         self.axis.picture = None
         self.axis.update()
         if snapshot.series.kind == SeriesKind.OHLC:
-            self.price.addItem(Candles(bars))
+            if incremental:
+                self._candles.set_bars(bars)
+            else:
+                self._candles = Candles(bars)
+                self.price.addItem(self._candles)
         else:
             xs, prices, averages = [], [], []
             previous_day = None
@@ -182,22 +214,23 @@ class MarketChart(QWidget):
                 prices.append(bar.close)
                 averages.append(self._vwap.get(bar.timestamp, float("nan")))
                 previous_day = day
-            self.price.plot(xs, prices, pen=pg.mkPen(theme.ACCENT, width=1.7), connect="finite")
-            if vwap_points:
-                self.price.plot(
-                    xs,
-                    averages,
-                    pen=pg.mkPen("#e2bb66", width=1.3),
-                    connect="finite",
+            if not incremental:
+                self._price_line = self.price.plot(
+                    pen=pg.mkPen(theme.ACCENT, width=1.7), connect="finite"
                 )
-            if baseline_price:
-                self.price.addItem(
-                    pg.InfiniteLine(
-                        pos=baseline_price,
-                        angle=0,
-                        pen=pg.mkPen("#65758b", style=Qt.PenStyle.DashLine),
-                    )
+                self._vwap_line = self.price.plot(
+                    pen=pg.mkPen("#e2bb66", width=1.3), connect="finite"
                 )
+                self._baseline_line = pg.InfiniteLine(
+                    angle=0, pen=pg.mkPen("#65758b", style=Qt.PenStyle.DashLine)
+                )
+                self.price.addItem(self._baseline_line)
+            self._price_line.setData(xs, prices)
+            self._vwap_line.setData(xs, averages)
+            self._vwap_line.setVisible(bool(vwap_points))
+            self._baseline_line.setVisible(baseline_price is not None)
+            if baseline_price is not None:
+                self._baseline_line.setPos(baseline_price)
         if snapshot.series.interval == "five_day":
             spans = {}
             for i, bar in enumerate(bars):
@@ -211,15 +244,21 @@ class MarketChart(QWidget):
                     ]
                 ]
             )
-            for indices in list(spans.values())[1:]:
-                for plot in (self.price, self.volume):
-                    plot.addItem(
-                        pg.InfiniteLine(
-                            pos=indices[0] - 0.5,
+            positions = tuple(indices[0] - 0.5 for indices in list(spans.values())[1:])
+            if positions != self._day_positions:
+                for plot, line in self._day_lines:
+                    plot.removeItem(line)
+                self._day_lines = []
+                for position in positions:
+                    for plot in (self.price, self.volume):
+                        line = pg.InfiniteLine(
+                            pos=position,
                             angle=90,
                             pen=pg.mkPen("#283d50", style=Qt.PenStyle.DashLine),
                         )
-                    )
+                        plot.addItem(line)
+                        self._day_lines.append((plot, line))
+                self._day_positions = positions
         colors = [
             pg.mkBrush(
                 theme.UP
@@ -228,22 +267,23 @@ class MarketChart(QWidget):
             )
             for i, b in enumerate(bars)
         ]
-        self.volume.addItem(
-            pg.BarGraphItem(
-                x=list(range(len(bars))),
-                height=[b.volume_shares / 10000 for b in bars],
-                width=0.58,
-                brushes=colors,
-                pen=None,
-            )
+        if not incremental:
+            self._volume_item = pg.BarGraphItem(x=[], height=[], width=0.58, pen=None)
+            self.volume.addItem(self._volume_item)
+        self._volume_item.setOpts(
+            x=list(range(len(bars))), height=[b.volume_shares / 10000 for b in bars], brushes=colors
         )
         self.volume.setLabel("right", "万股")
-        self.price.addItem(self.region)
-        self.volume.addItem(self.volume_region)
-        self.cursor.attach(snapshot.series, reference_closes, baseline_price, vwap_points)
+        if not incremental:
+            self.price.addItem(self.region)
+            self.volume.addItem(self.volume_region)
+        self.cursor.attach(
+            snapshot.series, reference_closes, baseline_price, vwap_points, preserve=incremental
+        )
         for plot, marker in zip((self.price, self.volume), self.date_markers):
-            plot.addItem(marker, ignoreBounds=True)
-            marker.hide()
+            if not incremental:
+                plot.addItem(marker, ignoreBounds=True)
+                marker.hide()
         self.region.setBounds((-0.5, len(bars) - 0.5))
         visible = (
             90

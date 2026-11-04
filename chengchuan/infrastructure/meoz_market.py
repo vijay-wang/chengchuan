@@ -6,7 +6,9 @@ from dataclasses import asdict, replace
 from datetime import date, datetime, time, timedelta, timezone
 
 from chengchuan.application.errors import MarketError
+from chengchuan.application.market_refresh import cache_confirmation, market_checkpoint
 from chengchuan.application.resampling import calendar_bars, minute_bars
+from chengchuan.domain.calendar import CalendarUnavailable
 from chengchuan.domain.market import (
     INDEX_CATALOG,
     INDEX_NAMES,
@@ -93,9 +95,27 @@ class MeozMarketProvider:
     supports_history = True
     supports_overview = True
     supports_details = True
+    supports_funds = True
+    supports_heatmap = True
 
     def __init__(self, client=None):
         self.client = client or MeozClient()
+
+    @property
+    def offline(self):
+        return self.client.offline
+
+    def fetch_funds(self, symbol):
+        if self.client.offline:
+            raise MarketError("离线模式只读取已存资金快照")
+        from chengchuan.infrastructure.market_views import fetch_public_flow
+
+        return fetch_public_flow(symbol)
+
+    def fetch_heatmap(self, kind):
+        from chengchuan.infrastructure.market_views import fetch_heatmap
+
+        return fetch_heatmap(self.client, kind)
 
     def search(self, query):
         # Name/pinyin search consumes no paid MeoZ calls.
@@ -181,6 +201,12 @@ class MeozMarketProvider:
         today = now.strftime("%Y%m%d")
         if archive:
             rows, fetched, checked = archive
+            try:
+                expected = market_checkpoint(now).cutoff.strftime("%Y%m%d")
+                if not rows or max(str(r["tradedate"]) for r in rows) != expected:
+                    freshness = min(freshness, 180)
+            except CalendarUnavailable:
+                freshness = min(freshness, 180)
             fresh = (
                 checked == today
                 and now.timestamp() - fetched < freshness
@@ -286,13 +312,9 @@ class MeozMarketProvider:
 
     def _fetch(self, symbol, period, as_of=None):
         now = datetime.now(SHANGHAI)
-        after_close = now.time() >= time(15, 15)
-        freshness = 180 if now.weekday() < 5 and time(9, 15) <= now.time() < time(15, 15) else 86400
-        min_fetched = (
-            now.replace(hour=15, minute=15, second=0, microsecond=0).timestamp()
-            if after_close
-            else None
-        )
+        freshness = 180 if now.weekday() < 5 and time(9, 15) <= now.time() < time(15, 45) else 86400
+        confirmation = cache_confirmation(now)
+        min_fetched = confirmation.timestamp() if confirmation else None
         daily = (
             self._daily(symbol, now, freshness, min_fetched)
             if as_of is None or as_of == now.date()
@@ -309,6 +331,7 @@ class MeozMarketProvider:
             INDEX_NAMES.get(symbol, symbol[-6:]),
         )
         results, notes = [daily], ["不复权；成交量由手统一为股，成交额为元。"]
+        data_fetched = daily.fetched_at
         if is_index(symbol):
             notes.append("指数点位，非股票价格；指数不启用个股阶段规则或预测。")
             if any(index_amount(r) is None and r.get("amount") is not None for r in daily_rows):
@@ -371,14 +394,36 @@ class MeozMarketProvider:
                     params["symbols"] = INDEX_BATCH_SYMBOLS
                 if historical:
                     params["tradedate"] = day
+                historical_minimum = (
+                    datetime.strptime(day, "%Y%m%d")
+                    .replace(hour=15, minute=15, tzinfo=SHANGHAI)
+                    .timestamp()
+                )
+                if confirmation and day == confirmation.strftime("%Y%m%d"):
+                    historical_minimum = max(historical_minimum, confirmation.timestamp())
+                from chengchuan.infrastructure.meoz_dashboard import latest_query_age
+
+                minute_age = latest_query_age(
+                    self.client,
+                    minute_api,
+                    params,
+                    minute_fields,
+                    now,
+                    None if historical else freshness,
+                    historical_minimum if historical else min_fetched,
+                    expected=day,
+                    min_clock="1500",
+                    symbol=symbol,
+                    service="history" if historical else "live",
+                )
                 try:
                     result = self.client.query(
                         minute_api,
                         params,
                         minute_fields,
                         service="history" if historical else "live",
-                        max_age=None if historical else freshness,
-                        min_fetched=None if historical else min_fetched,
+                        max_age=minute_age,
+                        min_fetched=historical_minimum if historical else min_fetched,
                     )
                 except MarketError:
                     if not self.client.offline or not historical:
@@ -396,6 +441,8 @@ class MeozMarketProvider:
                     if any(str(r["tradedate"]) != day for r in result.rows):
                         raise MarketError(f"本地缺少{day}分钟数据，请联网补取") from None
                 results.append(result)
+                if day == dates[-1]:
+                    data_fetched = min(daily.fetched_at, result.fetched_at)
                 if len(result.rows) >= 6000:
                     raise MarketError("分钟响应达到6000行截断边界，拒绝当成完整数据")
                 if is_index(symbol):
@@ -492,7 +539,7 @@ class MeozMarketProvider:
         return MarketFrame(
             snapshot,
             quote,
-            max(r.fetched_at for r in results).astimezone(timezone.utc),
+            data_fetched.astimezone(timezone.utc),
             cached=all(r.cached for r in results),
             notice=notice,
             sources=tuple(dict.fromkeys(r.url for r in results)),

@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from chengchuan.application.errors import MarketError
+from chengchuan.application.market_refresh import observed_current
 from chengchuan.application.quote_metrics import base_metrics, number
 from chengchuan.domain.market import (
     INDEX_CATALOG,
@@ -116,12 +117,19 @@ def parse_quote_details(raw, symbol):
         quote.timestamp.astimezone(SHANGHAI).date(),
         tuple(metrics),
         datetime.now(timezone.utc),
+        complete=observed_current((quote.timestamp,), datetime.now(timezone.utc)),
     )
 
 
 class TencentMarketProvider:
     supports_overview = True
     supports_details = True
+    supports_funds = True
+
+    def fetch_funds(self, symbol):
+        from chengchuan.infrastructure.market_views import fetch_public_flow
+
+        return fetch_public_flow(symbol)
 
     def fetch_overview(self):
         raw = http_text(
@@ -151,7 +159,12 @@ class TencentMarketProvider:
         if not indices:
             raise MarketError("指数摘要暂不可用")
         return MarketOverview(
-            tuple(indices), (), datetime.now(timezone.utc), notice="；".join(issues)
+            tuple(indices),
+            (),
+            datetime.now(timezone.utc),
+            notice="；".join(issues),
+            complete=len(indices) == len(INDEX_CATALOG)
+            and observed_current((i.observed_at for i in indices), datetime.now(timezone.utc)),
         )
 
     def fetch_details(self, symbol, as_of=None):

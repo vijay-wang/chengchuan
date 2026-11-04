@@ -56,7 +56,9 @@ class ChartCursor(QObject):
     def lines(self):
         return self.price_x, self.price_y, self.volume_x, self.volume_y
 
-    def attach(self, series, reference_closes=(), baseline_price=None, vwap_points=()):
+    def attach(
+        self, series, reference_closes=(), baseline_price=None, vwap_points=(), preserve=False
+    ):
         self.inspector = ChartInspector(series, reference_closes, baseline_price)
         self.vwap = dict(vwap_points)
         for plot, lines in (
@@ -64,8 +66,12 @@ class ChartCursor(QObject):
             (self.volume, (self.volume_x, self.volume_y)),
         ):
             for line in lines:
-                plot.addItem(line, ignoreBounds=True)
-        self.hide()
+                if line.scene() is None:
+                    plot.addItem(line, ignoreBounds=True)
+        if preserve and self.active_plot is not None:
+            self.move(self._last_point, self.active_plot)
+        else:
+            self.hide()
 
     def hide(self, plot=None):
         if plot is not None and self.active_plot is not plot:
@@ -85,6 +91,7 @@ class ChartCursor(QObject):
             self.hide(plot)
             return
         pos = plot.getViewBox().mapSceneToView(point)
+        self._last_point = point
         bars = self.inspector.series.bars
         if not -0.5 <= pos.x() <= len(bars) - 0.5:
             self.hide(plot)
