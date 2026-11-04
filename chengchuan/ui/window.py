@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QSplitter,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -33,6 +34,7 @@ from chengchuan.domain.market import Instrument, stock_symbol
 from chengchuan.domain.models import SHANGHAI, IndexRange, SeriesKind
 from chengchuan.ui import theme
 from chengchuan.ui.chart import MarketChart
+from chengchuan.ui.forecast_panel import ForecastPanel
 from chengchuan.ui.market import MarketBrowser
 from chengchuan.ui.tasks import LatestTaskRunner, ProcessTaskRunner
 
@@ -80,6 +82,8 @@ class MainWindow(QMainWindow):
         catalog=(),
         market=None,
         network_runner_factory=ProcessTaskRunner,
+        forecast_service=None,
+        forecast_writer=None,
     ):
         super().__init__()
         self.snapshots, self.analyzer, self.workspace = snapshots, analyzer, workspace
@@ -88,6 +92,8 @@ class MainWindow(QMainWindow):
         self.report = None
         self._loading = False
         self.market = market
+        self.forecast_service, self.forecast_writer = forecast_service, forecast_writer
+        self.forecast_panel = None
         self.network_runner_factory = network_runner_factory
         self.online_symbol = None
         self.online_interval = "day"
@@ -249,7 +255,10 @@ class MainWindow(QMainWindow):
         inspector.setObjectName("inspector")
         inspector.setMinimumWidth(300)
         inspector.setMaximumWidth(450)
-        layout = QVBoxLayout(inspector)
+        shell = QVBoxLayout(inspector)
+        shell.setContentsMargins(0, 0, 0, 0)
+        analysis_view = QWidget()
+        layout = QVBoxLayout(analysis_view)
         layout.setContentsMargins(20, 24, 18, 20)
         layout.setSpacing(13)
         layout.addWidget(label("区间研究", "sectionTitle"))
@@ -270,6 +279,20 @@ class MainWindow(QMainWindow):
         layout.addWidget(
             label("阶段为候选解释。规则分数尚未校准，\n不代表概率或真实机构持仓。", "notice", True)
         )
+        if self.forecast_service:
+            self.research_tabs = QTabWidget()
+            self.forecast_panel = ForecastPanel(
+                self.forecast_service, report_writer=self.forecast_writer
+            )
+            self.research_tabs.addTab(analysis_view, "区间分析")
+            forecast_view = QWidget()
+            forecast_layout = QVBoxLayout(forecast_view)
+            forecast_layout.setContentsMargins(14, 10, 14, 12)
+            forecast_layout.addWidget(self.forecast_panel)
+            self.research_tabs.addTab(forecast_view, "量价预测")
+            shell.addWidget(self.research_tabs)
+        else:
+            shell.addWidget(analysis_view)
         self.splitter.addWidget(inspector)
 
     def _filter_catalog(self, text):
@@ -309,6 +332,8 @@ class MainWindow(QMainWindow):
     def _reset_display(self):
         self.runner.cancel()
         self.snapshot = self.selection = self.report = None
+        if self.forecast_panel:
+            self.forecast_panel.set_context(None)
         self.chart.reset()
         self.chart.setEnabled(False)
         self.stock_title.setText("正在打开股票…")
@@ -328,6 +353,12 @@ class MainWindow(QMainWindow):
         old_snapshot, old_selection = self.snapshot, self.selection
         unchanged = preserve and old_snapshot and old_snapshot.revision == snapshot.revision
         self.snapshot = snapshot
+        if self.forecast_panel:
+            self.forecast_panel.set_context(
+                snapshot,
+                self.frame.retrieved_at if self.frame else None,
+                self.frame.quote.timestamp if self.frame and self.frame.quote else None,
+            )
         self._loading = False
         self.chart.setEnabled(True)
         series, bars = snapshot.series, snapshot.series.bars
@@ -482,6 +513,10 @@ class MainWindow(QMainWindow):
             return
         self.selection = selection
         bars = self.snapshot.series.bars
+        if self.forecast_panel and self.snapshot.series.interval == "day":
+            self.forecast_panel.set_selection_date(
+                bars[selection.stop - 1].timestamp.astimezone(SHANGHAI).date()
+            )
         a, b = (
             bars[i].timestamp.astimezone(SHANGHAI) for i in (selection.start, selection.stop - 1)
         )
@@ -573,6 +608,8 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         self.refresh_timer.stop()
+        if self.forecast_panel:
+            self.forecast_panel.shutdown()
         if self.market:
             self.browser.shutdown()
             self.market_runner.shutdown()

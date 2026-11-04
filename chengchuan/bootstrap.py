@@ -28,10 +28,17 @@ def main(argv=None):
     except ImportError:
         parser.exit(2, "缺少图表依赖，请执行：python -m pip install -e '.[desktop]'\n")
     from chengchuan.application.errors import StorageError
+    from chengchuan.application.forecast import ForecastService
+    from chengchuan.application.forecast_features import DailyFeatureExtractor
     from chengchuan.application.market import MarketService
     from chengchuan.application.services import AnalysisService
+    from chengchuan.domain.analogue import AnalogueModel
     from chengchuan.domain.market import stock_symbol
-    from chengchuan.infrastructure.legacy import LegacyAnalysisEngine, LegacyJsonRepository
+    from chengchuan.infrastructure.forecast_input import ForecastSnapshotRepository
+    from chengchuan.infrastructure.forecast_journal import SqliteForecastJournal
+    from chengchuan.infrastructure.forecast_reports import write_run
+    from chengchuan.infrastructure.forecast_stage import LegacyStageProvider
+    from chengchuan.infrastructure.legacy import LegacyAnalysisEngine
     from chengchuan.infrastructure.market_cache import SqliteMarketCache
     from chengchuan.infrastructure.market_data import TencentMarketProvider
     from chengchuan.infrastructure.workspace import SqliteWorkspaceRepository
@@ -73,11 +80,17 @@ def main(argv=None):
             TencentMarketProvider(), SqliteMarketCache(state_dir / "market.sqlite")
         )
         window = MainWindow(
-            LegacyJsonRepository(),
+            ForecastSnapshotRepository(),
             AnalysisService(LegacyAnalysisEngine()),
             workspace,
             catalog,
             market=market,
+            forecast_service=ForecastService(
+                DailyFeatureExtractor(LegacyStageProvider()),
+                AnalogueModel(),
+                SqliteForecastJournal(state_dir / "forecast.sqlite"),
+            ),
+            forecast_writer=write_run,
         )
     except (OSError, ValueError, StorageError) as exc:
         parser.exit(2, "无法打开本地工作区：" + str(exc) + "\n")

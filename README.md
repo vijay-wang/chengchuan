@@ -4,7 +4,7 @@
 
 ![澄川行情工作台](design/chengchuan-market-daily.png)
 
-当前为**0.2行情工作台**：可以按名称、代码或拼音搜索沪深A股，点击切换股票，查看最新公开报价、日K和分钟采样分时，维护自选，并每15秒自动刷新。支持Ctrl拖选区间分析和本地快照导入。周K、复权、完整分钟K线和Level-2按路线继续加入。
+当前为**0.3量价预测研究版**：在行情、自选、Ctrl区间分析基础上，增加未来1／2交易日的方向研究、历史逐日验证、真实结果对照与报告导出。首版模型尚未完成独立封存验证和校准；现有回放使用原始收盘价，只作工程诊断。周K、复权、完整分钟K线和Level-2按路线继续加入。
 
 ## 启动桌面
 
@@ -39,12 +39,46 @@ Ctrl左键拖动选择时间段，松开后计算，拖动边界调整，Esc清�
 
 工作区、自选、行情缓存和轮转日志默认保存到操作系统的应用数据目录，可用`--state-dir PATH`指定。行情缓存按股票和周期隔离，联网失败时保留原数据时间，绝不标为新行情。当前单个导入快照上限32MB。
 
+## 使用量价预测
+
+打开任意有足够历史的沪深A股日K，在右侧切换到**量价预测**：
+
+1. 选择已完成的基准日D，点击“计算方向”。显示较昨／前2／5／20日均量、此前20／60日位置、H1／H2方向、相似日数量及不预测原因。
+2. 可勾选“基准日跟随Ctrl选区末日”，从图表选择历史D；计算使用截至D的固定历史窗口。
+3. 点击“逐日验证”，按时间重新训练并对照真实结果。目标日期严格小于“回测目标早于”的日期，分别报告价格A、量价B、阶段融合C与同样本基线。
+4. 点击“导出报告与完整对照表”，生成Markdown、JSON及CSV。后台任务可取消；行情刷新不会自动重新训练。
+
+H1预测次交易日收盘相对D收盘的方向；H2预测两个交易日后的累计方向。至少需要61条连续有效日线提取特征，再积累40条成熟训练样本才给研究方向。平票、数据不足或日历不支持会明确不预测；相似日分布不作为未来胜率。
+
+命令行不需要Qt或API密钥：
+
+```bash
+# 在线计算，并保存输入供以后离线复算
+.venv/bin/python -m chengchuan.forecast predict --symbol 002318 \
+  --save-source .chengchuan/forecast/inputs/sz002318.json \
+  --output .chengchuan/forecast/jiuli_prediction
+
+# 历史逐日验证：11月3日及以后的目标结果全部排除
+.venv/bin/python -m chengchuan.forecast backtest \
+  --dataset .chengchuan/forecast/inputs/sz002318.json \
+  --before 2026-11-03 --output .chengchuan/forecast/jiuli_backtest
+
+# 指定历史D回放；也支持原来的.dataset.json日线文件
+.venv/bin/python -m chengchuan.forecast predict \
+  --dataset .chengchuan/forecast/inputs/sz002318.json \
+  --as-of 2026-10-29 --output .chengchuan/forecast/replay
+```
+
+CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存到工作区的`forecast.sqlite`。预测先事务归档，评价另行追加；重复运行不重复计数，冲突不会覆盖原记录。当前仅核对2025／2026沪深日历，单次最多2000条日线。除权除息、跨年日历、多年多股独立验证、概率校准及真实前瞻自动评价仍需后续补齐。
+
+已运行三只股票的固定参数诊断，结果见[回放记录](docs/VALIDATION_FORECAST.md)及[完整汇总](reports/forecast_20261103/summary.json)。这些结果不能当成已验证的未来准确率。
+
 ## 规划与架构
 
 - [产品规划与当前功能](docs/PRODUCT.md)
 - [分阶段路线与验收清单](docs/ROADMAP.md)
-- [量价位置与未来1—2交易日联合预测规划](docs/SHORT_HORIZON_FORECAST.md)（仅规划，未实现或验证）
-- [历史逐日预测与准确率验证方案](docs/FORECAST_VALIDATION.md)（仅规划，无实测准确率）
+- [量价位置与未来1—2交易日联合预测设计和实施状态](docs/SHORT_HORIZON_FORECAST.md)
+- [历史逐日预测与准确率验证方案](docs/FORECAST_VALIDATION.md)（已实现诊断回放，完整验证仍待完成）
 - [架构、性能与稳定性约束](docs/ARCHITECTURE.md)
 - [UI设计和操作规范](docs/UI_DESIGN.md)
 - [架构决策](docs/DECISIONS.md)
@@ -57,13 +91,16 @@ Ctrl左键拖动选择时间段，松开后计算，拖动边界调整，Esc清�
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
-.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py scripts
+.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py scripts
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m chengchuan \
   --offline --state-dir /tmp/chengchuan-preview --screenshot /tmp/chengchuan-preview.png
 # Linux桌面交互复验：悬停、点击、Ctrl拖选、Esc和日K/分时切换
 QT_QPA_PLATFORM=xcb .venv/bin/python -m scripts.check_desktop_stability
 # 联网实机验收（额外等待一次15秒定时刷新）
 QT_QPA_PLATFORM=xcb .venv/bin/python -m scripts.check_market_workbench --wait-refresh
+# 已保存日线的预测、回测、导出与界面验收
+QT_QPA_PLATFORM=offscreen .venv/bin/python -m scripts.check_forecast_workbench \
+  --dataset .chengchuan/forecast/inputs/sz002318.json --before 2026-11-03
 ```
 
 离屏检查不能替代真实目标系统和显示器验收。详见[行情工作台验证](docs/VALIDATION_MARKET.md)和[原Qt崩溃排查记录](docs/VALIDATION.md)。

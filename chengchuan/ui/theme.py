@@ -50,4 +50,10 @@ QScrollBar::handle:vertical { background: #33475d; border-radius: 3px; min-heigh
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
 QSplitter::handle { background: #203044; width: 1px; height: 1px; }
 QToolTip { background: #213348; color: #dce6f0; border: 1px solid #445b72; }
+QTabWidget::pane { border: none; }
+QTabBar::tab { background: #101a27; color: #8193a8; padding: 12px 18px; border-bottom: 2px solid #203044; }
+QTabBar::tab:selected { color: #5ad7bf; border-bottom: 2px solid #5ad7bf; }
+QTextBrowser, QTableWidget { background: #101a27; border: 1px solid #233548; border-radius: 5px; font-size: 12px; }
+QHeaderView::section { background: #172536; color: #8193a8; border: none; padding: 5px; }
+QDateEdit, QSpinBox { background: #142233; border: 1px solid #293b51; padding: 4px; }
 """

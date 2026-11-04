@@ -1,0 +1,1489 @@
+{
+  "before": "2026-11-03",
+  "research_grade": "raw-price-engineering-diagnostic",
+  "note": "Fixed k21/min40/window160; no tuning on these results; not a sealed holdout.",
+  "records": [
+    {
+      "symbol": "sz002318",
+      "name": "久立特材",
+      "first": "2025-07-08 15:00:00+08:00",
+      "last": "2026-11-03 15:00:00+08:00",
+      "observed_at": "2026-11-03 08:18:28.355138+00:00",
+      "quote_at": "2026-11-03 16:14:18+08:00",
+      "experiment_id": "7a6d8ddc60d0c878ccedc59a933dce84ac0edff2acae9a32a21aa8e93a8fbafe",
+      "manifest": {
+        "schema_version": 1,
+        "mode": "walk_forward",
+        "symbol": "sz002318",
+        "name": "久立特材",
+        "snapshot_revision": "1f1ef68017d23177c61700ccdfdf4c295c7f1fec9b19ff077d4bffe66bcafc22",
+        "target_version": "raw-close-direction-v1-diagnostic",
+        "model_version": "standardized-knn-v1-unvalidated",
+        "feature_version": "daily-price-volume-stage-v1",
+        "stage_version": "flowradar-heuristic-v0.1-unvalidated/adapter-1",
+        "calendar_version": "shsz-official-2025-2026-v1",
+        "config": {
+          "neighbors": 21,
+          "min_train": 40,
+          "train_window": 160,
+          "excluded_dates": []
+        },
+        "historical_grade": "reconstructed",
+        "public_probability_status": "not_enabled",
+        "before": "2026-11-03",
+        "start": null,
+        "groups": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      "summaries": [
+        {
+          "group": "A",
+          "horizon": 1,
+          "planned": 319,
+          "eligible": 259,
+          "trained": 219,
+          "predicted": 210,
+          "evaluated": 319,
+          "scored": 210,
+          "correct": 99,
+          "accuracy": 0.4714285714285714,
+          "accuracy_interval": [
+            0.4095238095238095,
+            0.5523809523809524
+          ],
+          "always_up_accuracy": 0.4714285714285714,
+          "majority_accuracy": 0.49047619047619045,
+          "momentum_accuracy": 0.5047619047619047,
+          "paired_up_delta": 0,
+          "paired_up_delta_interval": [
+            -0.1,
+            0.11904761904761904
+          ],
+          "up_precision": 0.4406779661016949,
+          "down_precision": 0.48344370860927155,
+          "input_coverage": 0.8119122257053292,
+          "forecast_coverage": 0.8108108108108109,
+          "label_coverage": 1.0,
+          "brier": 0.5586948249619482,
+          "log_loss": 0.8460198454882887,
+          "actual_classes": {
+            "-1": 163,
+            "0": 6,
+            "1": 150
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            },
+            {
+              "lower": 0.2,
+              "count": 81,
+              "mean_raw_up": 0.33796296296296297,
+              "actual_up": 0.5061728395061729
+            },
+            {
+              "lower": 0.4,
+              "count": 126,
+              "mean_raw_up": 0.46924603174603174,
+              "actual_up": 0.4365079365079365
+            },
+            {
+              "lower": 0.6,
+              "count": 12,
+              "mean_raw_up": 0.6458333333333334,
+              "actual_up": 0.5833333333333334
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 40,
+            "research_only": 211,
+            "abstained": 9
+          },
+          "common_samples": 194,
+          "common_accuracy": 0.4896907216494845
+        },
+        {
+          "group": "A",
+          "horizon": 2,
+          "planned": 318,
+          "eligible": 258,
+          "trained": 217,
+          "predicted": 211,
+          "evaluated": 318,
+          "scored": 211,
+          "correct": 109,
+          "accuracy": 0.5165876777251185,
+          "accuracy_interval": [
+            0.43601895734597157,
+            0.6018957345971564
+          ],
+          "always_up_accuracy": 0.45023696682464454,
+          "majority_accuracy": 0.5355450236966824,
+          "momentum_accuracy": 0.46445497630331756,
+          "paired_up_delta": 0.06635071090047394,
+          "paired_up_delta_interval": [
+            -0.09004739336492891,
+            0.23222748815165878
+          ],
+          "up_precision": 0.4117647058823529,
+          "down_precision": 0.536723163841808,
+          "input_coverage": 0.8113207547169812,
+          "forecast_coverage": 0.8178294573643411,
+          "label_coverage": 1.0,
+          "brier": 0.5292338709677419,
+          "log_loss": 0.7830655579713355,
+          "actual_classes": {
+            "-1": 178,
+            "0": 2,
+            "1": 138
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 1,
+              "mean_raw_up": 0.125,
+              "actual_up": 1.0
+            },
+            {
+              "lower": 0.2,
+              "count": 131,
+              "mean_raw_up": 0.30884223918575066,
+              "actual_up": 0.4351145038167939
+            },
+            {
+              "lower": 0.4,
+              "count": 82,
+              "mean_raw_up": 0.4715447154471545,
+              "actual_up": 0.45121951219512196
+            },
+            {
+              "lower": 0.6,
+              "count": 3,
+              "mean_raw_up": 0.6388888888888888,
+              "actual_up": 0.3333333333333333
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 41,
+            "research_only": 213,
+            "abstained": 6
+          },
+          "common_samples": 196,
+          "common_accuracy": 0.5255102040816326
+        },
+        {
+          "group": "B",
+          "horizon": 1,
+          "planned": 319,
+          "eligible": 259,
+          "trained": 219,
+          "predicted": 211,
+          "evaluated": 319,
+          "scored": 211,
+          "correct": 108,
+          "accuracy": 0.5118483412322274,
+          "accuracy_interval": [
+            0.44549763033175355,
+            0.5829383886255924
+          ],
+          "always_up_accuracy": 0.46445497630331756,
+          "majority_accuracy": 0.4928909952606635,
+          "momentum_accuracy": 0.5023696682464455,
+          "paired_up_delta": 0.04739336492890995,
+          "paired_up_delta_interval": [
+            -0.05687203791469194,
+            0.16113744075829384
+          ],
+          "up_precision": 0.5,
+          "down_precision": 0.5172413793103449,
+          "input_coverage": 0.8119122257053292,
+          "forecast_coverage": 0.8146718146718147,
+          "label_coverage": 1.0,
+          "brier": 0.5404458396752917,
+          "log_loss": 0.8298244149608199,
+          "actual_classes": {
+            "-1": 163,
+            "0": 6,
+            "1": 150
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 2,
+              "mean_raw_up": 0.16666666666666666,
+              "actual_up": 0.5
+            },
+            {
+              "lower": 0.2,
+              "count": 93,
+              "mean_raw_up": 0.3279569892473118,
+              "actual_up": 0.41935483870967744
+            },
+            {
+              "lower": 0.4,
+              "count": 115,
+              "mean_raw_up": 0.4811594202898551,
+              "actual_up": 0.5043478260869565
+            },
+            {
+              "lower": 0.6,
+              "count": 9,
+              "mean_raw_up": 0.6435185185185185,
+              "actual_up": 0.5555555555555556
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 40,
+            "research_only": 212,
+            "abstained": 8
+          },
+          "common_samples": 194,
+          "common_accuracy": 0.5154639175257731
+        },
+        {
+          "group": "B",
+          "horizon": 2,
+          "planned": 318,
+          "eligible": 258,
+          "trained": 217,
+          "predicted": 202,
+          "evaluated": 318,
+          "scored": 202,
+          "correct": 105,
+          "accuracy": 0.5198019801980198,
+          "accuracy_interval": [
+            0.4158415841584158,
+            0.594059405940594
+          ],
+          "always_up_accuracy": 0.4207920792079208,
+          "majority_accuracy": 0.5495049504950495,
+          "momentum_accuracy": 0.4603960396039604,
+          "paired_up_delta": 0.09900990099009901,
+          "paired_up_delta_interval": [
+            -0.0891089108910891,
+            0.23267326732673269
+          ],
+          "up_precision": 0.3225806451612903,
+          "down_precision": 0.5555555555555556,
+          "input_coverage": 0.8113207547169812,
+          "forecast_coverage": 0.7829457364341085,
+          "label_coverage": 1.0,
+          "brier": 0.5333141321044547,
+          "log_loss": 0.7901101583131411,
+          "actual_classes": {
+            "-1": 178,
+            "0": 2,
+            "1": 138
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 1,
+              "mean_raw_up": 0.16666666666666666,
+              "actual_up": 1.0
+            },
+            {
+              "lower": 0.2,
+              "count": 130,
+              "mean_raw_up": 0.3060897435897436,
+              "actual_up": 0.4461538461538462
+            },
+            {
+              "lower": 0.4,
+              "count": 86,
+              "mean_raw_up": 0.4694767441860465,
+              "actual_up": 0.43023255813953487
+            },
+            {
+              "lower": 0.6,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 41,
+            "research_only": 204,
+            "abstained": 15
+          },
+          "common_samples": 196,
+          "common_accuracy": 0.5204081632653061
+        },
+        {
+          "group": "C",
+          "horizon": 1,
+          "planned": 319,
+          "eligible": 259,
+          "trained": 219,
+          "predicted": 208,
+          "evaluated": 319,
+          "scored": 208,
+          "correct": 108,
+          "accuracy": 0.5192307692307693,
+          "accuracy_interval": [
+            0.44711538461538464,
+            0.5913461538461539
+          ],
+          "always_up_accuracy": 0.4567307692307692,
+          "majority_accuracy": 0.4951923076923077,
+          "momentum_accuracy": 0.5048076923076923,
+          "paired_up_delta": 0.0625,
+          "paired_up_delta_interval": [
+            -0.0625,
+            0.19230769230769232
+          ],
+          "up_precision": 0.4931506849315068,
+          "down_precision": 0.5333333333333333,
+          "input_coverage": 0.8119122257053292,
+          "forecast_coverage": 0.803088803088803,
+          "label_coverage": 1.0,
+          "brier": 0.5445998224251649,
+          "log_loss": 0.8350008927279373,
+          "actual_classes": {
+            "-1": 163,
+            "0": 6,
+            "1": 150
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            },
+            {
+              "lower": 0.2,
+              "count": 80,
+              "mean_raw_up": 0.33177083333333335,
+              "actual_up": 0.425
+            },
+            {
+              "lower": 0.4,
+              "count": 126,
+              "mean_raw_up": 0.48148148148148145,
+              "actual_up": 0.5158730158730159
+            },
+            {
+              "lower": 0.6,
+              "count": 13,
+              "mean_raw_up": 0.641025641025641,
+              "actual_up": 0.3076923076923077
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 40,
+            "research_only": 209,
+            "abstained": 11
+          },
+          "common_samples": 194,
+          "common_accuracy": 0.5257731958762887
+        },
+        {
+          "group": "C",
+          "horizon": 2,
+          "planned": 318,
+          "eligible": 258,
+          "trained": 217,
+          "predicted": 213,
+          "evaluated": 318,
+          "scored": 213,
+          "correct": 117,
+          "accuracy": 0.5492957746478874,
+          "accuracy_interval": [
+            0.4694835680751174,
+            0.6244131455399061
+          ],
+          "always_up_accuracy": 0.4460093896713615,
+          "majority_accuracy": 0.5352112676056338,
+          "momentum_accuracy": 0.460093896713615,
+          "paired_up_delta": 0.10328638497652583,
+          "paired_up_delta_interval": [
+            -0.056338028169014086,
+            0.2535211267605634
+          ],
+          "up_precision": 0.5,
+          "down_precision": 0.5614035087719298,
+          "input_coverage": 0.8113207547169812,
+          "forecast_coverage": 0.8255813953488372,
+          "label_coverage": 1.0,
+          "brier": 0.5258096518177163,
+          "log_loss": 0.7805637228879428,
+          "actual_classes": {
+            "-1": 178,
+            "0": 2,
+            "1": 138
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 1,
+              "mean_raw_up": 0.16666666666666666,
+              "actual_up": 1.0
+            },
+            {
+              "lower": 0.2,
+              "count": 131,
+              "mean_raw_up": 0.3110687022900763,
+              "actual_up": 0.4198473282442748
+            },
+            {
+              "lower": 0.4,
+              "count": 83,
+              "mean_raw_up": 0.4779116465863454,
+              "actual_up": 0.4819277108433735
+            },
+            {
+              "lower": 0.6,
+              "count": 2,
+              "mean_raw_up": 0.625,
+              "actual_up": 0.0
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 41,
+            "research_only": 215,
+            "abstained": 4
+          },
+          "common_samples": 196,
+          "common_accuracy": 0.5306122448979592
+        }
+      ],
+      "seconds": 11.373,
+      "executed_at": "2026-11-04T06:44:49.774084+00:00"
+    },
+    {
+      "symbol": "sh600519",
+      "name": "贵州茅台",
+      "first": "2025-07-08 15:00:00+08:00",
+      "last": "2026-11-03 15:00:00+08:00",
+      "observed_at": "2026-11-03 08:18:28.319390+00:00",
+      "quote_at": "2026-11-03 16:14:53+08:00",
+      "experiment_id": "412148907d72183da331ce19760113661ce1601b676f973c81ed7e37b7efd38a",
+      "manifest": {
+        "schema_version": 1,
+        "mode": "walk_forward",
+        "symbol": "sh600519",
+        "name": "贵州茅台",
+        "snapshot_revision": "6c4c2879841daa08a33466c78a8e7de020de1c67d24f71a3fe2ff01356a1fb38",
+        "target_version": "raw-close-direction-v1-diagnostic",
+        "model_version": "standardized-knn-v1-unvalidated",
+        "feature_version": "daily-price-volume-stage-v1",
+        "stage_version": "flowradar-heuristic-v0.1-unvalidated/adapter-1",
+        "calendar_version": "shsz-official-2025-2026-v1",
+        "config": {
+          "neighbors": 21,
+          "min_train": 40,
+          "train_window": 160,
+          "excluded_dates": []
+        },
+        "historical_grade": "reconstructed",
+        "public_probability_status": "not_enabled",
+        "before": "2026-11-03",
+        "start": null,
+        "groups": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      "summaries": [
+        {
+          "group": "A",
+          "horizon": 1,
+          "planned": 319,
+          "eligible": 259,
+          "trained": 219,
+          "predicted": 219,
+          "evaluated": 319,
+          "scored": 219,
+          "correct": 125,
+          "accuracy": 0.5707762557077626,
+          "accuracy_interval": [
+            0.5068493150684932,
+            0.6255707762557078
+          ],
+          "always_up_accuracy": 0.4383561643835616,
+          "majority_accuracy": 0.5616438356164384,
+          "momentum_accuracy": 0.5114155251141552,
+          "paired_up_delta": 0.1324200913242009,
+          "paired_up_delta_interval": [
+            0.0182648401826484,
+            0.2511415525114155
+          ],
+          "up_precision": 0.5384615384615384,
+          "down_precision": 0.5751295336787565,
+          "input_coverage": 0.8119122257053292,
+          "forecast_coverage": 0.8455598455598455,
+          "label_coverage": 1.0,
+          "brier": 0.49751078132927445,
+          "log_loss": 0.7341068506758838,
+          "actual_classes": {
+            "-1": 176,
+            "0": 0,
+            "1": 143
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 3,
+              "mean_raw_up": 0.1388888888888889,
+              "actual_up": 0.3333333333333333
+            },
+            {
+              "lower": 0.2,
+              "count": 134,
+              "mean_raw_up": 0.31965174129353235,
+              "actual_up": 0.3880597014925373
+            },
+            {
+              "lower": 0.4,
+              "count": 80,
+              "mean_raw_up": 0.46197916666666666,
+              "actual_up": 0.5375
+            },
+            {
+              "lower": 0.6,
+              "count": 2,
+              "mean_raw_up": 0.6666666666666667,
+              "actual_up": 0.0
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 40,
+            "research_only": 220
+          },
+          "common_samples": 219,
+          "common_accuracy": 0.5707762557077626
+        },
+        {
+          "group": "A",
+          "horizon": 2,
+          "planned": 318,
+          "eligible": 258,
+          "trained": 217,
+          "predicted": 217,
+          "evaluated": 318,
+          "scored": 217,
+          "correct": 118,
+          "accuracy": 0.543778801843318,
+          "accuracy_interval": [
+            0.45622119815668205,
+            0.6267281105990783
+          ],
+          "always_up_accuracy": 0.41013824884792627,
+          "majority_accuracy": 0.576036866359447,
+          "momentum_accuracy": 0.5529953917050692,
+          "paired_up_delta": 0.1336405529953917,
+          "paired_up_delta_interval": [
+            -0.02304147465437788,
+            0.28110599078341014
+          ],
+          "up_precision": 0.3076923076923077,
+          "down_precision": 0.5759162303664922,
+          "input_coverage": 0.8113207547169812,
+          "forecast_coverage": 0.8410852713178295,
+          "label_coverage": 1.0,
+          "brier": 0.5083685355862775,
+          "log_loss": 0.7460073616033664,
+          "actual_classes": {
+            "-1": 177,
+            "0": 0,
+            "1": 141
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 2,
+              "mean_raw_up": 0.125,
+              "actual_up": 0.5
+            },
+            {
+              "lower": 0.2,
+              "count": 101,
+              "mean_raw_up": 0.327970297029703,
+              "actual_up": 0.40594059405940597
+            },
+            {
+              "lower": 0.4,
+              "count": 113,
+              "mean_raw_up": 0.45095870206489674,
+              "actual_up": 0.415929203539823
+            },
+            {
+              "lower": 0.6,
+              "count": 1,
+              "mean_raw_up": 0.625,
+              "actual_up": 0.0
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 41,
+            "research_only": 219
+          },
+          "common_samples": 217,
+          "common_accuracy": 0.543778801843318
+        },
+        {
+          "group": "B",
+          "horizon": 1,
+          "planned": 319,
+          "eligible": 259,
+          "trained": 219,
+          "predicted": 219,
+          "evaluated": 319,
+          "scored": 219,
+          "correct": 127,
+          "accuracy": 0.5799086757990868,
+          "accuracy_interval": [
+            0.5114155251141552,
+            0.634703196347032
+          ],
+          "always_up_accuracy": 0.4383561643835616,
+          "majority_accuracy": 0.5616438356164384,
+          "momentum_accuracy": 0.5114155251141552,
+          "paired_up_delta": 0.1415525114155251,
+          "paired_up_delta_interval": [
+            0.0136986301369863,
+            0.2602739726027397
+          ],
+          "up_precision": 0.5909090909090909,
+          "down_precision": 0.5786802030456852,
+          "input_coverage": 0.8119122257053292,
+          "forecast_coverage": 0.8455598455598455,
+          "label_coverage": 1.0,
+          "brier": 0.5030599949264333,
+          "log_loss": 0.739452809925307,
+          "actual_classes": {
+            "-1": 176,
+            "0": 0,
+            "1": 143
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 4,
+              "mean_raw_up": 0.15625,
+              "actual_up": 0.25
+            },
+            {
+              "lower": 0.2,
+              "count": 141,
+              "mean_raw_up": 0.32358156028368795,
+              "actual_up": 0.41843971631205673
+            },
+            {
+              "lower": 0.4,
+              "count": 71,
+              "mean_raw_up": 0.4583333333333333,
+              "actual_up": 0.49295774647887325
+            },
+            {
+              "lower": 0.6,
+              "count": 3,
+              "mean_raw_up": 0.6666666666666666,
+              "actual_up": 0.3333333333333333
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 40,
+            "research_only": 220
+          },
+          "common_samples": 219,
+          "common_accuracy": 0.5799086757990868
+        },
+        {
+          "group": "B",
+          "horizon": 2,
+          "planned": 318,
+          "eligible": 258,
+          "trained": 217,
+          "predicted": 217,
+          "evaluated": 318,
+          "scored": 217,
+          "correct": 118,
+          "accuracy": 0.543778801843318,
+          "accuracy_interval": [
+            0.4700460829493088,
+            0.6221198156682027
+          ],
+          "always_up_accuracy": 0.41013824884792627,
+          "majority_accuracy": 0.576036866359447,
+          "momentum_accuracy": 0.5529953917050692,
+          "paired_up_delta": 0.1336405529953917,
+          "paired_up_delta_interval": [
+            -0.013824884792626729,
+            0.2764976958525346
+          ],
+          "up_precision": 0.3684210526315789,
+          "down_precision": 0.5810055865921788,
+          "input_coverage": 0.8113207547169812,
+          "forecast_coverage": 0.8410852713178295,
+          "label_coverage": 1.0,
+          "brier": 0.5056483614951357,
+          "log_loss": 0.7416463255622638,
+          "actual_classes": {
+            "-1": 177,
+            "0": 0,
+            "1": 141
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            },
+            {
+              "lower": 0.2,
+              "count": 100,
+              "mean_raw_up": 0.33375,
+              "actual_up": 0.41
+            },
+            {
+              "lower": 0.4,
+              "count": 117,
+              "mean_raw_up": 0.4565527065527066,
+              "actual_up": 0.41025641025641024
+            },
+            {
+              "lower": 0.6,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 41,
+            "research_only": 219
+          },
+          "common_samples": 217,
+          "common_accuracy": 0.543778801843318
+        },
+        {
+          "group": "C",
+          "horizon": 1,
+          "planned": 319,
+          "eligible": 259,
+          "trained": 219,
+          "predicted": 219,
+          "evaluated": 319,
+          "scored": 219,
+          "correct": 125,
+          "accuracy": 0.5707762557077626,
+          "accuracy_interval": [
+            0.5114155251141552,
+            0.6301369863013698
+          ],
+          "always_up_accuracy": 0.4383561643835616,
+          "majority_accuracy": 0.5616438356164384,
+          "momentum_accuracy": 0.5114155251141552,
+          "paired_up_delta": 0.1324200913242009,
+          "paired_up_delta_interval": [
+            0.0091324200913242,
+            0.2465753424657534
+          ],
+          "up_precision": 0.53125,
+          "down_precision": 0.5775401069518716,
+          "input_coverage": 0.8119122257053292,
+          "forecast_coverage": 0.8455598455598455,
+          "label_coverage": 1.0,
+          "brier": 0.5068334601725013,
+          "log_loss": 0.7455859017267795,
+          "actual_classes": {
+            "-1": 176,
+            "0": 0,
+            "1": 143
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 3,
+              "mean_raw_up": 0.16666666666666666,
+              "actual_up": 0.6666666666666666
+            },
+            {
+              "lower": 0.2,
+              "count": 135,
+              "mean_raw_up": 0.325,
+              "actual_up": 0.3925925925925926
+            },
+            {
+              "lower": 0.4,
+              "count": 79,
+              "mean_raw_up": 0.46624472573839665,
+              "actual_up": 0.5189873417721519
+            },
+            {
+              "lower": 0.6,
+              "count": 2,
+              "mean_raw_up": 0.625,
+              "actual_up": 0.0
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 40,
+            "research_only": 220
+          },
+          "common_samples": 219,
+          "common_accuracy": 0.5707762557077626
+        },
+        {
+          "group": "C",
+          "horizon": 2,
+          "planned": 318,
+          "eligible": 258,
+          "trained": 217,
+          "predicted": 217,
+          "evaluated": 318,
+          "scored": 217,
+          "correct": 123,
+          "accuracy": 0.5668202764976958,
+          "accuracy_interval": [
+            0.48847926267281105,
+            0.663594470046083
+          ],
+          "always_up_accuracy": 0.41013824884792627,
+          "majority_accuracy": 0.576036866359447,
+          "momentum_accuracy": 0.5529953917050692,
+          "paired_up_delta": 0.15668202764976957,
+          "paired_up_delta_interval": [
+            0.009216589861751152,
+            0.31336405529953915
+          ],
+          "up_precision": 0.4444444444444444,
+          "down_precision": 0.5988372093023255,
+          "input_coverage": 0.8113207547169812,
+          "forecast_coverage": 0.8410852713178295,
+          "label_coverage": 1.0,
+          "brier": 0.5024161546338966,
+          "log_loss": 0.7377824069189394,
+          "actual_classes": {
+            "-1": 177,
+            "0": 0,
+            "1": 141
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 2,
+              "mean_raw_up": 0.16666666666666666,
+              "actual_up": 0.5
+            },
+            {
+              "lower": 0.2,
+              "count": 87,
+              "mean_raw_up": 0.335727969348659,
+              "actual_up": 0.41379310344827586
+            },
+            {
+              "lower": 0.4,
+              "count": 128,
+              "mean_raw_up": 0.4635416666666667,
+              "actual_up": 0.40625
+            },
+            {
+              "lower": 0.6,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 41,
+            "research_only": 219
+          },
+          "common_samples": 217,
+          "common_accuracy": 0.5668202764976958
+        }
+      ],
+      "seconds": 11.491,
+      "executed_at": "2026-11-04T06:45:01.271883+00:00"
+    },
+    {
+      "symbol": "sz000001",
+      "name": "平安银行",
+      "first": "2025-07-08 15:00:00+08:00",
+      "last": "2026-11-03 15:00:00+08:00",
+      "observed_at": "2026-11-03 08:18:28.347781+00:00",
+      "quote_at": "2026-11-03 16:15:00+08:00",
+      "experiment_id": "d4ba083ca4313b807b6744af29f01af590d975892cb26f7e2802011eb9441cf4",
+      "manifest": {
+        "schema_version": 1,
+        "mode": "walk_forward",
+        "symbol": "sz000001",
+        "name": "平安银行",
+        "snapshot_revision": "fcbdc709c24f52dba87f3b4e0b26c6b9134f7c7657d355e62e445a851d535b3e",
+        "target_version": "raw-close-direction-v1-diagnostic",
+        "model_version": "standardized-knn-v1-unvalidated",
+        "feature_version": "daily-price-volume-stage-v1",
+        "stage_version": "flowradar-heuristic-v0.1-unvalidated/adapter-1",
+        "calendar_version": "shsz-official-2025-2026-v1",
+        "config": {
+          "neighbors": 21,
+          "min_train": 40,
+          "train_window": 160,
+          "excluded_dates": []
+        },
+        "historical_grade": "reconstructed",
+        "public_probability_status": "not_enabled",
+        "before": "2026-11-03",
+        "start": null,
+        "groups": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      "summaries": [
+        {
+          "group": "A",
+          "horizon": 1,
+          "planned": 319,
+          "eligible": 259,
+          "trained": 219,
+          "predicted": 201,
+          "evaluated": 319,
+          "scored": 201,
+          "correct": 95,
+          "accuracy": 0.472636815920398,
+          "accuracy_interval": [
+            0.4129353233830846,
+            0.5323383084577115
+          ],
+          "always_up_accuracy": 0.4427860696517413,
+          "majority_accuracy": 0.4925373134328358,
+          "momentum_accuracy": 0.4626865671641791,
+          "paired_up_delta": 0.029850746268656716,
+          "paired_up_delta_interval": [
+            -0.0845771144278607,
+            0.13432835820895522
+          ],
+          "up_precision": 0.41379310344827586,
+          "down_precision": 0.4965034965034965,
+          "input_coverage": 0.8119122257053292,
+          "forecast_coverage": 0.7760617760617761,
+          "label_coverage": 1.0,
+          "brier": 0.5556506849315068,
+          "log_loss": 0.8547371545098672,
+          "actual_classes": {
+            "-1": 165,
+            "0": 12,
+            "1": 142
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            },
+            {
+              "lower": 0.2,
+              "count": 69,
+              "mean_raw_up": 0.33816425120772947,
+              "actual_up": 0.463768115942029
+            },
+            {
+              "lower": 0.4,
+              "count": 146,
+              "mean_raw_up": 0.4674657534246575,
+              "actual_up": 0.4589041095890411
+            },
+            {
+              "lower": 0.6,
+              "count": 4,
+              "mean_raw_up": 0.6354166666666666,
+              "actual_up": 0.0
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 40,
+            "research_only": 202,
+            "abstained": 18
+          },
+          "common_samples": 186,
+          "common_accuracy": 0.478494623655914
+        },
+        {
+          "group": "A",
+          "horizon": 2,
+          "planned": 318,
+          "eligible": 258,
+          "trained": 217,
+          "predicted": 204,
+          "evaluated": 318,
+          "scored": 204,
+          "correct": 91,
+          "accuracy": 0.44607843137254904,
+          "accuracy_interval": [
+            0.37254901960784315,
+            0.5196078431372549
+          ],
+          "always_up_accuracy": 0.45588235294117646,
+          "majority_accuracy": 0.45588235294117646,
+          "momentum_accuracy": 0.45588235294117646,
+          "paired_up_delta": -0.00980392156862745,
+          "paired_up_delta_interval": [
+            -0.12254901960784313,
+            0.09313725490196079
+          ],
+          "up_precision": 0.43010752688172044,
+          "down_precision": 0.4594594594594595,
+          "input_coverage": 0.8113207547169812,
+          "forecast_coverage": 0.7906976744186046,
+          "label_coverage": 1.0,
+          "brier": 0.5899257552483359,
+          "log_loss": 0.9358128297792652,
+          "actual_classes": {
+            "-1": 165,
+            "0": 17,
+            "1": 136
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 1,
+              "mean_raw_up": 0.16666666666666666,
+              "actual_up": 1.0
+            },
+            {
+              "lower": 0.2,
+              "count": 64,
+              "mean_raw_up": 0.3346354166666667,
+              "actual_up": 0.484375
+            },
+            {
+              "lower": 0.4,
+              "count": 143,
+              "mean_raw_up": 0.48892773892773894,
+              "actual_up": 0.44755244755244755
+            },
+            {
+              "lower": 0.6,
+              "count": 9,
+              "mean_raw_up": 0.6296296296296297,
+              "actual_up": 0.2222222222222222
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 41,
+            "research_only": 206,
+            "abstained": 13
+          },
+          "common_samples": 168,
+          "common_accuracy": 0.44047619047619047
+        },
+        {
+          "group": "B",
+          "horizon": 1,
+          "planned": 319,
+          "eligible": 259,
+          "trained": 219,
+          "predicted": 205,
+          "evaluated": 319,
+          "scored": 205,
+          "correct": 91,
+          "accuracy": 0.44390243902439025,
+          "accuracy_interval": [
+            0.37073170731707317,
+            0.5121951219512195
+          ],
+          "always_up_accuracy": 0.4585365853658537,
+          "majority_accuracy": 0.48292682926829267,
+          "momentum_accuracy": 0.47804878048780486,
+          "paired_up_delta": -0.014634146341463415,
+          "paired_up_delta_interval": [
+            -0.11219512195121951,
+            0.08780487804878048
+          ],
+          "up_precision": 0.4074074074074074,
+          "down_precision": 0.46774193548387094,
+          "input_coverage": 0.8119122257053292,
+          "forecast_coverage": 0.7915057915057915,
+          "label_coverage": 1.0,
+          "brier": 0.5695712836123795,
+          "log_loss": 0.8754608045403343,
+          "actual_classes": {
+            "-1": 165,
+            "0": 12,
+            "1": 142
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 1,
+              "mean_raw_up": 0.16666666666666666,
+              "actual_up": 1.0
+            },
+            {
+              "lower": 0.2,
+              "count": 70,
+              "mean_raw_up": 0.3357142857142857,
+              "actual_up": 0.5
+            },
+            {
+              "lower": 0.4,
+              "count": 147,
+              "mean_raw_up": 0.48412698412698413,
+              "actual_up": 0.42857142857142855
+            },
+            {
+              "lower": 0.6,
+              "count": 1,
+              "mean_raw_up": 0.625,
+              "actual_up": 0.0
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 40,
+            "research_only": 206,
+            "abstained": 14
+          },
+          "common_samples": 186,
+          "common_accuracy": 0.43010752688172044
+        },
+        {
+          "group": "B",
+          "horizon": 2,
+          "planned": 318,
+          "eligible": 258,
+          "trained": 217,
+          "predicted": 200,
+          "evaluated": 318,
+          "scored": 200,
+          "correct": 84,
+          "accuracy": 0.42,
+          "accuracy_interval": [
+            0.335,
+            0.495
+          ],
+          "always_up_accuracy": 0.45,
+          "majority_accuracy": 0.47,
+          "momentum_accuracy": 0.475,
+          "paired_up_delta": -0.03,
+          "paired_up_delta_interval": [
+            -0.17,
+            0.06
+          ],
+          "up_precision": 0.40186915887850466,
+          "down_precision": 0.44086021505376344,
+          "input_coverage": 0.8113207547169812,
+          "forecast_coverage": 0.7751937984496124,
+          "label_coverage": 1.0,
+          "brier": 0.6047427035330261,
+          "log_loss": 0.9615312223180569,
+          "actual_classes": {
+            "-1": 165,
+            "0": 17,
+            "1": 136
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            },
+            {
+              "lower": 0.2,
+              "count": 52,
+              "mean_raw_up": 0.3317307692307692,
+              "actual_up": 0.5961538461538461
+            },
+            {
+              "lower": 0.4,
+              "count": 153,
+              "mean_raw_up": 0.4880174291938998,
+              "actual_up": 0.41830065359477125
+            },
+            {
+              "lower": 0.6,
+              "count": 12,
+              "mean_raw_up": 0.6423611111111112,
+              "actual_up": 0.25
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 41,
+            "research_only": 202,
+            "abstained": 17
+          },
+          "common_samples": 168,
+          "common_accuracy": 0.4166666666666667
+        },
+        {
+          "group": "C",
+          "horizon": 1,
+          "planned": 319,
+          "eligible": 259,
+          "trained": 219,
+          "predicted": 213,
+          "evaluated": 319,
+          "scored": 213,
+          "correct": 101,
+          "accuracy": 0.47417840375586856,
+          "accuracy_interval": [
+            0.40375586854460094,
+            0.5352112676056338
+          ],
+          "always_up_accuracy": 0.45539906103286387,
+          "majority_accuracy": 0.4835680751173709,
+          "momentum_accuracy": 0.4647887323943662,
+          "paired_up_delta": 0.018779342723004695,
+          "paired_up_delta_interval": [
+            -0.08450704225352113,
+            0.11737089201877934
+          ],
+          "up_precision": 0.4492753623188406,
+          "down_precision": 0.4861111111111111,
+          "input_coverage": 0.8119122257053292,
+          "forecast_coverage": 0.8223938223938224,
+          "label_coverage": 1.0,
+          "brier": 0.555888508371385,
+          "log_loss": 0.8543059852744335,
+          "actual_classes": {
+            "-1": 165,
+            "0": 12,
+            "1": 142
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            },
+            {
+              "lower": 0.2,
+              "count": 78,
+              "mean_raw_up": 0.33760683760683763,
+              "actual_up": 0.47435897435897434
+            },
+            {
+              "lower": 0.4,
+              "count": 138,
+              "mean_raw_up": 0.47342995169082125,
+              "actual_up": 0.4492753623188406
+            },
+            {
+              "lower": 0.6,
+              "count": 3,
+              "mean_raw_up": 0.6388888888888888,
+              "actual_up": 0.0
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 40,
+            "research_only": 214,
+            "abstained": 6
+          },
+          "common_samples": 186,
+          "common_accuracy": 0.4838709677419355
+        },
+        {
+          "group": "C",
+          "horizon": 2,
+          "planned": 318,
+          "eligible": 258,
+          "trained": 217,
+          "predicted": 192,
+          "evaluated": 318,
+          "scored": 192,
+          "correct": 84,
+          "accuracy": 0.4375,
+          "accuracy_interval": [
+            0.34375,
+            0.5052083333333334
+          ],
+          "always_up_accuracy": 0.4427083333333333,
+          "majority_accuracy": 0.4791666666666667,
+          "momentum_accuracy": 0.5,
+          "paired_up_delta": -0.005208333333333333,
+          "paired_up_delta_interval": [
+            -0.15625,
+            0.109375
+          ],
+          "up_precision": 0.40816326530612246,
+          "down_precision": 0.46808510638297873,
+          "input_coverage": 0.8113207547169812,
+          "forecast_coverage": 0.7441860465116279,
+          "label_coverage": 1.0,
+          "brier": 0.5924539170506913,
+          "log_loss": 0.940832522317042,
+          "actual_classes": {
+            "-1": 165,
+            "0": 17,
+            "1": 136
+          },
+          "calibration": [
+            {
+              "lower": 0,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            },
+            {
+              "lower": 0.2,
+              "count": 62,
+              "mean_raw_up": 0.34206989247311825,
+              "actual_up": 0.532258064516129
+            },
+            {
+              "lower": 0.4,
+              "count": 146,
+              "mean_raw_up": 0.4845890410958904,
+              "actual_up": 0.4178082191780822
+            },
+            {
+              "lower": 0.6,
+              "count": 9,
+              "mean_raw_up": 0.6342592592592593,
+              "actual_up": 0.4444444444444444
+            },
+            {
+              "lower": 0.8,
+              "count": 0,
+              "mean_raw_up": null,
+              "actual_up": null
+            }
+          ],
+          "status_counts": {
+            "insufficient_input": 60,
+            "insufficient_training": 41,
+            "research_only": 194,
+            "abstained": 25
+          },
+          "common_samples": 168,
+          "common_accuracy": 0.4523809523809524
+        }
+      ],
+      "seconds": 11.316,
+      "executed_at": "2026-11-04T06:45:12.605334+00:00"
+    }
+  ]
+}

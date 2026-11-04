@@ -106,13 +106,14 @@ class ProcessTaskRunner(QObject):
     failed = Signal(str)
     busy = Signal(bool)
 
-    def __init__(self, parent=None, timeout_ms=18000):
+    def __init__(self, parent=None, timeout_ms=18000, task_label="行情"):
         super().__init__(parent)
         self.context = multiprocessing.get_context("spawn")
         self.active = None
         self.connection = None
         self.closed = False
         self.timeout_ms = timeout_ms
+        self.task_label = task_label
         self.timer = QTimer(self)
         self.timer.setInterval(30)
         self.timer.timeout.connect(self._poll)
@@ -128,7 +129,7 @@ class ProcessTaskRunner(QObject):
         except Exception as exc:
             receive.close()
             send.close()
-            self.failed.emit("无法启动行情任务：" + str(exc))
+            self.failed.emit(f"无法启动{self.task_label}任务：" + str(exc))
             return
         send.close()
         self.active, self.connection = process, receive
@@ -143,17 +144,18 @@ class ProcessTaskRunner(QObject):
             try:
                 ok, result, details = self.connection.recv()
             except (EOFError, OSError):
-                ok, result, details = False, "行情任务意外退出，请重试", ""
+                ok, result, details = False, f"{self.task_label}任务意外退出，请重试", ""
             self.cancel()
             if not ok:
-                log.error("行情任务失败：%s\n%s", result, details)
+                log.error("%s任务失败：%s\n%s", self.task_label, result, details)
             (self.ready if ok else self.failed).emit(result)
         elif not self.active.is_alive():
             self.cancel()
-            self.failed.emit("行情任务意外退出，请重试")
+            self.failed.emit(f"{self.task_label}任务意外退出，请重试")
         elif (time.monotonic() - self.started) * 1000 >= self.timeout_ms:
             self.cancel()
-            self.failed.emit("行情请求超时，请检查网络后刷新")
+            hint = "请检查网络后刷新" if self.task_label == "行情" else "请缩小范围或稍后重试"
+            self.failed.emit(f"{self.task_label}请求超时，{hint}")
 
     def cancel(self):
         self.timer.stop()
