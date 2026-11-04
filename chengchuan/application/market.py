@@ -5,6 +5,7 @@ from datetime import date, datetime, time, timezone
 from typing import Protocol
 
 from chengchuan.application.errors import MarketError, StorageError
+from chengchuan.application.settings import SettingsInfo
 from chengchuan.domain.market import Instrument, MarketFrame, SearchResult, stock_symbol
 from chengchuan.domain.models import SHANGHAI
 from chengchuan.domain.periods import chart_period
@@ -131,3 +132,5 @@ class MarketSources(Protocol):
     def connect(self, source: str) -> MarketService: ...
 
     def configure_key(self, value: str) -> None: ...
+
+    def settings_info(self) -> SettingsInfo: ...

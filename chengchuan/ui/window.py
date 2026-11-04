@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime
 from functools import partial
 from pathlib import Path
@@ -13,7 +14,6 @@ from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
     QHBoxLayout,
-    QInputDialog,
     QLabel,
     QLayout,
     QLineEdit,
@@ -32,6 +32,7 @@ from PySide6.QtWidgets import (
 
 from chengchuan import APP_NAME, __version__
 from chengchuan.application.errors import StorageError
+from chengchuan.application.settings import SettingsSaveError, SettingsService
 from chengchuan.domain.market import Instrument, stock_symbol
 from chengchuan.domain.models import SHANGHAI, IndexRange, SeriesKind
 from chengchuan.domain.periods import PERIODS, chart_period
@@ -40,6 +41,7 @@ from chengchuan.ui.chart import MarketChart
 from chengchuan.ui.date_navigator import DateNavigator
 from chengchuan.ui.forecast_panel import ForecastPanel
 from chengchuan.ui.market import MarketBrowser
+from chengchuan.ui.settings_dialog import SettingsDialog
 from chengchuan.ui.tasks import LatestTaskRunner, ProcessTaskRunner
 
 
@@ -89,6 +91,8 @@ class MainWindow(QMainWindow):
         forecast_service=None,
         forecast_writer=None,
         market_sources=None,
+        settings_service=None,
+        initial_provider=None,
     ):
         super().__init__()
         self.snapshots, self.analyzer, self.workspace = snapshots, analyzer, workspace
@@ -98,6 +102,12 @@ class MainWindow(QMainWindow):
         self._loading = False
         self.market = market
         self.market_sources = market_sources
+        state = self.workspace.load("main")
+        self.settings_service = settings_service or SettingsService(workspace, market_sources)
+        self.preferences = self.settings_service.load(state)
+        if initial_provider is not None:
+            self.preferences = replace(self.preferences, provider=initial_provider)
+        self.settings_dialog = None
         self.forecast_service, self.forecast_writer = forecast_service, forecast_writer
         self.forecast_panel = None
         self.network_runner_factory = network_runner_factory
@@ -136,17 +146,19 @@ class MainWindow(QMainWindow):
         outer.addWidget(self.status)
         QShortcut(QKeySequence("Escape"), self, activated=self.clear_selection)
         QShortcut(QKeySequence("Ctrl+O"), self, activated=self.choose_snapshot)
-        state = self.workspace.load("main")
+        QShortcut(QKeySequence("Ctrl+,"), self, activated=self.open_settings)
         if state.get("splitter") and len(state["splitter"]) == 3:
             self.splitter.setSizes(state["splitter"])
         self._saved_state = state
         self.refresh_timer = QTimer(self)
-        self.refresh_timer.setInterval(15_000)
+        self.refresh_timer.setInterval(self.preferences.refresh_seconds * 1000)
         self.refresh_timer.timeout.connect(self._auto_refresh)
         self.refresh_timer.start()
         QShortcut(QKeySequence("F5"), self, activated=self.refresh_market)
         if market:
-            self.auto_refresh.setChecked(bool(state.get("auto_refresh", True)))
+            self.auto_refresh.setChecked(self.preferences.auto_refresh)
+            self.auto_refresh.toggled.connect(self._auto_refresh_preference_changed)
+        self._apply_display_preferences()
 
     def _build_sidebar(self, catalog):
         sidebar = QWidget()
@@ -186,6 +198,9 @@ class MainWindow(QMainWindow):
         button = QPushButton("＋  导入行情快照")
         button.clicked.connect(self.choose_snapshot)
         layout.addWidget(button)
+        self.settings_button = QPushButton("设置  Ctrl+,")
+        self.settings_button.clicked.connect(lambda: self.open_settings())
+        layout.addWidget(self.settings_button)
         layout.addSpacing(15)
         layout.addWidget(label("在价格中发现线索\n让每个判断都有依据", "muted", True))
         layout.addSpacing(8)
@@ -302,10 +317,18 @@ class MainWindow(QMainWindow):
             self.source_box.setCurrentIndex(self.source_box.findData(self.market.source_id))
             self.source_box.blockSignals(False)
             return
+        self._install_market(market)
+        self.preferences = replace(self.preferences, provider=self.source_box.currentData())
+        self._persist_preferences()
+
+    def _install_market(self, market):
         symbol, interval, day = self.online_symbol, self.online_interval, self.history_date
         self.market_runner.cancel()
         self.browser.set_market(market)
         self.market = market
+        self.source_box.blockSignals(True)
+        self.source_box.setCurrentIndex(self.source_box.findData(market.source_id))
+        self.source_box.blockSignals(False)
         self.source_hint.setText(market.connection_notice)
         self._set_period_capabilities()
         if symbol:
@@ -318,25 +341,68 @@ class MainWindow(QMainWindow):
             )
 
     def configure_market_key(self):
-        value, accepted = QInputDialog.getText(
+        self.open_settings("data", prefer_meoz=True)
+
+    def open_settings(self, page="data", prefer_meoz=False):
+        if self.settings_dialog is not None:
+            self.settings_dialog.select_page(page)
+            self.settings_dialog.raise_()
+            self.settings_dialog.activateWindow()
+            return
+        values = replace(self.preferences, provider="meoz") if prefer_meoz else self.preferences
+        dialog = SettingsDialog(
+            values,
+            self.settings_service.info(),
+            self._save_preferences,
+            self.settings_service.info,
+            bool(self.market_sources),
             self,
-            "配置猫爪数据",
-            "输入本机API Key（隐藏输入，仅保存到本机，不随Git同步）。\n"
-            "若已设置MEOZ_API_KEY环境变量，将优先使用环境变量。",
-            QLineEdit.EchoMode.Password,
         )
-        if not accepted:
-            return
+        self.settings_dialog = dialog
+        dialog.finished.connect(self._settings_closed)
+        dialog.select_page(page)
+        dialog.open()
+
+    def _settings_closed(self):
+        self.settings_dialog = None
+
+    def _save_preferences(self, settings, api_key=""):
+        self.settings_service.save(settings, api_key)
+        self.preferences = settings
+        self.refresh_timer.setInterval(settings.refresh_seconds * 1000)
+        if self.market:
+            self.auto_refresh.blockSignals(True)
+            self.auto_refresh.setChecked(settings.auto_refresh)
+            self.auto_refresh.blockSignals(False)
+        self._apply_display_preferences()
+        if self.market_sources:
+            try:
+                market = self.market_sources.connect(settings.provider)
+            except (OSError, ValueError, StorageError):
+                raise SettingsSaveError(
+                    "设置已保存，但数据源暂未切换，请重试", bool(api_key.strip())
+                ) from None
+            if market.source_id != self.market.source_id or api_key.strip():
+                self._install_market(market)
+        self.status.setText("设置已保存并生效")
+
+    def _apply_display_preferences(self):
+        settings = self.preferences
+        if self.market:
+            self.auto_refresh.setText(f"每{settings.refresh_seconds}秒检查更新")
+        self.chart.cursor.configure(
+            settings.show_crosshair, settings.show_tooltip, settings.tooltip_opacity
+        )
+
+    def _auto_refresh_preference_changed(self, checked):
+        self.preferences = replace(self.preferences, auto_refresh=checked)
+        self._persist_preferences()
+
+    def _persist_preferences(self):
         try:
-            self.market_sources.configure_key(value)
-        except (OSError, ValueError, TypeError):
-            self.source_hint.setText("API Key保存失败，请检查格式和本机配置文件权限")
-            return
-        index = self.source_box.findData("meoz")
-        if self.source_box.currentIndex() == index:
-            self._source_changed()
-        else:
-            self.source_box.setCurrentIndex(index)
+            self.settings_service.save(self.preferences)
+        except SettingsSaveError:
+            self.status.setText("当前操作已生效，但偏好设置未能保存")
 
     def _build_inspector(self):
         inspector = QWidget()
@@ -814,6 +880,8 @@ class MainWindow(QMainWindow):
         self.status.setText("选区已清除  ·  当前行情保持不变")
 
     def closeEvent(self, event):
+        if self.settings_dialog is not None:
+            self.settings_dialog.reject()
         self.refresh_timer.stop()
         if self.forecast_panel:
             self.forecast_panel.shutdown()

@@ -1,11 +1,18 @@
 """Local source selection and credential setup, independent of Qt."""
 
+import os
 from pathlib import Path
 
 from chengchuan.application.market import MarketService
+from chengchuan.application.settings import SettingsInfo
 from chengchuan.infrastructure.market_cache import SqliteMarketCache
 from chengchuan.infrastructure.market_data import TencentMarketProvider
-from chengchuan.infrastructure.meoz_client import MeozClient, configured, save_private_key
+from chengchuan.infrastructure.meoz_client import (
+    MeozClient,
+    MeozStore,
+    configured,
+    save_private_key,
+)
 from chengchuan.infrastructure.meoz_market import MeozMarketProvider
 
 
@@ -46,3 +53,23 @@ class ConfiguredMarketSources:
 
     def configure_key(self, value):
         save_private_key(value)
+
+    def settings_info(self):
+        environment = bool(os.environ.get("MEOZ_API_KEY", "").strip())
+        status = "已配置（未联网验证）" if configured() else "尚未配置有效API Key"
+        if environment:
+            status += " · 环境变量优先于配置文件"
+        usage = MeozStore().usage()
+        return SettingsInfo(
+            credential_status=status,
+            environment_override=environment,
+            paths=(
+                ("工作区", str(self.state_dir)),
+                ("猫爪私有配置", str(Path.home() / ".meoz/config.json")),
+                ("原始数据缓存", str(Path.home() / ".meoz/chengchuan.sqlite")),
+            ),
+            usage=(
+                ("本机今日请求", str(usage["total"])),
+                *((api, f"{n}/95") for api, n in usage["interfaces"].items()),
+            ),
+        )

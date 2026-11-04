@@ -4,7 +4,7 @@ import unittest
 from dataclasses import replace
 from datetime import date
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import test_meoz_desktop as harness
 
@@ -16,6 +16,7 @@ if DESKTOP:
     from PySide6.QtTest import QTest
     from PySide6.QtWidgets import QLineEdit, QTableView
 
+    from chengchuan.application.settings import SettingsInfo
     from chengchuan.domain.models import SHANGHAI
 
 
@@ -234,7 +235,12 @@ class FakeSources:
             self.markets[code] = market
 
     def connect(self, code):
+        if code == "auto":
+            code = "tencent"
         return self.markets[code]
+
+    def settings_info(self):
+        return SettingsInfo(credential_status="已配置（未联网验证）")
 
 
 @unittest.skipUnless(DESKTOP, "需要desktop依赖")
@@ -293,22 +299,22 @@ class MarketSourceDesktopTests(unittest.TestCase):
 
     def test_password_configuration_cancel_failure_and_success(self):
         w = self.window
-        with patch("chengchuan.ui.window.QInputDialog.getText", return_value=("", False)):
-            w.configure_market_key()
+        w.configure_market_key()
+        w.settings_dialog.reject()
+        self.app.processEvents()
         self.sources.configure_key.assert_not_called()
         value = "nc_" + "a" * 32
         self.sources.configure_key.side_effect = ValueError("invalid")
-        with patch(
-            "chengchuan.ui.window.QInputDialog.getText", return_value=(value, True)
-        ) as dialog:
-            w.configure_market_key()
-        self.assertEqual(dialog.call_args.args[-1], QLineEdit.EchoMode.Password)
+        w.configure_market_key()
+        dialog = w.settings_dialog
+        dialog.api_key.setText(value)
+        self.assertEqual(dialog.api_key.echoMode(), QLineEdit.EchoMode.Password)
+        dialog.save_button.click()
         self.assertEqual(w.source_box.currentData(), "tencent")
-        self.assertIn("保存失败", w.source_hint.text())
-        self.assertNotIn(value, w.source_hint.text())
+        self.assertIn("未能保存", dialog.error.text())
+        self.assertNotIn(value, dialog.error.text())
         self.sources.configure_key.side_effect = None
-        with patch("chengchuan.ui.window.QInputDialog.getText", return_value=(value, True)):
-            w.configure_market_key()
+        dialog.save_button.click()
         self.wait("day")
         self.sources.configure_key.assert_called_with(value)
         self.assertEqual(w.source_box.currentData(), "meoz")

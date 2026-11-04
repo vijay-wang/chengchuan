@@ -18,6 +18,7 @@ class ChartCursor(QObject):
         self.inspector = None
         self.vwap = {}
         self.active_plot = None
+        self.show_crosshair, self.show_tooltip = True, True
         pen = pg.mkPen("#90a6bd", width=1, style=Qt.PenStyle.DashLine)
         self.price_x, self.price_y, self.volume_x, self.volume_y = (
             pg.InfiniteLine(angle=angle, pen=pen) for angle in (90, 0, 90, 0)
@@ -38,6 +39,17 @@ class ChartCursor(QObject):
             )
             tip.hide()
             self.tips[plot] = tip
+
+    def configure(self, show_crosshair=True, show_tooltip=True, opacity=63):
+        self.hide()
+        self.show_crosshair, self.show_tooltip = show_crosshair, show_tooltip
+        alpha = round(255 * opacity / 100)
+        for tip in self.tips.values():
+            tip.setStyleSheet(
+                f"QLabel {{ background: rgba(10, 20, 31, {alpha}); color: #e5eff8; "
+                "border: 1px solid rgba(130, 158, 184, 100); border-radius: 6px; "
+                "padding: 7px 9px; font-size: 12px; }"
+            )
 
     @property
     def lines(self):
@@ -85,12 +97,12 @@ class ChartCursor(QObject):
                 other_tip.hide()
         self.price_x.setPos(index)
         self.volume_x.setPos(index)
-        self.price_x.show()
-        self.volume_x.show()
+        self.price_x.setVisible(self.show_crosshair)
+        self.volume_x.setVisible(self.show_crosshair)
         horizontal = self.price_y if plot is self.price else self.volume_y
         (self.volume_y if plot is self.price else self.price_y).hide()
         horizontal.setPos(pos.y())
-        horizontal.show()
+        horizontal.setVisible(self.show_crosshair)
         change = "—" if inspected.change_pct is None else f"{inspected.change_pct:+.2f}%"
         color = (
             theme.MUTED
@@ -121,7 +133,7 @@ class ChartCursor(QObject):
             max(6, min(x, viewport.width() - tip.width() - 6)),
             max(6, min(y, viewport.height() - tip.height() - 6)),
         )
-        tip.show()
+        tip.setVisible(self.show_tooltip)
         tip.raise_()
         # Request both linked viewports, including the old crosshair/tooltip area.
         # update() is asynchronous and Qt merges multiple pending mouse events.

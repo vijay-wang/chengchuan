@@ -60,4 +60,11 @@ QMenu { background: #132130; border: 1px solid #354d65; padding: 6px; }
 QCalendarWidget QWidget { background: #132130; color: #dce6f0; }
 QCalendarWidget QToolButton { color: #dce6f0; background: #1b3044; border: none; border-radius: 4px; padding: 6px; }
 QCalendarWidget QAbstractItemView { background: #132130; color: #dce6f0; selection-background-color: #276f62; selection-color: #ffffff; outline: none; }
+QWidget#settingsSidebar { background: #101a27; border-right: 1px solid #203044; }
+QFrame#settingsCard { background: #111c29; border: 1px solid #24364a; border-radius: 8px; }
+QFrame#settingsCard QLabel { background: transparent; border: none; }
+QFrame#settingsCard QCheckBox { background: transparent; }
+QWidget#settingsFooter { border-top: 1px solid #203044; }
+QSlider::groove:horizontal { background: #293b51; height: 5px; border-radius: 2px; }
+QSlider::handle:horizontal { background: #5ad7bf; width: 14px; margin: -5px 0; border-radius: 7px; }
 """

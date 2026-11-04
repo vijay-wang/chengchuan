@@ -39,6 +39,7 @@ def main(argv=None):
     from chengchuan.application.forecast import ForecastService
     from chengchuan.application.forecast_features import DailyFeatureExtractor
     from chengchuan.application.services import AnalysisService
+    from chengchuan.application.settings import SettingsService
     from chengchuan.domain.analogue import AnalogueModel
     from chengchuan.domain.market import stock_symbol
     from chengchuan.infrastructure.forecast_input import ForecastSnapshotRepository
@@ -84,7 +85,9 @@ def main(argv=None):
         workspace = SqliteWorkspaceRepository(state_dir / "workspace.sqlite")
         state = workspace.load("main")
         market_sources = ConfiguredMarketSources(state_dir, offline=args.offline)
-        market = market_sources.connect(args.provider or state.get("provider", "auto"))
+        settings_service = SettingsService(workspace, market_sources)
+        preferences = settings_service.load(state)
+        market = market_sources.connect(args.provider or preferences.provider)
         use_meoz = market.source_id == "meoz"
         window = MainWindow(
             ForecastSnapshotRepository(),
@@ -93,6 +96,8 @@ def main(argv=None):
             catalog,
             market=market,
             market_sources=market_sources,
+            settings_service=settings_service,
+            initial_provider=args.provider,
             forecast_service=ForecastService(
                 DailyFeatureExtractor(LegacyStageProvider()),
                 AnalogueModel(),

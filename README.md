@@ -4,7 +4,7 @@
 
 ![澄川行情工作台](design/chengchuan-market-daily.png)
 
-当前为**0.5.1日期跳转与图表悬停版**：修正十字线边缘重绘，新增界面内数据源切换和猫爪密钥配置。图表下方点击日期弹出日历，可查看指定日期行情；鼠标移动显示联动十字虚线和半透明行情浮窗。保留12周期、持久缓存、日线增量及额度保护，预测增强仍按P2后置。
+当前为**0.6统一设置版**：左侧“设置”或Ctrl＋逗号打开配置窗口，可输入API Key、选择数据源、设置更新检查和图表悬停。保留12周期、历史日期跳转、半透明浮窗、持久缓存与额度保护，预测增强仍按P2后置。
 
 **2026-11-04需求调整：** 后续只保留盘后、北京时间14:35两个时点预测下一交易日，优先级P2后置，排在行情、稳定性、基础指标和选区体验之后；相关Level-2／GPU增强同样后置。本次只更新文档，既有0.3 H1／H2代码未改动。详见[最新预测需求](docs/NEXT_DAY_FORECAST.md)及[排期](docs/ROADMAP.md)。
 
@@ -24,11 +24,19 @@ Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。安装包尚未构
 导致鼠标交互时出现`none_dealloc: deallocating None`并退出。已安装旧环境时，重新执行上面的
 `pip install`命令即可切换到已验证的6.11.3，无须更换Python。
 
-默认联网打开上次查看的股票，首次为久立特材002318。左侧输入六位代码回车可直接打开，输入名称或拼音后点击搜索结果；“加入自选”保存当前股票，自选支持拖动排序和移除。图表上方可选择周期、F5刷新、开启或暂停每15秒检查更新。
+默认联网打开上次查看的股票，首次为久立特材002318。左侧输入六位代码回车可直接打开，输入名称或拼音后点击搜索结果；“加入自选”保存当前股票，自选支持拖动排序和移除。图表上方可选择周期、F5刷新、开启或暂停自动更新；检查间隔默认15秒，可在设置中调整。
 
 已配置猫爪密钥时，启动默认使用猫爪／猫头鹰数据，周期下拉框提供全部12种图表。未配置时保留腾讯日K／采样分时。数据源分别缓存，不会混淆来源；当前全部价格不复权。
 
 **另一台电脑只看到分时／日K：** 这是腾讯基础源的能力。0.5.1在周期上方增加**数据源**，可选择“猫爪 · 12周期”；若本机尚未配置，点击**配置猫爪**，通过隐藏输入保存API Key。配置成功自动切换猫爪，之后可选全部12周期，并记住数据源选择。密钥仅保存在那台电脑，不随Git同步；腾讯下其他周期会置灰并说明原因，不再直接消失。`--provider auto|meoz|tencent`可覆盖保存的选择。
+
+0.6中“配置猫爪”直接进入统一设置的**数据连接**页。也可点击左侧**设置**或按**Ctrl＋逗号**，配置：
+
+- **数据连接**：自动／猫爪／腾讯来源、API Key输入和配置状态。已有密钥不回显，留空保留；默认隐藏输入，可显示本次输入。输入新密钥时默认选择猫爪，也可手动改选。
+- **常规与图表**：自动检查开关、15—3600秒检查间隔、十字线／浮窗开关及30%—90%浮窗不透明度。
+- **本地存储**：查看工作区、私有配置、原始缓存位置和本机请求计数。
+
+点击“保存设置”立即应用并持久保存；取消不保存修改。普通偏好与API Key分开存储，密钥仍只在本机私有文件中。`MEOZ_API_KEY`环境变量继续优先，配置页面会提示；配置状态未作联网权限验证。修改检查间隔不绕过付费接口180秒缓存或调用额度。
 
 ```bash
 # 本机已有配置时可直接运行；其他PC先通过隐藏输入配置密钥
@@ -105,6 +113,7 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 - [0.4多周期真实数据验证](docs/VALIDATION_MEOZ.md)
 - [0.5日期跳转与半透明浮窗验证](docs/VALIDATION_CHART_NAVIGATION.md)
 - [0.5.1边缘重绘、数据源及跨电脑配置验证](docs/VALIDATION_CHART_FIXES.md)
+- [0.6设置页与保存／恢复验证](docs/VALIDATION_SETTINGS.md)
 - [最新预测需求：盘后／14:35预测下一交易日，P2后置](docs/NEXT_DAY_FORECAST.md)
 - [量价联合预测原设计与0.3实施背景](docs/SHORT_HORIZON_FORECAST.md)
 - [历史逐日预测与准确率验证方案](docs/FORECAST_VALIDATION.md)（已实现诊断回放，完整验证仍待完成）
@@ -120,7 +129,7 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
-.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py tests/test_meoz*.py tests/test_chart*.py scripts
+.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py tests/test_meoz*.py tests/test_chart*.py tests/test_settings*.py scripts
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m chengchuan \
   --offline --state-dir /tmp/chengchuan-preview --screenshot /tmp/chengchuan-preview.png
 # Linux桌面交互复验：悬停、点击、Ctrl拖选、Esc和日K/分时切换
