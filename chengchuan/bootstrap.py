@@ -20,7 +20,7 @@ def main(argv=None):
     parser.add_argument(
         "--provider",
         choices=("auto", "meoz", "tencent"),
-        default="auto",
+        default=None,
         help="行情源，auto在已配置猫爪密钥时优先使用",
     )
     parser.add_argument("--offline", action="store_true", help="启动时仅打开本地快照，不联网")
@@ -38,7 +38,6 @@ def main(argv=None):
     from chengchuan.application.errors import StorageError
     from chengchuan.application.forecast import ForecastService
     from chengchuan.application.forecast_features import DailyFeatureExtractor
-    from chengchuan.application.market import MarketService
     from chengchuan.application.services import AnalysisService
     from chengchuan.domain.analogue import AnalogueModel
     from chengchuan.domain.market import stock_symbol
@@ -47,10 +46,7 @@ def main(argv=None):
     from chengchuan.infrastructure.forecast_reports import write_run
     from chengchuan.infrastructure.forecast_stage import LegacyStageProvider
     from chengchuan.infrastructure.legacy import LegacyAnalysisEngine
-    from chengchuan.infrastructure.market_cache import SqliteMarketCache
-    from chengchuan.infrastructure.market_data import TencentMarketProvider
-    from chengchuan.infrastructure.meoz_client import MeozClient, configured
-    from chengchuan.infrastructure.meoz_market import MeozMarketProvider
+    from chengchuan.infrastructure.market_sources import ConfiguredMarketSources
     from chengchuan.infrastructure.workspace import SqliteWorkspaceRepository
 
     app = QApplication.instance() or QApplication([])
@@ -86,20 +82,17 @@ def main(argv=None):
         if args.symbol:
             stock_symbol(args.symbol)
         workspace = SqliteWorkspaceRepository(state_dir / "workspace.sqlite")
-        use_meoz = args.provider == "meoz" or (args.provider == "auto" and configured())
-        market = MarketService(
-            MeozMarketProvider(MeozClient(offline=args.offline))
-            if use_meoz
-            else TencentMarketProvider(),
-            SqliteMarketCache(state_dir / ("meoz-market.sqlite" if use_meoz else "market.sqlite")),
-            ttl_seconds=180 if use_meoz else 15,
-        )
+        state = workspace.load("main")
+        market_sources = ConfiguredMarketSources(state_dir, offline=args.offline)
+        market = market_sources.connect(args.provider or state.get("provider", "auto"))
+        use_meoz = market.source_id == "meoz"
         window = MainWindow(
             ForecastSnapshotRepository(),
             AnalysisService(LegacyAnalysisEngine()),
             workspace,
             catalog,
             market=market,
+            market_sources=market_sources,
             forecast_service=ForecastService(
                 DailyFeatureExtractor(LegacyStageProvider()),
                 AnalogueModel(),

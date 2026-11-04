@@ -10,14 +10,12 @@ from PySide6.QtGui import QFont
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
-from chengchuan.application.market import MarketService
 from chengchuan.application.services import AnalysisService
 from chengchuan.domain.periods import PERIODS
 from chengchuan.infrastructure.forecast_input import ForecastSnapshotRepository
 from chengchuan.infrastructure.legacy import LegacyAnalysisEngine
-from chengchuan.infrastructure.market_cache import SqliteMarketCache
+from chengchuan.infrastructure.market_sources import ConfiguredMarketSources
 from chengchuan.infrastructure.meoz_client import MeozClient
-from chengchuan.infrastructure.meoz_market import MeozMarketProvider
 from chengchuan.infrastructure.workspace import SqliteWorkspaceRepository
 from chengchuan.ui.window import MainWindow
 
@@ -27,13 +25,13 @@ def check(symbol, folder, allow_network=False):
     app.setFont(QFont("Noto Sans CJK SC", 10))
     client = MeozClient(offline=not allow_network)
     usage_before = client.store.usage()
+    sources = ConfiguredMarketSources(folder, offline=not allow_network)
     window = MainWindow(
         ForecastSnapshotRepository(),
         AnalysisService(LegacyAnalysisEngine()),
         SqliteWorkspaceRepository(folder / "workspace.sqlite"),
-        market=MarketService(
-            MeozMarketProvider(client), SqliteMarketCache(folder / "market.sqlite"), ttl_seconds=180
-        ),
+        market=sources.connect("meoz"),
+        market_sources=sources,
     )
     window.resize(1600, 1000)
     window.show()
@@ -80,6 +78,10 @@ def check(symbol, folder, allow_network=False):
                     seconds=round(time.monotonic() - start, 3),
                 )
             )
+        window.period.showPopup()
+        app.processEvents()
+        window.period.view().window().grab().save(str(folder / "period-menu.png"))
+        window.period.hidePopup()
         after = client.store.usage()
         if not allow_network and after["total"] != usage_before["total"]:
             raise RuntimeError("离线验收意外产生了API计数")
@@ -87,6 +89,7 @@ def check(symbol, folder, allow_network=False):
             symbol=symbol,
             offline=not allow_network,
             platform=app.platformName(),
+            source=window.source_box.currentData(),
             observations=observations,
             usage_before=usage_before,
             usage_after=after,

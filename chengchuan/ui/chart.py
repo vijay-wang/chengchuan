@@ -5,7 +5,7 @@ from math import ceil, floor
 import pyqtgraph as pg
 from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPicture
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtWidgets import QGraphicsView, QVBoxLayout, QWidget
 
 from chengchuan.application.chart_tools import locate_date
 from chengchuan.domain.models import SHANGHAI, IndexRange, MarketSnapshot, SeriesKind
@@ -95,6 +95,10 @@ class MarketChart(QWidget):
         self.price.showGrid(x=True, y=True, alpha=0.13)
         self.volume.showGrid(y=True, alpha=0.1)
         for plot in (self.price, self.volume):
+            # InfiniteLine's clipped bounds + translucent child widgets can leave
+            # stale pixels at view/axis edges with Qt's minimal dirty rectangles.
+            # Coalesce complete plot repaints; cached candles and analysis stay intact.
+            plot.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.FullViewportUpdate)
             plot.hideAxis("left")
             plot.showAxis("right")
             plot.getAxis("right").setWidth(66)

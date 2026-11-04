@@ -57,11 +57,15 @@ class ChartCursor(QObject):
     def hide(self, plot=None):
         if plot is not None and self.active_plot is not plot:
             return
+        was_active = self.active_plot is not None
         for line in self.lines:
             line.hide()
         for tip in self.tips.values():
             tip.hide()
         self.active_plot = None
+        if was_active:
+            self.price.viewport().update()
+            self.volume.viewport().update()
 
     def move(self, point, plot):
         if self.inspector is None or not plot.getViewBox().sceneBoundingRect().contains(point):
@@ -76,8 +80,9 @@ class ChartCursor(QObject):
         bar = bars[index]
         inspected = self.inspector.inspect(index)
         self.active_plot = plot
-        for tip in self.tips.values():
-            tip.hide()
+        for other_plot, other_tip in self.tips.items():
+            if other_plot is not plot:
+                other_tip.hide()
         self.price_x.setPos(index)
         self.volume_x.setPos(index)
         self.price_x.show()
@@ -118,6 +123,10 @@ class ChartCursor(QObject):
         )
         tip.show()
         tip.raise_()
+        # Request both linked viewports, including the old crosshair/tooltip area.
+        # update() is asynchronous and Qt merges multiple pending mouse events.
+        self.price.viewport().update()
+        self.volume.viewport().update()
         prices = (
             f"开 {bar.open:.2f}   高 {bar.high:.2f}   低 {bar.low:.2f}   收 {bar.close:.2f}"
             if bar.open is not None

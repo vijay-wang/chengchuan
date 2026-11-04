@@ -27,8 +27,20 @@ class MarketCache(Protocol):
 
 
 class MarketService:
-    def __init__(self, provider: MarketProvider, cache: MarketCache, ttl_seconds=15):
+    def __init__(
+        self,
+        provider: MarketProvider,
+        cache: MarketCache,
+        ttl_seconds=15,
+        source_id="",
+        source_label="",
+        connection_notice="",
+        offline=False,
+    ):
         self.provider, self.cache, self.ttl_seconds = provider, cache, ttl_seconds
+        self.source_id, self.source_label = source_id, source_label
+        self.connection_notice = connection_notice
+        self.offline = offline
         intervals = getattr(provider, "intervals", None)
         self.intervals = (
             tuple(intervals) if isinstance(intervals, (tuple, list)) else ("day", "minute")
@@ -39,6 +51,8 @@ class MarketService:
         query = query.strip()[:40]
         if not query:
             return SearchResult(())
+        if self.offline:
+            return SearchResult(self.cache.search(query), True, "离线模式使用本地已知证券目录")
         try:
             items = self.provider.search(query)
         except MarketError as exc:
@@ -69,6 +83,10 @@ class MarketService:
         except StorageError as exc:
             cached, cache_notice = None, str(exc)
         now = datetime.now(timezone.utc)
+        if self.offline:
+            if cached:
+                return replace(cached, cached=True, notice="离线模式使用本地缓存")
+            raise MarketError("离线模式缺少该股票和周期的本地缓存")
         if (
             cached
             and not refresh
@@ -105,3 +123,11 @@ class MarketService:
         except StorageError as exc:
             cache_notice = str(exc)
         return replace(frame, notice="；".join(filter(None, [frame.notice, cache_notice])))
+
+
+class MarketSources(Protocol):
+    choices: tuple[tuple[str, str], ...]
+
+    def connect(self, source: str) -> MarketService: ...
+
+    def configure_key(self, value: str) -> None: ...

@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QLayout,
     QLineEdit,
@@ -33,7 +34,7 @@ from chengchuan import APP_NAME, __version__
 from chengchuan.application.errors import StorageError
 from chengchuan.domain.market import Instrument, stock_symbol
 from chengchuan.domain.models import SHANGHAI, IndexRange, SeriesKind
-from chengchuan.domain.periods import chart_period
+from chengchuan.domain.periods import PERIODS, chart_period
 from chengchuan.ui import theme
 from chengchuan.ui.chart import MarketChart
 from chengchuan.ui.date_navigator import DateNavigator
@@ -87,6 +88,7 @@ class MainWindow(QMainWindow):
         network_runner_factory=ProcessTaskRunner,
         forecast_service=None,
         forecast_writer=None,
+        market_sources=None,
     ):
         super().__init__()
         self.snapshots, self.analyzer, self.workspace = snapshots, analyzer, workspace
@@ -95,6 +97,7 @@ class MainWindow(QMainWindow):
         self.report = None
         self._loading = False
         self.market = market
+        self.market_sources = market_sources
         self.forecast_service, self.forecast_writer = forecast_service, forecast_writer
         self.forecast_panel = None
         self.network_runner_factory = network_runner_factory
@@ -221,10 +224,24 @@ class MainWindow(QMainWindow):
         tools.addWidget(clear)
         layout.addLayout(tools)
         if self.market:
+            source_row = QHBoxLayout()
+            source_row.addWidget(label("数据源", "muted"))
+            if self.market_sources:
+                self.source_box = QComboBox()
+                for code, title in self.market_sources.choices:
+                    self.source_box.addItem(title, code)
+                self.source_box.setCurrentIndex(self.source_box.findData(self.market.source_id))
+                self.source_box.currentIndexChanged.connect(self._source_changed)
+                source_row.addWidget(self.source_box)
+                self.key_button = QPushButton("配置猫爪")
+                self.key_button.clicked.connect(self.configure_market_key)
+                source_row.addWidget(self.key_button)
+            self.source_hint = label(getattr(self.market, "connection_notice", ""), "eyebrow", True)
+            source_row.addWidget(self.source_hint, 1)
+            layout.addLayout(source_row)
             controls = QHBoxLayout()
             self.period = QComboBox()
-            for code in getattr(self.market, "intervals", ("day", "minute")):
-                self.period.addItem(chart_period(code).label, code)
+            self._set_period_capabilities()
             self.period.setEnabled(False)
             self.period.currentIndexChanged.connect(self._period_changed)
             controls.addWidget(self.period)
@@ -258,6 +275,68 @@ class MainWindow(QMainWindow):
         self.coverage = label("", "eyebrow", True)
         layout.addWidget(self.coverage)
         self.splitter.addWidget(center)
+
+    def _set_period_capabilities(self):
+        previous = self.period.currentData()
+        supported = getattr(self.market, "intervals", ("day", "minute"))
+        self.period.blockSignals(True)
+        self.period.clear()
+        for p in PERIODS:
+            self.period.addItem(p.label, p.code)
+            item = self.period.model().item(self.period.count() - 1)
+            item.setEnabled(p.code in supported)
+            if p.code not in supported:
+                item.setToolTip("当前源不支持此周期，请切换猫爪并配置本机API Key")
+        self.period.setMaxVisibleItems(len(PERIODS))
+        self.period.setCurrentIndex(
+            self.period.findData(previous if previous in supported else "day")
+        )
+        self.period.blockSignals(False)
+
+    def _source_changed(self):
+        try:
+            market = self.market_sources.connect(self.source_box.currentData())
+        except (OSError, ValueError, StorageError):
+            self.source_hint.setText("数据源未能切换，请检查本机配置文件")
+            self.source_box.blockSignals(True)
+            self.source_box.setCurrentIndex(self.source_box.findData(self.market.source_id))
+            self.source_box.blockSignals(False)
+            return
+        symbol, interval, day = self.online_symbol, self.online_interval, self.history_date
+        self.market_runner.cancel()
+        self.browser.set_market(market)
+        self.market = market
+        self.source_hint.setText(market.connection_notice)
+        self._set_period_capabilities()
+        if symbol:
+            self.online_symbol = None
+            self.frame = None
+            self.open_stock(
+                symbol,
+                interval if interval in market.intervals else "day",
+                as_of=day if market.supports_history else None,
+            )
+
+    def configure_market_key(self):
+        value, accepted = QInputDialog.getText(
+            self,
+            "配置猫爪数据",
+            "输入本机API Key（隐藏输入，仅保存到本机，不随Git同步）。\n"
+            "若已设置MEOZ_API_KEY环境变量，将优先使用环境变量。",
+            QLineEdit.EchoMode.Password,
+        )
+        if not accepted:
+            return
+        try:
+            self.market_sources.configure_key(value)
+        except (OSError, ValueError, TypeError):
+            self.source_hint.setText("API Key保存失败，请检查格式和本机配置文件权限")
+            return
+        index = self.source_box.findData("meoz")
+        if self.source_box.currentIndex() == index:
+            self._source_changed()
+        else:
+            self.source_box.setCurrentIndex(index)
 
     def _build_inspector(self):
         inspector = QWidget()
@@ -585,6 +664,14 @@ class MainWindow(QMainWindow):
 
     def _period_changed(self):
         if self.online_symbol:
+            if self.period.currentData() not in getattr(
+                self.market, "intervals", ("day", "minute")
+            ):
+                self.period.blockSignals(True)
+                self.period.setCurrentIndex(self.period.findData(self.online_interval))
+                self.period.blockSignals(False)
+                self.source_hint.setText("当前源不支持此周期，请切换猫爪并配置本机API Key")
+                return
             day = self.history_date if getattr(self.market, "supports_history", False) else None
             self.open_stock(self.online_symbol, self.period.currentData(), as_of=day)
 
@@ -741,6 +828,8 @@ class MainWindow(QMainWindow):
                 interval=self.online_interval,
                 auto_refresh=self.auto_refresh.isChecked(),
             )
+            if self.market_sources:
+                state["provider"] = self.source_box.currentData()
         if self.snapshot and self.selection:
             state.update(
                 revision=self.snapshot.revision,

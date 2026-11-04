@@ -1,16 +1,20 @@
+import tempfile
 import time
 import unittest
 from dataclasses import replace
 from datetime import date
+from pathlib import Path
+from unittest.mock import Mock, patch
 
 import test_meoz_desktop as harness
 
 DESKTOP = harness.DESKTOP
 
 if DESKTOP:
-    from PySide6.QtCore import QEvent, QPointF, Qt
+    from PySide6.QtCore import QEvent, QObject, QPointF, Qt
+    from PySide6.QtGui import QMouseEvent
     from PySide6.QtTest import QTest
-    from PySide6.QtWidgets import QTableView
+    from PySide6.QtWidgets import QLineEdit, QTableView
 
     from chengchuan.domain.models import SHANGHAI
 
@@ -47,6 +51,10 @@ class ChartNavigationDesktopTests(unittest.TestCase):
 
     def setUp(self):
         harness.MultiPeriodDesktopTests.setUp(self)
+        if self.app.platformName() == "xcb":
+            self.window.raise_()
+            self.window.activateWindow()
+            self.assertTrue(QTest.qWaitForWindowActive(self.window, 1000))
         self.market = HistoryMarket()
         self.window.market = self.market
         self.window.open_stock("002318", "five_day")
@@ -119,7 +127,17 @@ class ChartNavigationDesktopTests(unittest.TestCase):
                 rect.left() + rect.width() * x_fraction, rect.top() + rect.height() * y_fraction
             )
         )
-        QTest.mouseMove(plot.viewport(), point)
+        # Remote X11 cursor warping need not dispatch a native movement event.
+        # Exercise the actual Qt viewport/scene path deterministically instead.
+        event = QMouseEvent(
+            QEvent.Type.MouseMove,
+            QPointF(point),
+            QPointF(plot.viewport().mapToGlobal(point)),
+            Qt.MouseButton.NoButton,
+            Qt.MouseButton.NoButton,
+            Qt.KeyboardModifier.NoModifier,
+        )
+        self.app.sendEvent(plot.viewport(), event)
         QTest.qWait(15)
         self.app.processEvents()
         return point
@@ -167,3 +185,130 @@ class ChartNavigationDesktopTests(unittest.TestCase):
         self.assertIsNone(w.history_date)
         self.assertFalse(w.chart.date_markers[0].isVisible())
         self.assertEqual(len(self.market.requests), calls)
+
+    def test_bottom_edge_sweeps_and_leave_repaint_both_linked_viewports(self):
+        class PaintRecorder(QObject):
+            def __init__(self, viewport):
+                super().__init__(viewport)
+                self.rects = []
+                viewport.installEventFilter(self)
+
+            def eventFilter(self, watched, event):
+                if event.type() == QEvent.Type.Paint:
+                    self.rects.append(event.rect())
+                return False
+
+        chart = self.window.chart
+        plots = (chart.price, chart.volume)
+        recorders = [PaintRecorder(plot.viewport()) for plot in plots]
+        for plot in plots:
+            for i in range(20):
+                self.move_to(plot, 0.05 + 0.9 * i / 19, 0.98)
+            self.app.sendEvent(plot.viewport(), QEvent(QEvent.Type.Leave))
+            self.app.processEvents()
+            QTest.qWait(20)
+        self.assertFalse(any(line.isVisible() for line in chart.cursor.lines))
+        self.assertFalse(any(tip.isVisible() for tip in chart.cursor.tips.values()))
+        for plot, recorder in zip(plots, recorders):
+            self.assertTrue(
+                any(r.contains(plot.viewport().rect()) for r in recorder.rects),
+                "旧光标与底部边缘必须得到完整重绘",
+            )
+
+
+class FakeSources:
+    choices = (("meoz", "猫爪 · 12周期"), ("tencent", "腾讯 · 基础行情"))
+
+    def __init__(self):
+        self.markets = {}
+        self.configure_key = Mock()
+        for code in ("tencent", "meoz"):
+            market = HistoryMarket()
+            market.source_id = code
+            market.supports_history = code == "meoz"
+            market.connection_notice = (
+                "本机未配置猫爪，请配置" if code == "meoz" else "仅分时／日K，请切换猫爪"
+            )
+            if code == "tencent":
+                market.intervals = ("day", "minute")
+            self.markets[code] = market
+
+    def connect(self, code):
+        return self.markets[code]
+
+
+@unittest.skipUnless(DESKTOP, "需要desktop依赖")
+class MarketSourceDesktopTests(unittest.TestCase):
+    setUpClass = classmethod(harness.MultiPeriodDesktopTests.setUpClass.__func__)
+    wait = harness.MultiPeriodDesktopTests.wait
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.sources = FakeSources()
+        self.workspace = harness.SqliteWorkspaceRepository(Path(temp.name) / "state.sqlite")
+        self.window = harness.MainWindow(
+            harness.LegacyJsonRepository(),
+            harness.AnalysisService(harness.LegacyAnalysisEngine()),
+            self.workspace,
+            market=self.sources.connect("tencent"),
+            market_sources=self.sources,
+            network_runner_factory=harness.LatestTaskRunner,
+        )
+        self.addCleanup(self.window.close)
+        self.window.show()
+        if self.app.platformName() == "xcb":
+            self.window.raise_()
+            self.window.activateWindow()
+            self.assertTrue(QTest.qWaitForWindowActive(self.window, 1000))
+        self.window.auto_refresh.setChecked(False)
+        self.window.open_stock("002318", "day")
+        self.wait("day")
+
+    def test_source_switch_unlocks_all_periods_and_keeps_cache_and_browser_context_separate(self):
+        w = self.window
+        self.assertEqual(w.period.count(), 12)
+        self.assertIn("仅分时／日K", w.source_hint.text())
+        item = w.period.model().item(w.period.findData("min15"))
+        self.assertFalse(item.isEnabled())
+        self.assertIn("切换猫爪", item.toolTip())
+        before = len(w.market.requests)
+        w.period.setCurrentIndex(w.period.findData("min15"))
+        self.assertEqual(w.period.currentData(), "day")
+        self.assertEqual(len(w.market.requests), before)
+        w.source_box.setCurrentIndex(w.source_box.findData("meoz"))
+        self.wait("day")
+        self.assertIs(w.browser.market, w.market)
+        self.assertTrue(all(w.period.model().item(i).isEnabled() for i in range(12)))
+        for interval in ("five_day", "week", "year", "min15", "min60"):
+            w.period.setCurrentIndex(w.period.findData(interval))
+            self.wait(interval)
+            self.assertEqual(w.snapshot.series.interval, interval)
+        w.source_box.setCurrentIndex(w.source_box.findData("tencent"))
+        self.wait("day")
+        self.assertEqual(w.period.currentData(), "day")
+        self.assertIs(w.browser.market, self.sources.markets["tencent"])
+        w.close()
+        self.assertEqual(self.workspace.load("main")["provider"], "tencent")
+
+    def test_password_configuration_cancel_failure_and_success(self):
+        w = self.window
+        with patch("chengchuan.ui.window.QInputDialog.getText", return_value=("", False)):
+            w.configure_market_key()
+        self.sources.configure_key.assert_not_called()
+        value = "nc_" + "a" * 32
+        self.sources.configure_key.side_effect = ValueError("invalid")
+        with patch(
+            "chengchuan.ui.window.QInputDialog.getText", return_value=(value, True)
+        ) as dialog:
+            w.configure_market_key()
+        self.assertEqual(dialog.call_args.args[-1], QLineEdit.EchoMode.Password)
+        self.assertEqual(w.source_box.currentData(), "tencent")
+        self.assertIn("保存失败", w.source_hint.text())
+        self.assertNotIn(value, w.source_hint.text())
+        self.sources.configure_key.side_effect = None
+        with patch("chengchuan.ui.window.QInputDialog.getText", return_value=(value, True)):
+            w.configure_market_key()
+        self.wait("day")
+        self.sources.configure_key.assert_called_with(value)
+        self.assertEqual(w.source_box.currentData(), "meoz")

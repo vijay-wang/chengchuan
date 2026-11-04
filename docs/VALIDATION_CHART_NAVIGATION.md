@@ -41,3 +41,5 @@ QT_QPA_PLATFORM=offscreen .venv/bin/python -m scripts.check_chart_navigation \
 - 当前Qt X11运行环境缺少xcb相关库，原生窗口启动未通过环境检查；本轮截图和交互验证采用offscreen。Windows、真实显示器与高DPI仍待独立验收。
 - 更长分钟区间分页、起止日期范围、持续WebSocket、复权和严格历史时点版本尚未实现。历史截断使用当前可得数据重建，不能证明数据在过去那个时刻已经可得。
 - 未缓存历史日期需实际请求，可能受套餐、供应商覆盖和额度限制；本地账本不能推知其他客户端用量。
+
+后续0.5.1通过本地运行库补齐完成Ubuntu 22.04原生窗口、底部重绘及数据源配置验证，详见[修复验证记录](VALIDATION_CHART_FIXES.md)。上文保留0.5.0当轮结果。

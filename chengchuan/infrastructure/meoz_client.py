@@ -5,6 +5,7 @@ import json
 import os
 import re
 import sqlite3
+import tempfile
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -44,6 +45,26 @@ def configured():
         return True
     except MarketError:
         return False
+
+
+def save_private_key(value, path=None):
+    """Atomically save a local credential; callers must never echo the value."""
+    value = value.strip()
+    if not re.fullmatch(r"nc_[A-Za-z0-9_-]{32}", value):
+        raise ValueError("API Key格式无效")
+    path = Path(path) if path is not None else Path.home() / ".meoz/config.json"
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    obj = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    obj["api_key"] = value
+    descriptor, name = tempfile.mkstemp(prefix=".config-", dir=path.parent)
+    temporary = Path(name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            json.dump(obj, stream, ensure_ascii=False)
+        temporary.chmod(0o600)
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def clean_error(message):

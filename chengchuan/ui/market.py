@@ -70,6 +70,14 @@ class MarketBrowser(QWidget):
         item.setData(Qt.ItemDataRole.UserRole, instrument)
         target.addItem(item)
 
+    def set_market(self, market):
+        self.timer.stop()
+        self.runner.cancel()
+        self.market = market
+        self.results.clear()
+        self.results.hide()
+        self.hint.setText("已切换数据源，输入名称／代码重新搜索")
+
     def _open_item(self, item):
         self.open_requested.emit(item.data(Qt.ItemDataRole.UserRole).symbol)
 
