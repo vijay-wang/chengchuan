@@ -248,6 +248,23 @@ class MeozClient:
         self.store = store or MeozStore()
         self.offline = offline
 
+    def peek(self, api, params, fields="", service="live"):
+        """Read a previously stored response without credentials, reservations or HTTP."""
+        body = dict(apiname=api, params=params)
+        if fields:
+            body["fields"] = fields
+        cache_key = hashlib.sha256(json.dumps([service, body], sort_keys=True).encode()).hexdigest()
+        cached = self.store.cached(cache_key, time.time(), None, None)
+        if cached is None:
+            return None
+        payload, fetched = cached
+        return ApiResult(
+            decode_rows(payload),
+            datetime.fromtimestamp(fetched, timezone.utc),
+            True,
+            LIVE_URLS[0] if service == "live" else HISTORY_URL,
+        )
+
     def query(self, api, params, fields="", service="live", max_age=180, min_fetched=None):
         if service not in ("live", "history"):
             raise ValueError("猫爪服务类型无效")

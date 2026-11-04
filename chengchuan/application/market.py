@@ -1,11 +1,12 @@
 """行情用例：有时效的缓存、离线回退和可替换数据源。"""
 
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timezone
 from typing import Protocol
 
 from chengchuan.application.errors import MarketError, StorageError
 from chengchuan.domain.market import Instrument, MarketFrame, SearchResult, stock_symbol
+from chengchuan.domain.models import SHANGHAI
 from chengchuan.domain.periods import chart_period
 
 
@@ -16,7 +17,7 @@ class MarketProvider(Protocol):
 
 
 class MarketCache(Protocol):
-    def load(self, symbol: str, interval: str) -> MarketFrame | None: ...
+    def load(self, symbol: str, interval: str, as_of: date | None = None) -> MarketFrame | None: ...
 
     def save(self, frame: MarketFrame) -> None: ...
 
@@ -32,6 +33,7 @@ class MarketService:
         self.intervals = (
             tuple(intervals) if isinstance(intervals, (tuple, list)) else ("day", "minute")
         )
+        self.supports_history = getattr(provider, "supports_history", False) is True
 
     def search(self, query: str) -> SearchResult:
         query = query.strip()[:40]
@@ -47,26 +49,52 @@ class MarketService:
             return SearchResult(items, notice="搜索成功，但本地目录未能保存")
         return SearchResult(items)
 
-    def load(self, symbol: str, interval: str, refresh=False) -> MarketFrame:
+    def load(self, symbol: str, interval: str, refresh=False, as_of=None) -> MarketFrame:
         symbol = stock_symbol(symbol)
         chart_period(interval)
         if interval not in self.intervals:
             raise ValueError("当前数据源不支持此周期；完整周期需配置猫爪数据")
+        if as_of is not None:
+            if type(as_of) is not date or as_of > datetime.now(SHANGHAI).date():
+                raise ValueError("请选择今天或更早的日期")
+            if not self.supports_history:
+                raise MarketError("当前源不支持补取指定日期，请使用已有数据或猫爪数据")
         cache_notice = ""
         try:
-            cached = self.cache.load(symbol, interval)
+            cached = (
+                self.cache.load(symbol, interval)
+                if as_of is None
+                else self.cache.load(symbol, interval, as_of)
+            )
         except StorageError as exc:
             cached, cache_notice = None, str(exc)
         now = datetime.now(timezone.utc)
         if (
             cached
             and not refresh
-            and 0 <= (now - cached.retrieved_at).total_seconds() < self.ttl_seconds
+            and (
+                as_of is not None
+                and as_of < now.astimezone(SHANGHAI).date()
+                and cached.retrieved_at >= datetime.combine(as_of, time(15, 15), SHANGHAI)
+                or 0 <= (now - cached.retrieved_at).total_seconds() < self.ttl_seconds
+            )
         ):
-            return replace(cached, cached=True, notice="最近取得的本地缓存")
+            return replace(
+                cached,
+                cached=True,
+                notice="所选历史日期的本地缓存" if as_of is not None else "最近取得的本地缓存",
+            )
         try:
-            frame = self.provider.fetch(symbol, interval)
-            if frame.snapshot.series.symbol != symbol or frame.snapshot.series.interval != interval:
+            frame = (
+                self.provider.fetch(symbol, interval)
+                if as_of is None
+                else self.provider.fetch_at_date(symbol, interval, as_of)
+            )
+            if (
+                frame.snapshot.series.symbol != symbol
+                or frame.snapshot.series.interval != interval
+                or frame.as_of != as_of
+            ):
                 raise MarketError("数据源返回了其他证券或周期，已拒绝显示")
         except MarketError as exc:
             if cached:

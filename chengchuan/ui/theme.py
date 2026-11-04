@@ -56,4 +56,8 @@ QTabBar::tab:selected { color: #5ad7bf; border-bottom: 2px solid #5ad7bf; }
 QTextBrowser, QTableWidget { background: #101a27; border: 1px solid #233548; border-radius: 5px; font-size: 12px; }
 QHeaderView::section { background: #172536; color: #8193a8; border: none; padding: 5px; }
 QDateEdit, QSpinBox { background: #142233; border: 1px solid #293b51; padding: 4px; }
+QMenu { background: #132130; border: 1px solid #354d65; padding: 6px; }
+QCalendarWidget QWidget { background: #132130; color: #dce6f0; }
+QCalendarWidget QToolButton { color: #dce6f0; background: #1b3044; border: none; border-radius: 4px; padding: 6px; }
+QCalendarWidget QAbstractItemView { background: #132130; color: #dce6f0; selection-background-color: #276f62; selection-color: #ffffff; outline: none; }
 """

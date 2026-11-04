@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QSplitter,
     QTabWidget,
     QVBoxLayout,
@@ -35,6 +36,7 @@ from chengchuan.domain.models import SHANGHAI, IndexRange, SeriesKind
 from chengchuan.domain.periods import chart_period
 from chengchuan.ui import theme
 from chengchuan.ui.chart import MarketChart
+from chengchuan.ui.date_navigator import DateNavigator
 from chengchuan.ui.forecast_panel import ForecastPanel
 from chengchuan.ui.market import MarketBrowser
 from chengchuan.ui.tasks import LatestTaskRunner, ProcessTaskRunner
@@ -99,6 +101,7 @@ class MainWindow(QMainWindow):
         self.online_symbol = None
         self.online_interval = "day"
         self.frame = None
+        self.history_date = None
         self.current_path = None
         self.market_runner = network_runner_factory(self) if market else None
         if self.market_runner:
@@ -242,11 +245,16 @@ class MainWindow(QMainWindow):
         self.market_status = label("本地历史快照 · 不自动更新", "eyebrow", True)
         layout.addWidget(self.market_status)
         self.ohlc = label("鼠标悬停查看行情", "eyebrow")
+        self.ohlc.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         layout.addWidget(self.ohlc)
         self.chart = MarketChart()
         self.chart.range_selected.connect(self.analyze_selection)
         self.chart.hover_text.connect(self.ohlc.setText)
         layout.addWidget(self.chart, 1)
+        self.date_nav = DateNavigator()
+        self.date_nav.requested.connect(self.jump_to_date)
+        self.date_nav.latest_requested.connect(self.return_to_latest)
+        layout.addWidget(self.date_nav)
         self.coverage = label("", "eyebrow", True)
         layout.addWidget(self.coverage)
         self.splitter.addWidget(center)
@@ -310,6 +318,7 @@ class MainWindow(QMainWindow):
         if self.market_runner:
             self.market_runner.cancel()
         self.online_symbol = None
+        self.history_date = None
         self.frame = None
         self._reset_display()
         self.market_status.setText("本地历史快照 · 不自动更新")
@@ -336,6 +345,12 @@ class MainWindow(QMainWindow):
         if self.forecast_panel:
             self.forecast_panel.set_context(None)
         self.chart.reset()
+        self.date_nav.set_context(
+            bool(self.online_symbol),
+            self.history_date,
+            historical=self.history_date is not None,
+            hint="正在加载所选日期…" if self.history_date else "打开行情后选择日期",
+        )
         self.chart.setEnabled(False)
         self.stock_title.setText("正在打开股票…")
         self.quote.setText("—")
@@ -381,6 +396,12 @@ class MainWindow(QMainWindow):
             f"{snapshot.source}  ·  {bars[0].timestamp:%Y-%m-%d} — "
             f"{bars[-1].timestamp:%Y-%m-%d}  ·  {len(bars):,} 条记录"
         )
+        self.date_nav.set_context(
+            True,
+            self.history_date or bars[-1].timestamp.astimezone(SHANGHAI).date(),
+            historical=self.history_date is not None,
+            hint="历史浏览 · 自动更新暂停" if self.history_date else "点击日期弹出日历",
+        )
         if unchanged:
             return
         self.runner.cancel()
@@ -389,6 +410,7 @@ class MainWindow(QMainWindow):
             preserve_view=preserve,
             vwap_points=self.frame.vwap_points if self.frame else (),
             baseline_price=self.frame.baseline_price if self.frame else None,
+            reference_closes=self._chart_references(),
         )
         self.report = None
         if preserve and old_selection is None:
@@ -411,7 +433,16 @@ class MainWindow(QMainWindow):
                 pass
         self.chart.set_selection(selection)
 
-    def open_stock(self, symbol, interval=None, refresh=False):
+    def _chart_references(self):
+        if self.frame is None:
+            return ()
+        references = dict(self.frame.reference_closes)
+        if self.frame.quote:
+            day = self.frame.quote.timestamp.astimezone(SHANGHAI).date()
+            references.setdefault(day, self.frame.quote.previous_close)
+        return tuple(sorted(references.items()))
+
+    def open_stock(self, symbol, interval=None, refresh=False, as_of=None):
         if self.market is None:
             return
         try:
@@ -420,12 +451,17 @@ class MainWindow(QMainWindow):
             self.status.setText(str(exc))
             return
         interval = interval or self.period.currentData()
-        switching = (symbol, interval) != (self.online_symbol, self.online_interval)
+        switching = (symbol, interval, as_of) != (
+            self.online_symbol,
+            self.online_interval,
+            self.history_date,
+        )
         self.online_symbol, self.online_interval = symbol, interval
+        self.history_date = as_of
         self.current_path = None
         self.period.setEnabled(True)
         self.refresh_button.setEnabled(True)
-        self.auto_refresh.setEnabled(True)
+        self.auto_refresh.setEnabled(as_of is None)
         self.period.blockSignals(True)
         self.period.setCurrentIndex(self.period.findData(interval))
         self.period.blockSignals(False)
@@ -435,19 +471,36 @@ class MainWindow(QMainWindow):
             self._loading = True
             self.stock_title.setText(f"{symbol[2:]} · 正在获取行情")
         self.market_status.setText("正在连接行情源…" if switching else "正在刷新行情…")
+        self.date_nav.set_context(
+            True,
+            as_of,
+            historical=as_of is not None,
+            hint="正在加载所选日期…" if as_of else "正在加载最新行情…",
+        )
+        task = (
+            partial(self.market.load, symbol, interval, refresh)
+            if as_of is None
+            else partial(self.market.load, symbol, interval, refresh, as_of=as_of)
+        )
         self.market_runner.submit(
-            symbol + interval, None, partial(self.market.load, symbol, interval, refresh)
+            symbol + interval + (as_of.isoformat() if as_of else ""), None, task
         )
 
     def _market_ready(self, frame):
         series = frame.snapshot.series
-        if (series.symbol, series.interval) != (self.online_symbol, self.online_interval):
+        if (series.symbol, series.interval, frame.as_of) != (
+            self.online_symbol,
+            self.online_interval,
+            self.history_date,
+        ):
             return
         preserve = self.frame is not None
         self.frame = frame
         self._show_snapshot(frame.snapshot, preserve)
         self.watch_button.setEnabled(True)
         self._frame_status()
+        if self.history_date:
+            self._focus_history_date(self.history_date)
 
     def _frame_status(self):
         frame = self.frame
@@ -457,11 +510,15 @@ class MainWindow(QMainWindow):
         if quote:
             self.quote.setText(f"{quote.price:.2f}")
             self.quote.setStyleSheet(f"color: {theme.UP if quote.change_pct >= 0 else theme.DOWN};")
-            self.quote_caption.setText(f"较昨收 {quote.change_pct:+.2f}%")
+            self.quote_caption.setText(
+                f"{'较当日昨收' if self.history_date else '较昨收'} {quote.change_pct:+.2f}%"
+            )
             quote_time = quote.timestamp.astimezone(SHANGHAI).strftime("%m-%d %H:%M:%S")
         else:
             quote_time = "未取得"
-            self.quote_caption.setText("图表末价 · 未取得最新报价")
+            self.quote_caption.setText(
+                "历史图表末价" if self.history_date else "图表末价 · 未取得最新报价"
+            )
         bar = frame.snapshot.series.bars[-1]
         chart_time = bar.timestamp.astimezone(SHANGHAI)
         # Daily bars are labelled at the session close, even while still forming.
@@ -480,12 +537,17 @@ class MainWindow(QMainWindow):
             else ("已取得行情" if quote is None else ("报价时间较早" if stale else "已联网"))
         )
         session = "交易时段（节假日以数据源为准）" if trading_hours else "非连续竞价时段"
+        if self.history_date:
+            mode = "历史缓存" if frame.cached else "历史行情"
+            session = "按所选日期截断"
         text = (
             f"{mode} · {frame.provider_name or '腾讯财经'} · {session}\n报价时间 {quote_time} · 图表截至 {chart_label} · "
             f"取得于 {frame.retrieved_at.astimezone(SHANGHAI):%m-%d %H:%M:%S} · 北京时间 · 行情可能延迟"
         )
         if frame.notice:
             text += "\n" + frame.notice
+        if self.history_date:
+            text = f"历史日期 {self.history_date:%Y-%m-%d} · 自动更新暂停\n" + text
         self.market_status.setText(text)
         self.market_status.setToolTip("\n".join(frame.sources))
 
@@ -500,23 +562,66 @@ class MainWindow(QMainWindow):
             self.summary.setText("行情未取得")
             self.market_status.setText("连接失败：" + error + " · 可按F5重试或导入本地快照")
         self.status.setText("行情请求未完成：" + error)
+        self.date_nav.hint.setText("所选日期未加载：" + error)
 
     def refresh_market(self):
         if self.online_symbol:
-            self.open_stock(self.online_symbol, self.online_interval, refresh=True)
+            if self.history_date and not getattr(self.market, "supports_history", False):
+                self.date_nav.hint.setText("当前源只定位已加载历史，返回最新后可刷新")
+                return
+            self.open_stock(
+                self.online_symbol, self.online_interval, refresh=True, as_of=self.history_date
+            )
 
     def _auto_refresh(self):
         if (
             self.market
             and self.online_symbol
             and self.auto_refresh.isChecked()
+            and self.history_date is None
             and self.market_runner.active is None
         ):
             self.refresh_market()
 
     def _period_changed(self):
         if self.online_symbol:
-            self.open_stock(self.online_symbol, self.period.currentData())
+            day = self.history_date if getattr(self.market, "supports_history", False) else None
+            self.open_stock(self.online_symbol, self.period.currentData(), as_of=day)
+
+    def _focus_history_date(self, day):
+        try:
+            location = self.chart.focus_date(day)
+            message = location.caption
+        except ValueError:
+            # A non-trading target after the last available record is explicitly reported.
+            last = self.snapshot.series.bars[-1].timestamp.astimezone(SHANGHAI).date()
+            self.chart.focus_date(last)
+            message = f"所选日无有效记录，实际数据截至 {last:%Y-%m-%d}"
+        self.date_nav.set_context(True, day, historical=True, hint=message + " · 自动更新暂停")
+
+    def jump_to_date(self, day):
+        if self.online_symbol and getattr(self.market, "supports_history", False):
+            self.open_stock(self.online_symbol, self.online_interval, as_of=day)
+            return
+        try:
+            location = self.chart.focus_date(day)
+        except ValueError as exc:
+            self.date_nav.hint.setText(str(exc) + "；可使用猫爪补取或导入更多数据")
+            return
+        self.history_date = day
+        if self.market_runner:
+            self.market_runner.cancel()
+            self.auto_refresh.setEnabled(False)
+        self.date_nav.set_context(True, day, historical=True, hint=location.caption + " · 历史浏览")
+
+    def return_to_latest(self):
+        if self.online_symbol:
+            self.open_stock(self.online_symbol, self.online_interval)
+        elif self.snapshot:
+            self.history_date = None
+            self.chart.show_latest()
+            day = self.snapshot.series.bars[-1].timestamp.astimezone(SHANGHAI).date()
+            self.date_nav.set_context(True, day, hint="本地快照 · 已返回末尾")
 
     def _add_current_stock(self):
         if self.snapshot and self.online_symbol:

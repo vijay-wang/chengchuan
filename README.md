@@ -4,7 +4,7 @@
 
 ![澄川行情工作台](design/chengchuan-market-daily.png)
 
-当前为**0.4多周期行情版**：配置猫爪后支持分时、五日、日／周／月／季／年K，以及1／5／15／30／60分钟K；分时与五日包含源提供的累计均价线。增加本地持久缓存、日线增量更新和共享调用额度保护。0.3预测研究及原有区间分析继续保留，预测增强仍按P2后置。
+当前为**0.5日期跳转与图表悬停版**：图表下方点击日期弹出日历，可查看指定日期行情；鼠标移动显示联动十字虚线和半透明行情浮窗。保留12周期、持久缓存、日线增量及额度保护，预测增强仍按P2后置。
 
 **2026-11-04需求调整：** 后续只保留盘后、北京时间14:35两个时点预测下一交易日，优先级P2后置，排在行情、稳定性、基础指标和选区体验之后；相关Level-2／GPU增强同样后置。本次只更新文档，既有0.3 H1／H2代码未改动。详见[最新预测需求](docs/NEXT_DAY_FORECAST.md)及[排期](docs/ROADMAP.md)。
 
@@ -45,6 +45,10 @@ Windows使用`.venv\Scripts\python`替换`.venv/bin/python`。安装包尚未构
 报价时间、图表覆盖时间和取得时间分别显示，统一为北京时间。当前采用查询和缓存，可能延迟，尚未持续订阅WebSocket。收盘后价格保持源提供的最后有效报价；缺少报价时间时不伪造实时报价。刷新同股时保留缩放和选区，切股时清空上一只股票的数据与分析。
 
 Ctrl左键拖动选择时间段，松开后计算，拖动边界调整，Esc清除，Ctrl＋O导入旧版标准JSON快照。本地快照模式不会自动联网更新。
+
+图表下方**日期跳转**弹出日历，点击某一天后加载对应日期：分时查看该交易日，五日／分钟K查看截至所选日的最近5个市场交易日，日／周／月／季／年K截断到所选日。非交易日显示上一可用交易日并提示实际日期。历史浏览暂停自动更新，切换周期和F5保留所选日期；点击**返回最新**恢复。翻月不请求行情，重复查看优先读取本地缓存；未缓存的历史分钟需要补取，仍受额度保护。腾讯源及本地快照只定位已有覆盖范围。
+
+鼠标在价格／成交量图内移动时，十字虚线联动，半透明浮窗随鼠标移动并避开边缘，不拦截拖选或缩放。显示记录时间（年月日时分秒）、实际价格及涨跌幅，另列光标所在价位；秒字段遵循源记录，分钟数据不代表秒级成交。日内／日K优先使用源昨收，周月季年使用前根K线收盘，缺基准显示“—”。
 
 ```bash
 .venv/bin/python -m chengchuan --symbol 600519 --interval day
@@ -97,6 +101,7 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 - [分阶段路线与验收清单](docs/ROADMAP.md)
 - [猫爪数据接入、缓存与调用额度](docs/MEOZ_DATA.md)
 - [0.4多周期真实数据验证](docs/VALIDATION_MEOZ.md)
+- [0.5日期跳转与半透明浮窗验证](docs/VALIDATION_CHART_NAVIGATION.md)
 - [最新预测需求：盘后／14:35预测下一交易日，P2后置](docs/NEXT_DAY_FORECAST.md)
 - [量价联合预测原设计与0.3实施背景](docs/SHORT_HORIZON_FORECAST.md)
 - [历史逐日预测与准确率验证方案](docs/FORECAST_VALIDATION.md)（已实现诊断回放，完整验证仍待完成）
@@ -112,7 +117,7 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
-.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py tests/test_meoz*.py scripts
+.venv/bin/ruff check chengchuan tests/test_chengchuan.py tests/test_desktop.py tests/test_market*.py tests/test_forecast*.py tests/test_meoz*.py tests/test_chart*.py scripts
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m chengchuan \
   --offline --state-dir /tmp/chengchuan-preview --screenshot /tmp/chengchuan-preview.png
 # Linux桌面交互复验：悬停、点击、Ctrl拖选、Esc和日K/分时切换
@@ -124,6 +129,9 @@ QT_QPA_PLATFORM=offscreen .venv/bin/python -m scripts.check_forecast_workbench \
   --dataset .chengchuan/forecast/inputs/sz002318.json --before 2026-11-03
 # 猫爪12周期验收：默认只读已有本地数据，不消耗API额度
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m scripts.check_meoz_workbench
+# 日期跳转与浮窗：只读缓存，需先有对应日期数据
+QT_QPA_PLATFORM=offscreen .venv/bin/python -m scripts.check_chart_navigation \
+  --date 2026-10-16 --output-dir .chengchuan/meoz/date-navigation
 ```
 
 离屏检查不能替代真实目标系统和显示器验收。详见[行情工作台验证](docs/VALIDATION_MARKET.md)和[原Qt崩溃排查记录](docs/VALIDATION.md)。

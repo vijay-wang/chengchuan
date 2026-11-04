@@ -302,6 +302,20 @@ class MeozTests(unittest.TestCase):
                 provider.fetch("002318", p.code)
             self.assertEqual(count, 7)
             self.assertEqual(http.call_count, 7)
+            past = provider.fetch_at_date(
+                "002318", "minute", datetime.strptime(DAYS[-2], "%Y%m%d").date()
+            )
+            self.assertEqual(past.as_of.strftime("%Y%m%d"), DAYS[-2])
+            self.assertTrue(
+                all(b.timestamp.strftime("%Y%m%d") == DAYS[-2] for b in past.snapshot.series.bars)
+            )
+            weekend = provider.fetch_at_date("002318", "minute", datetime(2026, 10, 31).date())
+            self.assertEqual(
+                weekend.snapshot.series.bars[-1].timestamp.strftime("%Y%m%d"), "20261030"
+            )
+            monthly = provider.fetch_at_date("002318", "month", datetime(2026, 11, 3).date())
+            self.assertLessEqual(monthly.snapshot.series.bars[-1].timestamp.date(), monthly.as_of)
+            self.assertEqual(http.call_count, 7)
         self.assertEqual([f.snapshot.series.interval for f in frames], [p.code for p in PERIODS])
         five = next(f for f in frames if f.snapshot.series.interval == "five_day")
         self.assertEqual(len(five.vwap_points), 1205)

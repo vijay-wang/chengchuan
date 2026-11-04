@@ -3,7 +3,7 @@
 import hashlib
 import json
 from dataclasses import asdict, replace
-from datetime import datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
 from chengchuan.application.errors import MarketError
 from chengchuan.application.resampling import calendar_bars, minute_bars
@@ -58,6 +58,7 @@ def parse_rows(rows, symbol, intraday=False):
 
 class MeozMarketProvider:
     intervals = tuple(PERIOD_BY_CODE)
+    supports_history = True
 
     def __init__(self, client=None):
         self.client = client or MeozClient()
@@ -73,6 +74,79 @@ class MeozMarketProvider:
             return self._fetch(stock_symbol(symbol), chart_period(interval))
         except (ValueError, KeyError, TypeError, OverflowError) as exc:
             raise MarketError("猫爪行情字段无效或缺失：" + clean_error(exc)) from None
+
+    def fetch_at_date(self, symbol, interval, as_of):
+        if type(as_of) is not date or as_of > datetime.now(SHANGHAI).date():
+            raise MarketError("请选择今天或更早的日期")
+        try:
+            return self._fetch(stock_symbol(symbol), chart_period(interval), as_of=as_of)
+        except (ValueError, KeyError, TypeError, OverflowError) as exc:
+            raise MarketError("历史行情字段无效：" + clean_error(exc)) from None
+
+    def _daily_at_date(self, symbol, as_of):
+        archive = self.client.store.daily_history(symbol)
+        end = as_of.strftime("%Y%m%d")
+        latest = max(str(r["tradedate"]) for r in archive[0]) if archive and archive[0] else ""
+        complete_after = datetime.combine(as_of, time(15, 15), SHANGHAI).timestamp()
+        if (
+            archive
+            and archive[0]
+            and (end < latest or end == latest and archive[1] >= complete_after)
+        ):
+            rows = tuple(r for r in archive[0] if str(r["tradedate"]) <= end)
+            return ApiResult(
+                rows,
+                datetime.fromtimestamp(archive[1], timezone.utc),
+                True,
+                "https://sz.meoz.cn:6688/api",
+                "复用本地日线定位历史日期",
+            )
+        result = self.client.query(
+            "daily",
+            dict(symbols=symbol[2:], startdate="20000101", enddate=end),
+            DAILY_FIELDS,
+            max_age=None,
+            min_fetched=complete_after,
+        )
+        if any(str(r["tradedate"]) > end for r in result.rows):
+            raise MarketError("历史日线返回所选日期之后的数据，拒绝显示")
+        parse_rows(result.rows, symbol)
+        if result.rows and (not archive or end >= archive[2]):
+            self.client.store.save_daily(symbol, result.rows, result.fetched_at.timestamp(), end)
+        return result
+
+    def _date_calendar(self, as_of, daily_rows, count=5):
+        end = as_of.strftime("%Y%m%d")
+        recent = self.client.peek("tradecal", {"recentdays": 6})
+        if recent:
+            all_days = sorted(str(r["cal_date"]) for r in recent.rows if str(r["is_open"]) == "1")
+            covered = [d for d in all_days if d <= end]
+            if len(covered) >= count and end <= all_days[-1]:
+                return covered[-count:], recent
+        try:
+            result = self.client.query(
+                "tradecal",
+                dict(
+                    startdate=(as_of - timedelta(days=35)).strftime("%Y%m%d"),
+                    enddate=as_of.strftime("%Y%m%d"),
+                ),
+                max_age=None,
+            )
+            days = sorted(
+                str(r["cal_date"])
+                for r in result.rows
+                if str(r["is_open"]) == "1" and str(r["cal_date"]) <= end
+            )
+            if not days:
+                raise MarketError("该日期之前暂无可用交易日历")
+            return days[-count:], result
+        except MarketError:
+            if not self.client.offline:
+                raise
+            days = sorted(str(r["tradedate"]) for r in daily_rows if str(r["tradedate"]) <= end)[
+                -count:
+            ]
+            return days, None
 
     def _daily(self, symbol, now, freshness, min_fetched):
         archive = self.client.store.daily_history(symbol)
@@ -134,7 +208,7 @@ class MeozMarketProvider:
             )
         return result
 
-    def _fetch(self, symbol, period):
+    def _fetch(self, symbol, period, as_of=None):
         now = datetime.now(SHANGHAI)
         after_close = now.time() >= time(15, 15)
         freshness = 180 if now.weekday() < 5 and time(9, 15) <= now.time() < time(15, 15) else 86400
@@ -143,10 +217,14 @@ class MeozMarketProvider:
             if after_close
             else None
         )
-        daily = self._daily(symbol, now, freshness, min_fetched)
+        daily = (
+            self._daily(symbol, now, freshness, min_fetched)
+            if as_of is None or as_of == now.date()
+            else self._daily_at_date(symbol, as_of)
+        )
         daily_bars, skipped = parse_rows(daily.rows, symbol)
         if not daily_bars:
-            raise MarketError("猫爪尚无该股票有效日线")
+            raise MarketError("所选日期之前尚无该股票有效日线，请选择数据覆盖范围内的日期")
         daily_rows = sorted(daily.rows, key=lambda r: str(r["tradedate"]))
         last_day = daily_bars[-1].timestamp.strftime("%Y%m%d")
         last_row = next(r for r in reversed(daily_rows) if str(r["tradedate"]) == last_day)
@@ -161,7 +239,17 @@ class MeozMarketProvider:
             if period.code != "day":
                 notes.append("由已取得真实日线按自然周期聚合；当前周期结束前末根仍会变化。")
         else:
-            if period.code == "minute":
+            if as_of is not None:
+                dates, calendar = self._date_calendar(
+                    as_of, daily_rows, count=1 if period.code == "minute" else 5
+                )
+                if calendar:
+                    results.append(calendar)
+                else:
+                    notes.append("离线交易日历未缓存，使用已存日线日期定位。")
+                if period.code == "minute":
+                    dates = dates[-1:]
+            elif period.code == "minute":
                 dates = [daily_bars[-1].timestamp.strftime("%Y%m%d")]
             else:
                 calendar = self.client.query(
@@ -198,6 +286,8 @@ class MeozMarketProvider:
                     result = self.client.query(
                         "minute", dict(symbols=symbol[2:], period="1m"), MINUTE_FIELDS
                     )
+                    if any(str(r["tradedate"]) != day for r in result.rows):
+                        raise MarketError(f"本地缺少{day}分钟数据，请联网补取") from None
                 results.append(result)
                 if len(result.rows) >= 6000:
                     raise MarketError("分钟响应达到6000行截断边界，拒绝当成完整数据")
@@ -252,8 +342,15 @@ class MeozMarketProvider:
                     Instrument(symbol, name), bars[-1].close, float(pre_close), bars[-1].timestamp
                 )
         series = MarketSeries(symbol, name, period.code, kind, tuple(bars))
+        references = tuple(
+            (datetime.strptime(str(r["tradedate"]), "%Y%m%d").date(), float(r["pre_close"]))
+            for r in daily_rows
+            if r.get("pre_close") is not None and float(r["pre_close"]) > 0
+        )
         revision = hashlib.sha256(
-            json.dumps([asdict(series), vwap, baseline], default=str, sort_keys=True).encode()
+            json.dumps(
+                [asdict(series), vwap, baseline, references], default=str, sort_keys=True
+            ).encode()
         ).hexdigest()
         snapshot = MarketSnapshot(
             revision, series, quality_notes=tuple(notes), source="猫爪／猫头鹰数据"
@@ -262,6 +359,8 @@ class MeozMarketProvider:
         calls = "、".join(f"{api} {n}/95" for api, n in usage["interfaces"].items())
         notice = f"本机今日请求{usage['total']}次（含失败预留）；{calls}。计数不含其他客户端。"
         notice += " 自动刷新最短复用180秒缓存；盘后确认后当日缓存复用。"
+        if as_of is not None:
+            notice += f" 历史日期{as_of:%Y-%m-%d}；实际图表截至{bars[-1].timestamp:%Y-%m-%d}。"
         warnings = tuple(dict.fromkeys(r.notice for r in results if r.notice))
         if warnings:
             notice += " " + "；".join(warnings)
@@ -279,4 +378,6 @@ class MeozMarketProvider:
             vwap_points=vwap,
             baseline_price=baseline,
             provider_name="猫爪／猫头鹰",
+            as_of=as_of,
+            reference_closes=references,
         )

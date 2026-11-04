@@ -4,7 +4,7 @@ import json
 import sqlite3
 from contextlib import contextmanager
 from dataclasses import asdict
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 from chengchuan.application.errors import StorageError
@@ -15,7 +15,7 @@ from chengchuan.domain.models import MarketBar, MarketSeries, MarketSnapshot, Se
 def encode_frame(frame):
     return json.dumps(
         {
-            "version": 2,
+            "version": 3,
             "series": asdict(frame.snapshot.series),
             "revision": frame.snapshot.revision,
             "source": frame.snapshot.source,
@@ -27,6 +27,8 @@ def encode_frame(frame):
             "vwap_points": [(t.isoformat(), v) for t, v in frame.vwap_points],
             "baseline_price": frame.baseline_price,
             "provider_name": frame.provider_name,
+            "as_of": frame.as_of.isoformat() if frame.as_of else None,
+            "reference_closes": [(d.isoformat(), v) for d, v in frame.reference_closes],
         },
         default=lambda value: value.isoformat(),
         ensure_ascii=False,
@@ -36,7 +38,7 @@ def encode_frame(frame):
 
 def decode_frame(raw):
     obj = json.loads(raw)
-    if obj["version"] not in (1, 2):
+    if obj["version"] not in (1, 2, 3):
         raise ValueError("行情缓存版本不受支持")
     series = obj["series"]
     bars = tuple(
@@ -69,6 +71,10 @@ def decode_frame(raw):
         vwap_points=tuple((datetime.fromisoformat(t), v) for t, v in obj.get("vwap_points", [])),
         baseline_price=obj.get("baseline_price"),
         provider_name=obj.get("provider_name", ""),
+        as_of=date.fromisoformat(obj["as_of"]) if obj.get("as_of") else None,
+        reference_closes=tuple(
+            (date.fromisoformat(d), v) for d, v in obj.get("reference_closes", ())
+        ),
     )
 
 
@@ -104,14 +110,17 @@ class SqliteMarketCache:
             if con:
                 con.close()
 
-    def load(self, symbol, interval):
+    def load(self, symbol, interval, as_of=None):
         with self._connect() as con:
             row = con.execute(
-                "SELECT data FROM quotes WHERE symbol=? AND interval=?", (symbol, interval)
+                "SELECT data FROM quotes WHERE symbol=? AND interval=?",
+                (symbol, interval if as_of is None else interval + "@" + as_of.isoformat()),
             ).fetchone()
             frame = decode_frame(row[0]) if row else None
             if frame and (
-                frame.snapshot.series.symbol != symbol or frame.snapshot.series.interval != interval
+                frame.snapshot.series.symbol != symbol
+                or frame.snapshot.series.interval != interval
+                or frame.as_of != as_of
             ):
                 raise StorageError("行情缓存的证券或周期不一致")
             return frame
@@ -124,7 +133,9 @@ class SqliteMarketCache:
                 "DO UPDATE SET retrieved=excluded.retrieved, data=excluded.data",
                 (
                     series.symbol,
-                    series.interval,
+                    series.interval
+                    if frame.as_of is None
+                    else series.interval + "@" + frame.as_of.isoformat(),
                     frame.retrieved_at.isoformat(),
                     encode_frame(frame),
                 ),
@@ -133,7 +144,8 @@ class SqliteMarketCache:
                 "DELETE FROM quotes WHERE rowid NOT IN (SELECT rowid FROM quotes "
                 "ORDER BY retrieved DESC LIMIT 200)"
             )
-        self.remember((Instrument(series.symbol, series.name),))
+        if frame.as_of is None:
+            self.remember((Instrument(series.symbol, series.name),))
 
     def remember(self, items):
         with self._connect() as con:

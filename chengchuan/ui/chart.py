@@ -7,9 +7,11 @@ from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPicture
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
+from chengchuan.application.chart_tools import locate_date
 from chengchuan.domain.models import SHANGHAI, IndexRange, MarketSnapshot, SeriesKind
 from chengchuan.domain.periods import chart_period
 from chengchuan.ui import theme
+from chengchuan.ui.chart_cursor import ChartCursor
 
 pg.setConfigOptions(antialias=True, background=theme.BACKGROUND, foreground=theme.MUTED)
 
@@ -100,11 +102,19 @@ class MarketChart(QWidget):
             plot.setMouseEnabled(x=True, y=False)
             plot.viewport().installEventFilter(self)
         self.price.scene().sigMouseMoved.connect(self._hover)
+        self.volume.scene().sigMouseMoved.connect(self._hover_volume)
         self.price.getViewBox().sigXRangeChanged.connect(self._fit_visible)
-        self.cross_x = pg.InfiniteLine(
-            angle=90, pen=pg.mkPen("#42576e", style=Qt.PenStyle.DashLine)
+        self.cursor = ChartCursor(self.price, self.volume, self)
+        self.cursor.text.connect(self.hover_text.emit)
+        self.cross_x, self.cross_y = self.cursor.price_x, self.cursor.price_y
+        self.date_markers = tuple(
+            pg.InfiniteLine(angle=90, pen=pg.mkPen("#c8aa69", style=Qt.PenStyle.DotLine))
+            for _ in range(2)
         )
-        self.cross_y = pg.InfiniteLine(angle=0, pen=pg.mkPen("#42576e", style=Qt.PenStyle.DashLine))
+        for marker in self.date_markers:
+            marker.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
+            marker.setZValue(50)
+            marker.hide()
         self.region = pg.LinearRegionItem(
             brush=pg.mkBrush(76, 155, 157, 28), pen=pg.mkPen("#488d91"), swapMode="sort"
         )
@@ -119,6 +129,8 @@ class MarketChart(QWidget):
         layout.addWidget(self.volume, 1)
 
     def reset(self):
+        self.cursor.hide()
+        self.cursor.inspector = None
         self.snapshot = None
         self._drag_start = None
         self.price.clear()
@@ -128,10 +140,17 @@ class MarketChart(QWidget):
         self.axis.update()
 
     def set_snapshot(
-        self, snapshot: MarketSnapshot, preserve_view=False, vwap_points=(), baseline_price=None
+        self,
+        snapshot: MarketSnapshot,
+        preserve_view=False,
+        vwap_points=(),
+        baseline_price=None,
+        reference_closes=(),
     ):
         old_range = self.price.getViewBox().viewRange()[0] if preserve_view else None
         self._updating = True
+        self.cursor.hide()
+        self.cursor.inspector = None
         self.snapshot = snapshot
         self._vwap, self._baseline = dict(vwap_points), baseline_price
         self._drag_start = None
@@ -216,8 +235,10 @@ class MarketChart(QWidget):
         self.volume.setLabel("right", "万股")
         self.price.addItem(self.region)
         self.volume.addItem(self.volume_region)
-        self.price.addItem(self.cross_x, ignoreBounds=True)
-        self.price.addItem(self.cross_y, ignoreBounds=True)
+        self.cursor.attach(snapshot.series, reference_closes, baseline_price, vwap_points)
+        for plot, marker in zip((self.price, self.volume), self.date_markers):
+            plot.addItem(marker, ignoreBounds=True)
+            marker.hide()
         self.region.setBounds((-0.5, len(bars) - 0.5))
         visible = (
             90
@@ -230,6 +251,32 @@ class MarketChart(QWidget):
             self.price.setXRange(*old_range, padding=0)
         self._fit_visible()
         self._updating = False
+
+    def focus_date(self, day):
+        if self.snapshot is None:
+            raise ValueError("请先打开行情")
+        location = locate_date(self.snapshot.series, day)
+        self.cursor.hide()
+        left, right = self.price.getViewBox().viewRange()[0]
+        count = len(self.snapshot.series.bars)
+        width = max(3, min(right - left, count))
+        start = max(-0.5, min(location.index - width / 2, count - width + 0.5))
+        self.price.setXRange(start, start + width, padding=0)
+        for marker in self.date_markers:
+            marker.setPos(location.index)
+            marker.show()
+        return location
+
+    def show_latest(self):
+        if self.snapshot is None:
+            return
+        count = len(self.snapshot.series.bars)
+        period = self.snapshot.series.interval
+        visible = 90 if chart_period(period).daily else (count if period == "five_day" else 242)
+        self.cursor.hide()
+        for marker in self.date_markers:
+            marker.hide()
+        self.price.setXRange(max(-1, count - visible), count, padding=0.02)
 
     def _fit_visible(self, *args):
         if self.snapshot is None:
@@ -276,6 +323,9 @@ class MarketChart(QWidget):
             self.set_selection(selection)
 
     def eventFilter(self, watched, event):
+        if event.type() in (QEvent.Type.Leave, QEvent.Type.WindowDeactivate):
+            plot = self.price if watched is self.price.viewport() else self.volume
+            self.cursor.hide(plot)
         if self.snapshot is None:
             return super().eventFilter(watched, event)
         kind = event.type()
@@ -311,20 +361,7 @@ class MarketChart(QWidget):
         return super().eventFilter(watched, event)
 
     def _hover(self, point):
-        if not self.snapshot or not self.price.getViewBox().sceneBoundingRect().contains(point):
-            return
-        pos = self.price.getViewBox().mapSceneToView(point)
-        i = max(0, min(len(self.snapshot.series.bars) - 1, round(pos.x())))
-        bar = self.snapshot.series.bars[i]
-        self.cross_x.setPos(i)
-        self.cross_y.setPos(pos.y())
-        stamp = bar.timestamp.astimezone(SHANGHAI).strftime("%Y-%m-%d %H:%M")
-        if bar.open is not None:
-            prices = (
-                f"开 {bar.open:.2f}   高 {bar.high:.2f}   低 {bar.low:.2f}   收 {bar.close:.2f}"
-            )
-        else:
-            prices = f"采样价 {bar.close:.2f}"
-        if bar.timestamp in self._vwap:
-            prices += f"   当日均价 {self._vwap[bar.timestamp]:.3f}"
-        self.hover_text.emit(f"{stamp}   {prices}   量 {bar.volume_shares / 10000:,.2f}万股")
+        self.cursor.move(point, self.price)
+
+    def _hover_volume(self, point):
+        self.cursor.move(point, self.volume)

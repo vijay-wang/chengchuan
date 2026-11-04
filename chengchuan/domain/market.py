@@ -2,10 +2,10 @@
 
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from math import isfinite
 
-from chengchuan.domain.models import MarketSnapshot
+from chengchuan.domain.models import SHANGHAI, MarketSnapshot
 
 
 def stock_symbol(value: str) -> str:
@@ -57,10 +57,21 @@ class MarketFrame:
     vwap_points: tuple[tuple[datetime, float], ...] = ()
     baseline_price: float | None = None
     provider_name: str = ""
+    as_of: date | None = None
+    reference_closes: tuple[tuple[date, float], ...] = ()
 
     def __post_init__(self):
         object.__setattr__(self, "sources", tuple(self.sources))
         object.__setattr__(self, "vwap_points", tuple(self.vwap_points))
+        object.__setattr__(self, "reference_closes", tuple(self.reference_closes))
+        if self.as_of is not None and type(self.as_of) is not date:
+            raise ValueError("历史日期必须为交易日期")
+        if self.as_of is not None and any(
+            b.timestamp.astimezone(SHANGHAI).date() > self.as_of for b in self.snapshot.series.bars
+        ):
+            raise ValueError("历史图表包含所选日期之后的数据")
+        if any(type(d) is not date or not isfinite(v) or v <= 0 for d, v in self.reference_closes):
+            raise ValueError("昨收价参考数据无效")
         if self.baseline_price is not None and (
             not isfinite(self.baseline_price) or self.baseline_price <= 0
         ):
