@@ -17,6 +17,7 @@ from chengchuan.domain.market import (
 )
 from chengchuan.domain.market_dashboard import MarketOverview, QuoteDetails
 from chengchuan.domain.market_views import HeatmapSnapshot, MoneyFlow, funds_symbol
+from chengchuan.domain.microstructure import OrderDaySummary
 from chengchuan.domain.models import SHANGHAI
 from chengchuan.domain.periods import chart_period
 from chengchuan.domain.sectors import SectorSnapshot
@@ -308,6 +309,16 @@ class MarketService:
         if not self.supports_microstructure or not callable(fetch) or type(day) is not date:
             raise MarketError("当前来源没有该日逐笔缓存")
         return fetch(stock_symbol(symbol), day, max_pages)
+
+    def load_chart_order_summary(self, symbol, day, max_pages=8):
+        fetch = getattr(self.provider, "fetch_chart_order_summary", None)
+        if not self.supports_microstructure or not callable(fetch) or type(day) is not date:
+            raise MarketError("当前来源不提供分钟原单统计")
+        symbol = stock_symbol(symbol)
+        value = fetch(symbol, day, max_pages)
+        if not isinstance(value, OrderDaySummary) or (value.symbol, value.day) != (symbol, day):
+            raise MarketError("图中逐笔统计返回了其他证券或日期")
+        return value
 
     def load_microstructure_file(self, path):
         if self.tape_repository is None:

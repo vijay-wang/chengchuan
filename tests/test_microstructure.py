@@ -14,6 +14,7 @@ from chengchuan.application.microstructure import (
     order_queue,
     select_bands,
     select_executions,
+    summarize_day,
 )
 from chengchuan.domain.microstructure import OrderEvent, OrderFilter, OrderTape, TradeEvent
 from chengchuan.domain.models import SHANGHAI
@@ -73,6 +74,15 @@ def tape(orders=None, trades=None, complete=True):
 
 
 class OriginalOrderTests(unittest.TestCase):
+    def test_day_summary_is_compact_and_rejects_mixed_date_or_identity(self):
+        result = summarize_day(analyze_orders(tape()))
+        self.assertFalse(hasattr(result, "restored"))
+        self.assertTrue(result.complete)
+        self.assertEqual(result.minute_groups[0].minute.date(), DAY)
+        for changes in (dict(symbol="002318"), dict(day=DAY + timedelta(days=1)), dict(complete=1)):
+            with self.assertRaises(ValueError):
+                replace(result, **changes)
+
     def test_inline_executions_keep_chronology_and_only_merge_adjacent_ids(self):
         source = tape(
             orders=[order(1, shares=300), order(2, shares=100), order(10, "S", shares=400)],
@@ -302,6 +312,24 @@ class OriginalOrderTests(unittest.TestCase):
 
 
 class TickAdapterTests(unittest.TestCase):
+    def test_chart_summary_fetch_does_not_query_ten_level_quotes(self):
+        client = Mock()
+        empty = ApiResult(
+            (),
+            NOW,
+            True,
+            "https://example.invalid",
+            page=dict(has_more=False, next_cursor=None, tradedate="20261104"),
+        )
+        client.query.side_effect = [empty, empty]
+        tape_result = fetch_tape(client, "002318", DAY, include_quotes=False)
+        self.assertTrue(tape_result.orders_complete and tape_result.trades_complete)
+        self.assertEqual(
+            [c.args[0] for c in client.query.call_args_list],
+            ["level2_order_history", "level2_trade_history"],
+        )
+        self.assertEqual(tape_result.quotes, ())
+
     def test_cached_loader_never_reads_credentials_or_calls_http_on_cache_miss(self):
         with tempfile.TemporaryDirectory() as folder:
             store = MeozStore(Path(folder) / "cache.sqlite")

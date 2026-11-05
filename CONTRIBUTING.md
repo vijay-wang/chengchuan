@@ -8,6 +8,8 @@
 
 ## 安装与验证
 
+Agent执行GUI验证默认使用`QT_QPA_PLATFORM=offscreen`，后台运行并保存离屏截图。用户正在工作，未经用户明确要求，不得使用xcb、激活前台窗口或在桌面弹出软件界面。
+
 ```bash
 python -m venv .venv
 .venv/bin/python -m pip install -c requirements/desktop-tested.txt -e '.[desktop,dev]'

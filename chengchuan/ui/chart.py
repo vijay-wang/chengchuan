@@ -189,6 +189,10 @@ class MarketChart(QWidget):
         self._vwap, self._baseline = dict(vwap_points), baseline_price
         self._drag_start = None
         bars = snapshot.series.bars
+        for plot in (self.price, self.volume):
+            plot.getViewBox().setLimits(
+                xMin=-0.5, xMax=len(bars) - 0.5, minXRange=min(2, len(bars)), maxXRange=len(bars)
+            )
         if not incremental:
             self.price.clear()
             self.volume.clear()
@@ -310,7 +314,7 @@ class MarketChart(QWidget):
         left, right = self.price.getViewBox().viewRange()[0]
         count = len(self.snapshot.series.bars)
         width = max(3, min(right - left, count))
-        start = max(-0.5, min(location.index - width / 2, count - width + 0.5))
+        start = max(-0.5, min(location.index - width / 2, count - width - 0.5))
         self.price.setXRange(start, start + width, padding=0)
         for marker in self.date_markers:
             marker.setPos(location.index)

@@ -141,6 +141,15 @@ class MeozMarketProvider:
         cached = MeozClient(store=self.client.store, offline=True)
         return fetch_tape(cached, symbol, day, max_pages, quote_optional=True)
 
+    def fetch_chart_order_summary(self, symbol, day, max_pages=8):
+        from chengchuan.application.microstructure import analyze_orders, summarize_day
+        from chengchuan.infrastructure.microstructure import fetch_tape
+
+        tape = fetch_tape(self.client, symbol, day, max_pages, include_quotes=False)
+        if not tape.orders:
+            raise MarketError("该日逐笔尚未发布或没有记录")
+        return summarize_day(analyze_orders(tape))
+
     def stream_order_book(self, symbol, stop):
         if self.client.offline:
             raise MarketError("离线模式不建立实时订阅")

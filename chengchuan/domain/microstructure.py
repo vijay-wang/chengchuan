@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 
 from chengchuan.domain.market import stock_symbol
+from chengchuan.domain.models import SHANGHAI
 
 
 @dataclass(frozen=True)
@@ -153,6 +154,28 @@ class OrderBandGroup:
 class MinuteOrderBands:
     minute: datetime
     groups: tuple[OrderBandGroup, ...]
+
+
+@dataclass(frozen=True)
+class OrderDaySummary:
+    symbol: str
+    day: date
+    cutoff: datetime
+    complete: bool
+    minute_groups: tuple[MinuteOrderBands, ...]
+    notice: str = ""
+
+    def __post_init__(self):
+        object.__setattr__(self, "minute_groups", tuple(self.minute_groups))
+        if stock_symbol(self.symbol) != self.symbol or type(self.complete) is not bool:
+            raise ValueError("逐日原单统计身份或完整性无效")
+        if self.cutoff.utcoffset() is None or self.cutoff.astimezone(SHANGHAI).date() != self.day:
+            raise ValueError("逐日原单截止日期无效")
+        if any(
+            m.minute.utcoffset() is None or m.minute.astimezone(SHANGHAI).date() != self.day
+            for m in self.minute_groups
+        ):
+            raise ValueError("分钟统计混入其他交易日")
 
 
 @dataclass(frozen=True)

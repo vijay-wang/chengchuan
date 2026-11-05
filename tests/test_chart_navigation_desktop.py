@@ -77,6 +77,24 @@ class ChartNavigationDesktopTests(unittest.TestCase):
                 return
         self.fail("历史日期切换超时")
 
+    def test_zoom_out_and_pan_are_clamped_to_real_data_in_both_panes(self):
+        chart = self.window.chart
+        count = len(chart.snapshot.series.bars)
+        chart.price.setXRange(-10000, 10000, padding=0)
+        self.app.processEvents()
+        for plot in (chart.price, chart.volume):
+            left, right = plot.getViewBox().viewRange()[0]
+            self.assertGreaterEqual(left, -0.50001)
+            self.assertLessEqual(right, count - 0.49999)
+            self.assertAlmostEqual(right - left, count, places=3)
+        chart.price.setXRange(count * 0.2, count * 0.6, padding=0)
+        chart.price.getViewBox().translateBy(x=100000)
+        self.app.processEvents()
+        right = chart.price.getViewBox().viewRange()[0][1]
+        self.assertLessEqual(right, count - 0.49999)
+        chart.price.getViewBox().translateBy(x=-100000)
+        self.assertGreaterEqual(chart.price.getViewBox().viewRange()[0][0], -0.50001)
+
     def test_calendar_native_click_and_history_refresh_scope(self):
         w = self.window
         calls = len(self.market.requests)

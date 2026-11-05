@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from chengchuan.application.microstructure import BAND_LABELS, select_bands
+from chengchuan.application.microstructure import BAND_LABELS, select_bands, summarize_day
 from chengchuan.domain.microstructure import OrderFilter
 from chengchuan.domain.models import SHANGHAI
 from chengchuan.ui.market_dashboard import value_text
@@ -29,6 +29,8 @@ class ChartOrderController(QObject):
         super().__init__(parent)
         self.chart = chart
         self.analysis = None
+        self.day_summaries = {}
+        self.day_status = {}
         self.data_status = ""
         self.filters = OrderFilter()
         self.minute_bands = {}
@@ -42,8 +44,8 @@ class ChartOrderController(QObject):
         row = QHBoxLayout()
         self.show_minute = QCheckBox("悬停显示分钟委托分档")
         self.show_marks = QCheckBox("量柱标记")
-        self.load = QPushButton("读取逐笔")
-        self.load.setToolTip("按需读取当前证券及日期；悬停和筛选本身不会请求API。")
+        self.load = QPushButton("补齐图中逐笔")
+        self.load.setToolTip("逐日读取图中原单及成交，复用缓存；可重试缺失日期。")
         self.load.clicked.connect(self.requested)
         row.addWidget(self.show_minute)
         row.addWidget(self.show_marks)
@@ -90,8 +92,43 @@ class ChartOrderController(QObject):
 
     def set_analysis(self, analysis):
         self.analysis = analysis
+        self.day_summaries[analysis.day] = summarize_day(analysis)
+        self.day_status.pop(analysis.day, None)
         self.data_status = ""
         self._reindex()
+
+    def set_day_summary(self, summary):
+        self.day_summaries[summary.day] = summary
+        self.day_status.pop(summary.day, None)
+        if self.analysis is None or summary.day >= self.analysis.day:
+            self.analysis = summary
+        self._reindex()
+
+    def restore_days(self, summaries):
+        if not summaries:
+            return
+        self.day_summaries.update(summaries)
+        self.day_summaries = dict(sorted(self.day_summaries.items())[-20:])
+        self._reindex()
+
+    def required_days(self):
+        return (
+            tuple(
+                sorted(
+                    {
+                        b.timestamp.astimezone(SHANGHAI).date()
+                        for b in self.chart.snapshot.series.bars
+                    }
+                )
+            )
+            if self._supported()
+            else ()
+        )
+
+    def set_day_status(self, day, message):
+        self.day_status[day] = message
+        self._update_hint()
+        self._hover(self._hover_index)
 
     def set_data_status(self, message):
         self.data_status = message
@@ -101,6 +138,8 @@ class ChartOrderController(QObject):
 
     def clear(self):
         self.analysis = None
+        self.day_summaries.clear()
+        self.day_status.clear()
         self.data_status = ""
         self._hover_index = None
         self._reindex()
@@ -116,11 +155,12 @@ class ChartOrderController(QObject):
     def _reindex(self):
         self.overlay.hide()
         self._overlay_key = None
-        self.minute_bands = (
-            {m.minute: select_bands(m.groups, self.filters) for m in self.analysis.minute_groups}
-            if self.analysis
-            else {}
-        )
+        self.minute_bands = {
+            m.minute: select_bands(m.groups, self.filters)
+            for summary in self.day_summaries.values()
+            if summary.complete
+            for m in summary.minute_groups
+        }
         self._update_hint()
         self._schedule_markers()
         if self._hover_index is not None:
@@ -130,30 +170,34 @@ class ChartOrderController(QObject):
         snapshot = self.chart.snapshot
         return bool(snapshot and snapshot.series.interval in ("minute", "five_day", "min1"))
 
-    def _ready(self):
-        return (
-            self._supported()
-            and self.analysis is not None
-            and self.analysis.complete
-            and self.analysis.symbol == self.chart.snapshot.series.symbol
-            and any(
-                b.timestamp.astimezone(SHANGHAI).date() == self.analysis.day
-                for b in self.chart.snapshot.series.bars
-            )
+    def _ready(self, day=None):
+        if not self._supported():
+            return False
+        days = (day,) if day is not None else self.required_days()
+        return any(
+            d in self.day_summaries
+            and self.day_summaries[d].complete
+            and self.day_summaries[d].symbol == self.chart.snapshot.series.symbol
+            for d in days
         )
 
     def _update_hint(self):
         if not self._supported():
             text = "分钟分档及标记适用于分时、五日和1分钟K；勾选后启用。"
-        elif self.analysis is None:
-            text = self.data_status or "尚未加载逐笔：勾选后先读取本地缓存；无缓存请点“读取逐笔”。"
-        elif not self.analysis.complete:
-            text = "逐笔分页未齐：暂不发布分钟分档及标记，避免漏掉撤单。"
+        elif not self.day_summaries:
+            status = next(reversed(self.day_status.values())) if self.day_status else ""
+            text = self.data_status or status or "尚未加载逐笔：勾选后将逐日加载图中数据。"
         else:
+            required = self.required_days()
+            ready = sum(self._ready(day) for day in required)
             text = (
-                f"{self.analysis.day:%Y-%m-%d} · 原单提交分钟 · 状态截至{self.analysis.cutoff:%H:%M:%S} · "
-                f"{'含' if self.filters.include_unfilled else '剔除'}未成交／{'含' if self.filters.include_cancelled else '剔除'}撤单；与资金分档同步"
+                f"逐笔覆盖{ready}/{len(required)}天 · 按各日原单提交分钟，状态截至各日回放时点 · "
+                + f"{'含' if self.filters.include_unfilled else '剔除'}未成交／{'含' if self.filters.include_cancelled else '剔除'}撤单"
             )
+            if any(
+                d in self.day_summaries and not self.day_summaries[d].complete for d in required
+            ):
+                text += " · 部分日期分页未齐"
             if self.show_marks.isChecked():
                 count = len({spot["data"][0] for spot in self.marker_spots})
                 text += (
@@ -163,7 +207,7 @@ class ChartOrderController(QObject):
                 )
         if self.hint.text() != text:
             self.hint.setText(text)
-        style = "color: #c8af73;" if self.analysis is None or not self.analysis.complete else ""
+        style = "color: #c8af73;" if not self._ready() else ""
         if self.hint.styleSheet() != style:
             self.hint.setStyleSheet(style)
 
@@ -177,6 +221,8 @@ class ChartOrderController(QObject):
         self._overlay_key = None
         self._hover(self._hover_index)
         self._request_cached()
+        if not self.show_minute.isChecked() and not self.show_marks.isChecked():
+            self.cache_requested.emit()
 
     def _snapshot_changed(self, snapshot):
         self._overlay_key = None
@@ -194,7 +240,7 @@ class ChartOrderController(QObject):
     def _request_cached(self):
         if (
             self._supported()
-            and self.analysis is None
+            and any(not self._ready(day) for day in self.required_days())
             and (self.show_minute.isChecked() or self.show_marks.isChecked())
         ):
             self.cache_requested.emit()
@@ -210,6 +256,8 @@ class ChartOrderController(QObject):
             rail_y = self.chart.volume.getViewBox().viewRange()[1][1] - 8 * dy
             for i, bar in enumerate(self.chart.snapshot.series.bars):
                 minute = bar.timestamp.astimezone(SHANGHAI).replace(second=0, microsecond=0)
+                if not self._ready(minute.date()):
+                    continue
                 bands = self.minute_bands.get(minute)
                 if bands is None:
                     continue
@@ -251,12 +299,17 @@ class ChartOrderController(QObject):
             self.overlay.hide()
             return
         minute = bars[index].timestamp.astimezone(SHANGHAI).replace(second=0, microsecond=0)
-        if not self._ready():
-            message = self.hint.text()
+        summary = self.day_summaries.get(minute.date())
+        if not self._ready(minute.date()):
+            message = self.day_status.get(minute.date()) or (
+                "该日逐笔分页未齐，暂不发布金额"
+                if summary
+                else self.data_status or "该日逐笔尚未加载，正在补取；可点击读取逐笔重试。"
+            )
             self.overlay.setText(f"<b>{minute:%m-%d %H:%M} 原始委托</b><br>{escape(message)}")
             self._place_overlay()
             return
-        if minute.date() != self.analysis.day or minute > self.analysis.cutoff:
+        if minute > summary.cutoff:
             self.overlay.hide()
             return
         key = (minute, self.filters)
@@ -272,7 +325,7 @@ class ChartOrderController(QObject):
                 "<table cellspacing='1'><tr><th>档位</th><th>买方金额／笔数</th><th>卖方金额／笔数</th></tr>"
                 + "".join(rows)
                 + "</table>"
-                + f"<span style='color:#a1b2c3'>状态截至{self.analysis.cutoff:%H:%M:%S}；与资金筛选一致</span>"
+                + f"<span style='color:#a1b2c3'>状态截至{summary.cutoff:%H:%M:%S}；与资金筛选一致</span>"
             )
             self.overlay.adjustSize()
             self._overlay_key = key

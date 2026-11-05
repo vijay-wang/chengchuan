@@ -161,24 +161,25 @@ def load_pages(client, api, symbol, day, max_pages, fields=""):
     return result_rows, complete, max(fetched), tuple(notice)
 
 
-def fetch_tape(client, symbol, day, max_pages=6, quote_optional=False):
+def fetch_tape(client, symbol, day, max_pages=6, quote_optional=False, include_quotes=True):
     symbol = stock_symbol(symbol)
     if not 1 <= max_pages <= 8:
         raise ValueError("逐笔每接口最多8页")
     orders, oc, ot, on = load_pages(client, "level2_order_history", symbol, day, max_pages)
     trades, tc, tt, tn = load_pages(client, "level2_trade_history", symbol, day, max_pages)
-    try:
-        quotes, qc, qt, qn = load_pages(
-            client, "level2_quote_history", symbol, day, 1, QUOTE_FIELDS
-        )
-    except MarketError:
-        if not quote_optional or getattr(client, "offline", False) is not True:
-            raise
-        quotes, qc, qt, qn = [], False, max(ot, tt), ("本地未保存十档；不影响完整委托及撤单统计",)
+    quotes, qc, qt, qn = [], False, max(ot, tt), ("未载入十档；不影响完整委托及撤单统计",)
+    if include_quotes:
+        try:
+            quotes, qc, qt, qn = load_pages(
+                client, "level2_quote_history", symbol, day, 1, QUOTE_FIELDS
+            )
+        except MarketError:
+            if not quote_optional or getattr(client, "offline", False) is not True:
+                raise
     notice = "；".join(dict.fromkeys((*on, *tn, *qn)))
     if not oc or not tc:
         notice += "；达到本次有界分页上限，覆盖未完整；不会发布完整资金分档。"
-    if not qc:
+    if include_quotes and not qc:
         notice += "；十档快照覆盖未完整；盘口回放只覆盖已载入时间，不影响完整委托／撤单的分档。"
     return parse_tape(symbol, day, orders, trades, quotes, oc, tc, qc, max(ot, tt, qt), notice)
 

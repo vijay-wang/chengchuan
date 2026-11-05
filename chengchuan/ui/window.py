@@ -122,6 +122,10 @@ class MainWindow(QMainWindow):
         self._l2_tape = self._l2_analysis = None
         self._l2_requested = None
         self._pending_l2 = None
+        self._pending_chart_days = {}
+        self._chart_day_queue = []
+        self._chart_day_active = None
+        self._chart_day_attempts = set()
         self._chart_cache_attempted = None
         self._l2_loading_kind = None
         self.forecast_service, self.forecast_writer = forecast_service, forecast_writer
@@ -138,6 +142,11 @@ class MainWindow(QMainWindow):
         self.funds_runner = network_runner_factory(self) if market else None
         self.l2_runner = network_runner_factory(self) if market else None
         self.book_runner = network_runner_factory(self) if market else None
+        self.chart_days_runner = network_runner_factory(self) if market else None
+        if self.chart_days_runner:
+            self.chart_days_runner.timeout_ms = 180000
+            self.chart_days_runner.ready.connect(self._chart_day_ready)
+            self.chart_days_runner.failed.connect(self._chart_day_failed)
         if self.l2_runner:
             self.l2_runner.timeout_ms = 180000
             self.l2_runner.ready.connect(self._l2_ready)
@@ -341,7 +350,7 @@ class MainWindow(QMainWindow):
         self.date_nav.latest_requested.connect(self.return_to_latest)
         layout.addWidget(self.date_nav)
         self.chart_orders = ChartOrderController(self.chart, self)
-        self.chart_orders.requested.connect(lambda: self._request_l2_tape(6))
+        self.chart_orders.requested.connect(self._reload_chart_orders)
         self.chart_orders.cache_requested.connect(self._ensure_chart_orders)
         layout.addWidget(self.chart_orders.controls)
         self.coverage = label("", "eyebrow", True)
@@ -701,6 +710,9 @@ class MainWindow(QMainWindow):
             self.status.setText(str(exc))
             return
         interval = interval or self.period.currentData()
+        retained_days = (
+            dict(self.chart_orders.day_summaries) if symbol == self.online_symbol else {}
+        )
         retained = (
             (self._l2_tape, self._l2_analysis)
             if symbol == self.online_symbol
@@ -734,6 +746,7 @@ class MainWindow(QMainWindow):
             self.frame = None
             self._reset_display()
             self._pending_l2 = retained
+            self._pending_chart_days = retained_days
             self._loading = True
             self.stock_title.setText(f"{symbol[2:]} · 正在获取行情")
         if switching or self.frame is None:
@@ -772,8 +785,22 @@ class MainWindow(QMainWindow):
             series.symbol,
             day,
         ):
+            remembered = (
+                dict(self.chart_orders.day_summaries)
+                if self._l2_tape.symbol == series.symbol
+                else {}
+            )
             self._clear_micro()
+            self._pending_chart_days = remembered
         self.frame = frame
+        self.chart_orders.restore_days(
+            {
+                d: value
+                for d, value in self._pending_chart_days.items()
+                if value.symbol == series.symbol
+            }
+        )
+        self._pending_chart_days = {}
         if self._pending_l2 is not None:
             tape, analysis = self._pending_l2
             self._pending_l2 = None
@@ -979,6 +1006,12 @@ class MainWindow(QMainWindow):
             self.l2_runner.cancel()
             self.book_runner.cancel()
         self.l2_analysis_runner.cancel()
+        if self.chart_days_runner:
+            self.chart_days_runner.cancel()
+        self._chart_day_queue = []
+        self._chart_day_active = None
+        self._chart_day_attempts.clear()
+        self._pending_chart_days = {}
         self._l2_tape = self._l2_analysis = self._l2_requested = None
         self._pending_l2 = None
         self._l2_loading_kind = None
@@ -988,9 +1021,33 @@ class MainWindow(QMainWindow):
                 panel.clear()
 
     def _ensure_chart_orders(self):
+        if not (
+            self.chart_orders.show_minute.isChecked() or self.chart_orders.show_marks.isChecked()
+        ):
+            pending = set(self._chart_day_queue)
+            if self._chart_day_active is not None:
+                pending.add(self._chart_day_active)
+            self._chart_day_attempts.difference_update(pending)
+            self._chart_day_queue = []
+            self._chart_day_active = None
+            if self.chart_days_runner:
+                self.chart_days_runner.cancel()
+            return
         try:
             symbol, day = self._micro_context()
         except ValueError:
+            return
+        loader = getattr(self.market, "load_chart_order_summary", None)
+        if callable(loader):
+            if self.l2_runner.active is not None or self.l2_analysis_runner.active is not None:
+                return
+            for target in reversed(self.chart_orders.required_days()):
+                key = (getattr(self.market, "source_id", ""), symbol, target)
+                if self.chart_orders._ready(target) or key in self._chart_day_attempts:
+                    continue
+                self._chart_day_attempts.add(key)
+                self._chart_day_queue.append(key)
+            self._next_chart_day()
             return
         if (
             self._l2_analysis is not None
@@ -1012,6 +1069,65 @@ class MainWindow(QMainWindow):
         self._l2_requested = (symbol, day)
         self.chart_orders.set_data_status(f"正在读取{day:%Y-%m-%d}本地逐笔缓存，不访问付费接口…")
         self.l2_runner.submit("cached:" + symbol + str(day), None, partial(cached, symbol, day, 6))
+
+    def _next_chart_day(self):
+        if (
+            self._chart_day_active is not None
+            or not self._chart_day_queue
+            or self.chart_days_runner is None
+        ):
+            return
+        key = self._chart_day_queue.pop(0)
+        source, symbol, day = key
+        self._chart_day_active = key
+        self.chart_orders.set_day_status(day, f"正在加载{day:%Y-%m-%d}原始逐笔…")
+        self.chart_days_runner.submit(
+            str(key), None, partial(self.market.load_chart_order_summary, symbol, day, 8)
+        )
+
+    def _chart_day_ready(self, summary):
+        key, self._chart_day_active = self._chart_day_active, None
+        if key is None:
+            return
+        if (summary.symbol, summary.day) == key[
+            1:
+        ] and summary.day in self.chart_orders.required_days():
+            manual = self._l2_analysis
+            if (
+                manual is not None
+                and (manual.symbol, manual.day) == (summary.symbol, summary.day)
+                and manual.cutoff < summary.cutoff.replace(microsecond=0)
+            ):
+                self.chart_orders.set_analysis(manual)
+            else:
+                self.chart_orders.set_day_summary(summary)
+        else:
+            self.chart_orders.set_day_status(key[2], "返回的证券或日期不符，已拒绝")
+        self._next_chart_day()
+
+    def _chart_day_failed(self, message):
+        key, self._chart_day_active = self._chart_day_active, None
+        if key is None:
+            return
+        self.chart_orders.set_day_status(
+            key[2], f"{key[2]:%Y-%m-%d}逐笔不可用：{message}；可点击补齐重试。"
+        )
+        self._next_chart_day()
+
+    def _reload_chart_orders(self):
+        if callable(getattr(self.market, "load_chart_order_summary", None)):
+            days = set(self.chart_orders.required_days())
+            busy = set(self._chart_day_queue)
+            if self._chart_day_active is not None:
+                busy.add(self._chart_day_active)
+            self._chart_day_attempts = {
+                k
+                for k in self._chart_day_attempts
+                if k in busy or k[2] not in days or self.chart_orders._ready(k[2])
+            }
+            self._ensure_chart_orders()
+        else:
+            self._request_l2_tape(6)
 
     def _l2_failed(self, message):
         cached = self._l2_loading_kind == "cache"
@@ -1124,6 +1240,7 @@ class MainWindow(QMainWindow):
             panel.render_analysis(self._l2_tape, analysis)
         self.funds_panel.order_bands.render(analysis)
         self.chart_orders.set_analysis(analysis)
+        self._ensure_chart_orders()
 
     def _import_l2(self):
         try:
@@ -1388,6 +1505,7 @@ class MainWindow(QMainWindow):
             self.funds_runner.shutdown()
             self.l2_runner.shutdown()
             self.book_runner.shutdown()
+            self.chart_days_runner.shutdown()
         self.runner.shutdown()
         state = {"splitter": self.splitter.sizes()}
         if self.market:

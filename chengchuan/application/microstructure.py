@@ -10,6 +10,7 @@ from chengchuan.domain.microstructure import (
     MinuteOrderBands,
     OrderAnalysis,
     OrderBandGroup,
+    OrderDaySummary,
     OrderFilter,
     OrderMatchGroup,
     PriceVolume,
@@ -32,6 +33,17 @@ BAND_LABELS = (
 TRADE_CODES = frozenset(("0", "0X00", "F", "T"))
 CANCEL_CODES = frozenset(("C", "4", "D"))
 BAND_LIMITS_FEN = tuple(v * 100 for v in BAND_LIMITS_YUAN)
+
+
+def summarize_day(analysis):
+    return OrderDaySummary(
+        analysis.symbol,
+        analysis.day,
+        analysis.cutoff,
+        analysis.complete,
+        analysis.minute_groups,
+        analysis.notice,
+    )
 
 
 def band_index(amount_fen):

@@ -2,9 +2,12 @@
 
 import argparse
 import json
+import os
 import time
 from datetime import date
 from pathlib import Path
+
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtCore import QEvent, QPointF, Qt
 from PySide6.QtGui import QMouseEvent
@@ -59,6 +62,7 @@ def check(folder, symbol, day):
         wait(lambda: window._l2_analysis is not None and window.l2_analysis_runner.active is None)
         elapsed = time.perf_counter() - start
         analysis = window._l2_analysis
+        tape = window._l2_tape
         window.period.setCurrentIndex(window.period.findData("minute"))
         wait(lambda: window.frame is not None and window.market_runner.active is None)
         if window._l2_analysis is not analysis:
@@ -86,8 +90,7 @@ def check(folder, symbol, day):
         controller = window.chart_orders
         controller.show_minute.setChecked(True)
         controller.show_marks.setChecked(True)
-        wait(lambda: window._l2_analysis is not None and window.l2_analysis_runner.active is None)
-        tape, analysis = window._l2_tape, window._l2_analysis
+        wait(lambda: controller._ready(day))
         app.processEvents()
         controller._render_markers()
         if not controller.marker_spots:

@@ -94,6 +94,59 @@ class MicroMarket(harness.ViewsMarket):
         )
 
 
+class MultiDayMarket(MicroMarket):
+    intervals = ("day", "minute", "five_day", "min1")
+
+    def __init__(self):
+        super().__init__()
+        self.summary_calls = []
+        self.failed_days = set()
+
+    def load(self, symbol, interval, refresh=False):
+        from datetime import date
+
+        from chengchuan.domain.models import SeriesKind
+
+        frame = super().load(symbol, interval, refresh)
+        if interval != "five_day":
+            return frame
+        days = (
+            date(2026, 10, 27),
+            date(2026, 10, 28),
+            date(2026, 10, 29),
+            date(2026, 10, 30),
+            date(2026, 11, 2),
+        )
+        bars = tuple(
+            replace(
+                b,
+                timestamp=b.timestamp.replace(year=d.year, month=d.month, day=d.day),
+                open=None,
+                high=None,
+                low=None,
+            )
+            for d in days
+            for b in frame.snapshot.series.bars
+        )
+        return replace(
+            frame,
+            snapshot=replace(
+                frame.snapshot,
+                revision="five-days",
+                series=replace(frame.snapshot.series, kind=SeriesKind.SAMPLED_CLOSE, bars=bars),
+            ),
+        )
+
+    def load_chart_order_summary(self, symbol, day, max_pages=8):
+        from chengchuan.application.errors import MarketError
+        from chengchuan.application.microstructure import analyze_orders, summarize_day
+
+        self.summary_calls.append((symbol, day))
+        if day in self.failed_days:
+            raise MarketError("该日尚未发布")
+        return summarize_day(analyze_orders(replace(sample_tape(day), symbol=symbol)))
+
+
 @unittest.skipUnless(DESKTOP, "需要desktop依赖")
 class MicrostructureDesktopTests(unittest.TestCase):
     setUpClass = classmethod(harness.MarketViewsDesktopTests.setUpClass.__func__)
@@ -453,6 +506,120 @@ class MicrostructureDesktopTests(unittest.TestCase):
         self.assertNotIn("0笔", controller.overlay.text())
         self.assertEqual(controller.marker_spots, [])
         self.assertIn("分页未齐", controller.hint.text())
+
+    def test_five_day_loads_each_day_and_keeps_all_summaries_across_period_changes(self):
+        w = self.window
+        self.market = MultiDayMarket()
+        w.market = self.market
+        w._set_period_capabilities()
+        w.open_stock("002318", "minute")
+        self.wait_until(self.opened)
+        c = w.chart_orders
+        c.show_minute.setChecked(True)
+        c.show_marks.setChecked(True)
+        c.band_checks[3].setChecked(True)
+        self.wait_until(lambda: c._ready(self.day))
+        w.open_stock("002318", "five_day")
+        self.wait_until(lambda: self.opened() and len(c.required_days()) == 5)
+        self.wait_until(lambda: all(c._ready(d) for d in c.required_days()))
+        self.assertEqual(len(self.market.summary_calls), 5)
+        self.assertEqual(len(set(self.market.summary_calls)), 5)
+        c._render_markers()
+        marked_days = {
+            w.chart.snapshot.series.bars[s["data"][0]].timestamp.date() for s in c.marker_spots
+        }
+        self.assertEqual(marked_days, set(c.required_days()))
+        for i, bar in enumerate(w.chart.snapshot.series.bars):
+            if bar.timestamp.minute == 30:
+                c._hover(i)
+                self.assertTrue(c.overlay.isVisible())
+                self.assertIn(bar.timestamp.strftime("%m-%d"), c.overlay.text())
+                self.assertIn("100–200万", c.overlay.text())
+        w.open_stock("002318", "minute")
+        self.wait_until(self.opened)
+        w.open_stock("002318", "five_day")
+        self.wait_until(self.opened)
+        self.assertTrue(all(c._ready(d) for d in c.required_days()))
+        self.assertEqual(len(self.market.summary_calls), 5)
+
+    def test_one_missing_day_does_not_hide_others_and_retry_only_fetches_failure(self):
+        from datetime import date
+
+        w = self.window
+        self.market = MultiDayMarket()
+        self.market.failed_days = {date(2026, 10, 29)}
+        w.market = self.market
+        w._set_period_capabilities()
+        w.open_stock("002318", "five_day")
+        self.wait_until(self.opened)
+        c = w.chart_orders
+        c.show_marks.setChecked(True)
+        c.show_minute.setChecked(True)
+        self.wait_until(lambda: len(self.market.summary_calls) == 5 and w._chart_day_active is None)
+        self.assertEqual(sum(c._ready(d) for d in c.required_days()), 4)
+        self.assertIn("4/5", c.hint.text())
+        index = next(
+            i
+            for i, b in enumerate(w.chart.snapshot.series.bars)
+            if b.timestamp.date() == date(2026, 10, 29)
+        )
+        c._hover(index)
+        self.assertIn("尚未发布", c.overlay.text())
+        self.assertNotIn("0笔", c.overlay.text())
+        self.market.failed_days.clear()
+        c.load.click()
+        self.wait_until(lambda: all(c._ready(d) for d in c.required_days()))
+        self.assertEqual(len(self.market.summary_calls), 6)
+
+    def test_pending_multiday_load_is_not_duplicated_and_can_be_cancelled(self):
+        import threading
+
+        w = self.window
+        market = MultiDayMarket()
+        started, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+        original = market.load_chart_order_summary
+
+        def slow(symbol, day, max_pages=8):
+            started.set()
+            release.wait(3)
+            return original(symbol, day, max_pages)
+
+        market.load_chart_order_summary = slow
+        w.market = market
+        w._set_period_capabilities()
+        w.open_stock("002318", "five_day")
+        self.wait_until(self.opened)
+        c = w.chart_orders
+        c.show_marks.setChecked(True)
+        self.wait_until(started.is_set)
+        for _ in range(3):
+            c.load.click()
+        self.assertEqual(len(w._chart_day_queue), 4)
+        c.show_marks.setChecked(False)
+        self.assertEqual(w._chart_day_queue, [])
+        self.assertIsNone(w._chart_day_active)
+        release.set()
+        self.wait_until(lambda: w.chart_days_runner.active is None)
+        self.assertEqual(c.day_summaries, {})
+        c.show_marks.setChecked(True)
+        self.wait_until(lambda: all(c._ready(d) for d in c.required_days()))
+
+    def test_late_full_day_summary_cannot_override_an_earlier_manual_replay(self):
+        from chengchuan.application.microstructure import analyze_orders, summarize_day
+
+        w = self.window
+        w.open_stock("002318", "minute")
+        self.wait_until(self.opened)
+        source = sample_tape(self.day)
+        full = analyze_orders(source)
+        manual = analyze_orders(
+            source, full.cutoff.replace(hour=9, minute=30, second=0, microsecond=0)
+        )
+        w._l2_tape, w._l2_analysis = source, manual
+        w._chart_day_active = ("", source.symbol, self.day)
+        w._chart_day_ready(summarize_day(full))
+        self.assertEqual(w.chart_orders.day_summaries[self.day].cutoff, manual.cutoff)
 
     def test_incomplete_tape_suppresses_pie_and_final_values(self):
         w = self.window
