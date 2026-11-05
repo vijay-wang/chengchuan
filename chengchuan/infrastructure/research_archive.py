@@ -81,7 +81,10 @@ class SqliteResearchArchive:
             table.key,
             table.meta.source,
             table.meta.source_url,
-            [(c.key, c.label, c.unit) for c in table.columns],
+            [
+                (c.key, c.label, c.unit) + ((c.description,) if c.description else ())
+                for c in table.columns
+            ],
             table.rows,
             table.document,
             table.meta.business_day,

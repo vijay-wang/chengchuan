@@ -124,6 +124,8 @@ UI新增market_dashboard视图，摘要与详情各使用一个有界后台执�
 
 0.13新增`domain/research.py`不可变题材身份／列／快照／请求，`application/research.py`编排六项研究、透明差分和导出，`infrastructure/meoz_research.py`按固定契约注册表适配供应商及分页，`research_archive.py`用SQLite schema 2追加内容版本与观察时间。共享HTTP客户端保留源元信息并支持嵌套文档，仍负责私有认证、缓存与额度。`ConfiguredMarketSources`注入独立研究服务；UI通过QStackedWidget嵌入工作区，复用虚拟表及可取消进程，不引入UI→infrastructure依赖。行情与研究拥有独立任务和数据生命周期。详见[操作与边界](MEOZ_RESEARCH_WORKSPACE.md)。
 
+0.14增加`domain/company.py`、`application/company.py`及独立`ui/company.py`，通过源工厂注入`CompanyService`。16个用途适配固定到已读公司契约，VIP原字段动态保留并按端点解释单位。公司归档单独存入`company.sqlite`，复用HTTP、追加档案、虚拟表与进程调度。`application/evidence_export.py`及`ui/evidence.py`供两类研究共用；列的可选description兼容旧档案，空description不改变0.13内容哈希。财报矩阵是原始表的视图，JSON保留原表；股东差分、曲线分组在application完成。股票价格领域不承载负财务指标，UI不直接导入基础设施。详见[公司资料](COMPANY_INFORMATION.md)。
+
 ## 0.3短周期预测研究边界
 
 2026-11-04需求调整：本节记录既有0.3实现；后续开发以[下一交易日双时点需求](NEXT_DAY_FORECAST.md)为准，P2后置。模式仅盘后／14:35，均预测下一交易日。14:35需新增完整时间戳级历史视图、接收时间与标签成熟检查；当前日级`history_at`及H1／H2结果不能代表已支持14:35。模式和截止时间须进入模型、缓存、预测标识及档案，避免同日两个模式互相覆盖。

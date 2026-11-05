@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 
+from chengchuan.application.company import CompanyService
 from chengchuan.application.market import MarketService
 from chengchuan.application.research import SpecialtyResearchService
 from chengchuan.application.settings import SettingsInfo
@@ -14,6 +15,7 @@ from chengchuan.infrastructure.meoz_client import (
     configured,
     save_private_key,
 )
+from chengchuan.infrastructure.meoz_company import MeozCompanyProvider
 from chengchuan.infrastructure.meoz_market import MeozMarketProvider
 from chengchuan.infrastructure.meoz_research import MeozResearchProvider
 from chengchuan.infrastructure.microstructure import JsonOrderTapeRepository
@@ -52,6 +54,11 @@ class ConfiguredMarketSources:
                         client, SqliteResearchArchive(self.state_dir / "research.sqlite")
                     )
                 ),
+                company_service=CompanyService(
+                    MeozCompanyProvider(
+                        client, SqliteResearchArchive(self.state_dir / "company.sqlite")
+                    )
+                ),
             )
         return MarketService(
             TencentMarketProvider(),
@@ -79,6 +86,7 @@ class ConfiguredMarketSources:
                 ("工作区", str(self.state_dir)),
                 ("猫爪私有配置", str(Path.home() / ".meoz/config.json")),
                 ("原始数据缓存", str(Path.home() / ".meoz/chengchuan.sqlite")),
+                ("公司资料档案", str(self.state_dir / "company.sqlite")),
             ),
             usage=(
                 ("本机今日请求", str(usage["total"])),

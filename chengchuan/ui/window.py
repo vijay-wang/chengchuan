@@ -47,6 +47,7 @@ from chengchuan.ui import theme
 from chengchuan.ui.book_stream import BookStreamRunner
 from chengchuan.ui.chart import MarketChart
 from chengchuan.ui.chart_orders import ChartOrderController
+from chengchuan.ui.company import CompanyWorkspace
 from chengchuan.ui.date_navigator import DateNavigator
 from chengchuan.ui.forecast_panel import ForecastPanel
 from chengchuan.ui.market import MarketBrowser
@@ -208,6 +209,17 @@ class MainWindow(QMainWindow):
         )
         self.research_page.stock_requested.connect(self._research_stock)
         self.pages.addWidget(self.research_page)
+        self.company_page = CompanyWorkspace(
+            getattr(market, "company_service", None),
+            runner_factory=(
+                None if network_runner_factory is ProcessTaskRunner else network_runner_factory
+            ),
+            parent=self,
+        )
+        self.company_page.back_requested.connect(lambda: self.pages.setCurrentWidget(self.splitter))
+        self.company_page.stock_requested.connect(self._research_stock)
+        self.company_page.theme_requested.connect(self._company_theme)
+        self.pages.addWidget(self.company_page)
         self._pending_research_focus = None
         self._build_sidebar(catalog)
         self._build_chart_area()
@@ -249,6 +261,9 @@ class MainWindow(QMainWindow):
         self.research_button = QPushButton("市场研究  ·  板块／题材／席位")
         self.research_button.clicked.connect(self.open_research)
         layout.addWidget(self.research_button)
+        self.company_button = QPushButton("公司资料  ·  财务／股东／公告")
+        self.company_button.clicked.connect(self.open_company)
+        layout.addWidget(self.company_button)
         if self.market:
             self.browser = MarketBrowser(
                 self.market, self.workspace, self.network_runner_factory, self
@@ -421,6 +436,7 @@ class MainWindow(QMainWindow):
         self.browser.set_market(market)
         self.market = market
         self.research_page.set_service(getattr(market, "research_service", None))
+        self.company_page.set_service(getattr(market, "company_service", None))
         self.source_box.blockSignals(True)
         self.source_box.setCurrentIndex(self.source_box.findData(market.source_id))
         self.source_box.blockSignals(False)
@@ -449,10 +465,22 @@ class MainWindow(QMainWindow):
         self.open_stock(symbol)
 
     def _refresh_active_page(self):
-        if self.pages.currentWidget() is self.research_page:
+        if self.pages.currentWidget() is self.company_page:
+            self.company_page.query()
+        elif self.pages.currentWidget() is self.research_page:
             self.research_page.refresh_current()
         else:
             self.refresh_market()
+
+    def open_company(self):
+        self.pages.setCurrentWidget(self.company_page)
+        self.company_page.enter(
+            self.online_symbol if self.online_symbol and not is_index(self.online_symbol) else ""
+        )
+
+    def _company_theme(self, symbol):
+        self.pages.setCurrentWidget(self.research_page)
+        self.research_page.open_evidence(symbol)
 
     def open_theme_evidence(self):
         self.pages.setCurrentWidget(self.research_page)
@@ -556,6 +584,9 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(20, 24, 18, 20)
         layout.setSpacing(13)
         layout.addWidget(label("区间研究", "sectionTitle"))
+        company_button = QPushButton("查看本股公司资料")
+        company_button.clicked.connect(self.open_company)
+        layout.addWidget(company_button)
         self.selected_window = label("选择一段走势，开始研究", "muted", True)
         layout.addWidget(self.selected_window)
         self.summary = label("等待选择", "summary", True)
@@ -1568,6 +1599,7 @@ class MainWindow(QMainWindow):
         self.status.setText("选区已清除  ·  当前行情保持不变")
 
     def closeEvent(self, event):
+        self.company_page.shutdown()
         self.research_page.shutdown()
         self.book_stream.shutdown()
         self.l2_analysis_runner.shutdown()

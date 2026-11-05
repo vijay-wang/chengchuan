@@ -2,9 +2,9 @@
 
 本地股票研究工作台：看行情、选区间、计算特征、追溯证据。
 
-![澄川精选板块研究工作区](design/chengchuan-research-rotation.png)
+![澄川公司资料与三表对比](design/chengchuan-company-statements.png)
 
-当前为**0.13市场研究版**：左侧新增统一研究页，包含精选板块轮动、题材证据、情绪封单、竞价对比、龙虎榜席位及热度监管，并支持本地快照、固定观察、Markdown／JSON导出。六项均已接通真实数据流程，按所选日期及接口覆盖展示，见[操作说明](docs/MEOZ_RESEARCH_WORKSPACE.md)和[验证记录](docs/VALIDATION_RESEARCH.md)。原有多日逐笔、缩放边界、多周期与缓存保留，预测增强仍为P2。
+当前为**0.14公司资料版**：新增独立公司工作区，包含概览、财务指标、三表对比、股东股本、分红、业绩披露、公告和问董秘。可按披露日／版本查看、切换原值曲线并导出研究卡；未核定单位明确按原值呈现，见[操作说明](docs/COMPANY_INFORMATION.md)及[验证记录](docs/VALIDATION_COMPANY_INFORMATION.md)。原市场研究、行情、逐笔、多周期与缓存保留，预测增强仍为P2。
 
 **2026-11-04预测需求调整：** 后续只保留盘后、北京时间14:35两个时点预测下一交易日，优先级P2后置，排在行情、稳定性、基础指标和选区体验之后；相关Level-2／GPU增强同样后置。该预测需求调整仅更新文档，既有0.3 H1／H2代码未改动。详见[最新预测需求](docs/NEXT_DAY_FORECAST.md)及[排期](docs/ROADMAP.md)。
 
@@ -280,3 +280,6 @@ python -m unittest discover -s tests -v
 ```
 
 开发目标、数据升级、模型训练、历史案例和验收标准见 [开发任务书](docs/资金行为研究系统开发任务书.md)。
+
+- [0.14公司资料操作与字段口径](docs/COMPANY_INFORMATION.md)
+- [0.14真实接口、离屏及核心安装包验证](docs/VALIDATION_COMPANY_INFORMATION.md)

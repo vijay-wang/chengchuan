@@ -29,9 +29,9 @@ from PySide6.QtWidgets import (
 
 from chengchuan.application.errors import StorageError
 from chengchuan.application.research import MODULES, clock_seconds, export_research, numeric
-from chengchuan.domain.models import SHANGHAI
 from chengchuan.domain.research import ResearchRequest
 from chengchuan.ui import theme
+from chengchuan.ui.evidence import evidence_text
 from chengchuan.ui.table import ValueTableModel
 from chengchuan.ui.tasks import ProcessTaskRunner
 
@@ -66,7 +66,7 @@ def _display(value):
     return str(value)
 
 
-def _display_column(key, value):
+def _display_column(key, value, table_key=""):
     labels = {
         "side": {0: "买入榜", 1: "卖出榜"},
         "um_side": {"b": "买方", "s": "卖方"},
@@ -80,10 +80,34 @@ def _display_column(key, value):
         },
         "status": {"triggered": "已触发（计算）", "reachable": "未触发（计算）"},
     }
-    if value in labels.get(key, {}):
+    enum_scope = (
+        key == "side"
+        and (table_key == "seats" or table_key.startswith("seat_"))
+        or key == "um_side"
+        and table_key.startswith("auction_ticks")
+        or key == "type"
+        and table_key in ("pool", "yesterday")
+        or key == "status"
+        and table_key == "anomaly"
+    )
+    if enum_scope and value in labels.get(key, {}):
         return labels[key][value]
     text = str(value)
-    if key in ("tradedate", "source_day") and text.isdigit() and len(text) == 8:
+    if (
+        key
+        in (
+            "tradedate",
+            "source_day",
+            "report_date",
+            "announce_date",
+            "declareDate",
+            "endDate",
+            "m_timetag",
+            "m_anntime",
+        )
+        and text.isdigit()
+        and len(text) == 8
+    ):
         return f"{text[:4]}-{text[4:6]}-{text[6:]}"
     if key in ("trademin", "window_start", "window_end") and text.isdigit() and len(text) == 4:
         return text[:2] + ":" + text[2:]
@@ -99,8 +123,9 @@ class ClockAxis(pg.AxisItem):
 
 
 class ResearchDataView(QTableView):
-    def __init__(self, table, parent=None):
+    def __init__(self, table, parent=None, natural_order=False):
         super().__init__(parent)
+        self.natural_order = natural_order
         document_layout = QVBoxLayout(self.viewport())
         document_layout.setContentsMargins(0, 0, 0, 0)
         self.document_view = QTextBrowser()
@@ -122,7 +147,7 @@ class ResearchDataView(QTableView):
         self.table = table
         self.document_view.setPlainText(table.document)
         self.document_view.setVisible(bool(table.document) and not table.columns)
-        signature = tuple((c.key, c.label, c.unit) for c in table.columns)
+        signature = tuple((c.key, c.label, c.unit, c.description) for c in table.columns)
         new_model = getattr(self, "signature", None) != signature
         if new_model:
             old = self.model()
@@ -133,11 +158,20 @@ class ResearchDataView(QTableView):
             ]
             model = ValueTableModel(
                 [c.caption for c in table.columns],
-                formats={i: partial(_display_column, c.key) for i, c in enumerate(table.columns)},
+                formats={
+                    i: partial(_display_column, c.key, table_key=table.key)
+                    for i, c in enumerate(table.columns)
+                },
                 color_columns=colors,
                 parent=self,
+                header_tips={
+                    i: c.key + "\n" + (c.description or c.caption)
+                    for i, c in enumerate(table.columns)
+                },
             )
             self.setModel(model)
+            if self.natural_order:
+                self.horizontalHeader().setSortIndicator(-1, Qt.SortOrder.AscendingOrder)
             if old:
                 old.deleteLater()
             self.signature = signature
@@ -514,37 +548,8 @@ class ResearchWorkspace(QWidget):
     def _describe(self, view, row=None):
         if not view:
             return
-        table, lines = view.table, []
-        m = table.meta
-        lines.extend(
-            (
-                table.title,
-                "",
-                f"来源：{m.source}",
-                m.source_url,
-                f"业务日：{m.business_day or '源未提供'}",
-                f"源更新时间：{m.source_updated_at or '未提供'}",
-                f"源发布时间：{m.published_at or '未提供'}",
-                f"取得时间：{m.fetched_at.astimezone(SHANGHAI).isoformat(timespec='seconds')}",
-                f"首次采集：{m.first_seen_at or '未归档'}",
-                f"版本：{m.revision[:16] or '未归档'}",
-                f"覆盖：{m.coverage or '源未提供总数'}",
-                "完整性：" + ("未发现截断" if m.complete else "部分／不可用"),
-                "本机缓存" if m.cached else "本次接口取得",
-                "",
-                table.notice,
-            )
-        )
-        if row is not None:
-            record = view.record(row)
-            lines.extend(("", "所选记录"))
-            lines.extend(
-                f"{c.caption}：{record.get(c.key) if record.get(c.key) is not None else '—'}"
-                for c in table.columns
-            )
-        if table.document:
-            lines.extend(("", table.document))
-        self.evidence.setPlainText("\n".join(lines))
+        record = view.record(row) if row is not None else None
+        self.evidence.setPlainText(evidence_text(view.table, record))
         self.evidence.horizontalScrollBar().setValue(0)
         self.evidence.verticalScrollBar().setValue(0)
 

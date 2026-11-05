@@ -20,6 +20,7 @@ class ResearchColumn:
     key: str
     label: str
     unit: str = ""
+    description: str = ""
 
     @property
     def caption(self):

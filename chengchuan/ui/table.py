@@ -7,15 +7,20 @@ from chengchuan.ui import theme
 
 
 class ValueTableModel(QAbstractTableModel):
-    def __init__(self, headers, formats=None, color_columns=(), secondary=None, parent=None):
+    def __init__(
+        self, headers, formats=None, color_columns=(), secondary=None, parent=None, header_tips=None
+    ):
         super().__init__(parent)
         self.headers, self.formats = tuple(headers), formats or {}
         self.color_columns, self.secondary = frozenset(color_columns), secondary
         self.rows = ()
+        self.source_rows = ()
+        self.header_tips = header_tips or {}
 
     def set_rows(self, rows):
         self.beginResetModel()
         self.rows = tuple(rows)
+        self.source_rows = self.rows
         self.endResetModel()
 
     def rowCount(self, parent=QModelIndex()):
@@ -25,6 +30,8 @@ class ValueTableModel(QAbstractTableModel):
         return 0 if parent.isValid() else len(self.headers)
 
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
+        if role == Qt.ItemDataRole.ToolTipRole and orientation == Qt.Orientation.Horizontal:
+            return self.header_tips.get(section, self.headers[section])
         if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
             return self.headers[section]
 
@@ -44,6 +51,11 @@ class ValueTableModel(QAbstractTableModel):
             return QColor(theme.UP if value >= 0 else theme.DOWN)
 
     def sort(self, column, order=Qt.SortOrder.AscendingOrder):
+        if column < 0:
+            self.layoutAboutToBeChanged.emit()
+            self.rows = self.source_rows
+            self.layoutChanged.emit()
+            return
         if not self.rows:
             return
         descending = order == Qt.SortOrder.DescendingOrder
