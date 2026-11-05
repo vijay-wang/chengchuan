@@ -46,7 +46,7 @@ def check(folder, allow_network=False):
             and window.snapshot.series.symbol == symbol
             and window.snapshot.series.interval == period
             and window.history_date == as_of
-            and window.report
+            and window.snapshot
             and all(
                 r.active is None
                 for r in (

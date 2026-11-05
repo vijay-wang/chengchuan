@@ -7,9 +7,11 @@ from unittest.mock import Mock
 
 from test_market import sample_frame
 
+from chengchuan.application.chart_history import chart_offset, load_chart_page, merge_chart_frames
 from chengchuan.application.chart_tools import ChartInspector, locate_date
 from chengchuan.application.errors import MarketError
 from chengchuan.application.market import MarketService
+from chengchuan.application.startup import startup_target
 from chengchuan.domain.models import SHANGHAI, MarketBar, MarketSeries, SeriesKind
 from chengchuan.infrastructure.market_cache import SqliteMarketCache, decode_frame, encode_frame
 
@@ -32,6 +34,114 @@ def series(interval="day", days=None):
 
 
 class ChartToolsTests(unittest.TestCase):
+    def test_startup_restores_last_stock_and_period_without_date_or_selection(self):
+        state = dict(
+            symbol="index:sh000001",
+            last_stock_symbol="600519",
+            last_stock_interval="min15",
+            selection=[1, 4],
+            history_date="20261001",
+        )
+        self.assertEqual(startup_target(state, ("day", "min15")), ("sh600519", "min15"))
+        self.assertEqual(startup_target(state, ("day",)), ("sh600519", "day"))
+        self.assertEqual(startup_target(dict(symbol="invalid"), ("day",)), ("sz002318", "day"))
+        self.assertEqual(
+            startup_target(state, ("day",), "index:sh000001", "day"), ("index:sh000001", "day")
+        )
+        with self.assertRaises(ValueError):
+            startup_target(state, ("day",), interval="min15")
+
+    def test_merge_adds_adjacent_bars_and_preserves_latest_quote_and_historical_cutoff(self):
+        base = sample_frame(interval="minute")
+        source = base.snapshot.series
+        older = replace(source.bars[0], timestamp=source.bars[0].timestamp - timedelta(days=2))
+        page = replace(
+            base,
+            snapshot=replace(base.snapshot, series=replace(source, bars=(older,))),
+            as_of=older.timestamp.date(),
+        )
+        merged = merge_chart_frames(base, page, newer=False)
+        self.assertEqual(len(merged.snapshot.series.bars), len(source.bars) + 1)
+        self.assertEqual(merged.quote, base.quote)
+        self.assertIsNone(merged.as_of)
+        self.assertEqual(chart_offset(source, merged.snapshot.series), 1)
+        self.assertEqual(
+            merge_chart_frames(merged, page, newer=False).snapshot.revision,
+            merged.snapshot.revision,
+        )
+        with self.assertRaises(MarketError):
+            merge_chart_frames(
+                base,
+                replace(
+                    page,
+                    quote=None,
+                    snapshot=replace(
+                        page.snapshot, series=replace(page.snapshot.series, symbol="sh600519")
+                    ),
+                ),
+            )
+
+    def test_week_merge_replaces_partial_same_period_instead_of_creating_two_candles(self):
+        base = sample_frame()
+        old_series = series("week", (date(2026, 10, 30), date(2026, 11, 3)))
+        new_series = series("week", (date(2026, 10, 30), date(2026, 11, 5)))
+        a = replace(
+            base,
+            quote=None,
+            as_of=date(2026, 11, 3),
+            snapshot=replace(base.snapshot, series=old_series),
+        )
+        b = replace(
+            base,
+            quote=None,
+            as_of=date(2026, 11, 5),
+            snapshot=replace(base.snapshot, series=new_series),
+        )
+        merged = merge_chart_frames(a, b)
+        self.assertEqual(len(merged.snapshot.series.bars), 2)
+        self.assertEqual(merged.snapshot.series.bars[-1].timestamp.date(), date(2026, 11, 5))
+        self.assertEqual(merged.as_of, date(2026, 11, 5))
+
+    def test_partial_daily_bar_keeps_its_same_day_intraday_quote_when_history_is_added(self):
+        base = sample_frame()
+        daily = series("day", (date(2026, 10, 30), date(2026, 11, 2)))
+        quote = replace(base.quote, timestamp=datetime(2026, 11, 2, 14, tzinfo=SHANGHAI))
+        current = replace(base, snapshot=replace(base.snapshot, series=daily), quote=quote)
+        older = series("day", (date(2026, 10, 29),))
+        page = replace(
+            base,
+            snapshot=replace(base.snapshot, series=older),
+            quote=None,
+            as_of=date(2026, 10, 29),
+        )
+        self.assertEqual(merge_chart_frames(current, page, newer=False).quote, quote)
+
+    def test_adjacent_minute_page_uses_five_day_cache_without_changing_requested_chart(self):
+        base = sample_frame("sz002318", "minute")
+        end = base.snapshot.series.bars[0].timestamp.date() - timedelta(days=1)
+        bar = replace(
+            base.snapshot.series.bars[0],
+            timestamp=base.snapshot.series.bars[0].timestamp - timedelta(days=2),
+        )
+        page = replace(
+            base,
+            quote=None,
+            as_of=end,
+            snapshot=replace(
+                base.snapshot,
+                series=replace(base.snapshot.series, interval="five_day", bars=(bar,)),
+            ),
+        )
+        market = Mock(supports_history=True)
+        market.load.return_value = page
+        result = load_chart_page(market, base, "older")
+        market.load.assert_called_once_with("sz002318", "five_day", as_of=end)
+        self.assertEqual(result.snapshot.series.interval, "minute")
+        self.assertEqual(result.snapshot.series.bars, (bar,))
+        market.load.reset_mock()
+        self.assertIsNone(load_chart_page(market, base, "newer"))
+        market.load.assert_not_called()
+
     def test_weekend_locates_previous_record_without_inventing_a_trading_day(self):
         found = locate_date(series(), date(2026, 10, 31))
         self.assertEqual(found.actual, date(2026, 10, 30))

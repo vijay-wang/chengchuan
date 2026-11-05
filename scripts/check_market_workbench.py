@@ -44,7 +44,7 @@ def check(output_dir, wait_refresh=False):
             window.frame is not None
             and window.snapshot.series.symbol == symbol
             and window.snapshot.series.interval == interval
-            and window.report is not None
+            and window.snapshot is not None
             and window.market_runner.active is None
             and window.runner.active is None
         )

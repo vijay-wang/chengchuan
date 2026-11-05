@@ -53,7 +53,7 @@ def check(cycles, moves):
                 ):
                     window.open_snapshot(ROOT / "reports" / dataset)
                     wait_until(
-                        app, lambda: window.report is not None and window.runner.active is None
+                        app, lambda: window.snapshot is not None and window.runner.active is None
                     )
                     chart = window.chart
                     before = len(hover_messages)

@@ -137,7 +137,9 @@ class DesktopTests(unittest.TestCase):
             window.show()
             try:
                 window.open_snapshot(ROOT / "reports/jiuli_20261019_1102.dataset.json")
-                self.wait_until(lambda: window.report is not None and window.runner.active is None)
+                self.wait_until(
+                    lambda: window.snapshot is not None and window.runner.active is None
+                )
                 chart = window.chart
                 view = chart.price
                 vb = view.getViewBox()
@@ -177,7 +179,9 @@ class DesktopTests(unittest.TestCase):
             window.show()
             try:
                 window.open_snapshot(ROOT / "reports/jiuli_20261102_full_day.dataset.json")
-                self.wait_until(lambda: window.report is not None and window.runner.active is None)
+                self.wait_until(
+                    lambda: window.snapshot is not None and window.runner.active is None
+                )
                 self.assertLess(window.chart.price.getViewBox().viewRange()[1][1], 17)
             finally:
                 window.close()

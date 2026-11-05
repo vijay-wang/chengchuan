@@ -103,7 +103,6 @@ class MultiPeriodDesktopTests(unittest.TestCase):
             if (
                 w.snapshot
                 and w.snapshot.series.interval == interval
-                and w.report
                 and w.runner.active is None
                 and w.market_runner.active is None
             ):
@@ -122,6 +121,8 @@ class MultiPeriodDesktopTests(unittest.TestCase):
             self.assertIn(p.label, w.kind_label.text())
             self.assertIn("测试数据源", w.market_status.text())
             if p.code not in ("day", "minute"):
+                w.chart.set_selection(IndexRange(0, len(w.snapshot.series.bars)))
+                self.wait(p.code)
                 self.assertEqual(w.report.findings, ())
         w.chart.set_selection(IndexRange(0, 3))
         self.wait("min60")

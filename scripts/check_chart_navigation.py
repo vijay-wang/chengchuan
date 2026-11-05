@@ -45,7 +45,7 @@ def check(symbol, target, folder):
             window.frame
             and window.frame.as_of == day
             and window.snapshot.series.interval == interval
-            and window.report
+            and window.snapshot
             and window.runner.active is None
             and window.market_runner.active is None
         ):

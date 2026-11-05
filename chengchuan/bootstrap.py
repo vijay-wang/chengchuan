@@ -88,7 +88,6 @@ def main(argv=None):
         settings_service = SettingsService(workspace, market_sources)
         preferences = settings_service.load(state)
         market = market_sources.connect(args.provider or preferences.provider)
-        use_meoz = market.source_id == "meoz"
         window = MainWindow(
             ForecastSnapshotRepository(),
             AnalysisService(LegacyAnalysisEngine()),
@@ -110,18 +109,18 @@ def main(argv=None):
     window.show()
     if args.dataset:
         window.open_snapshot(args.dataset)
-    elif args.offline and not (args.symbol and use_meoz):
+    elif (
+        args.offline
+        and market.source_id != "meoz"
+        and not (args.symbol or state.get("last_stock_symbol") or state.get("symbol"))
+    ):
         if daily.exists():
             window.open_snapshot(daily)
     else:
-        state = workspace.load("main")
-        symbol = args.symbol or state.get("symbol") or "002318"
-        interval = args.interval or state.get("interval", "day")
-        if interval not in market.intervals:
-            if args.interval:
-                parser.exit(2, "当前行情源不支持此周期，请配置猫爪数据或使用日K／分时\n")
-            interval = "day"
-        window.open_stock(symbol, interval)
+        try:
+            window.restore_last_stock(args.symbol, args.interval)
+        except ValueError as exc:
+            parser.exit(2, str(exc) + "\n")
         if args.offline:
             window.auto_refresh.setChecked(False)
     if args.screenshot:

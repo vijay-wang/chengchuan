@@ -78,7 +78,7 @@ class OnlineDesktopTests(unittest.TestCase):
 
     def opened(self):
         return (
-            self.window.report is not None
+            self.window.snapshot is not None
             and self.window.market_runner.active is None
             and self.window.runner.active is None
         )
@@ -98,7 +98,8 @@ class OnlineDesktopTests(unittest.TestCase):
         self.market.release.set()
         self.wait_until(self.opened)
         self.assertEqual(window.snapshot.series.symbol, "sz000001")
-        self.assertEqual(window.report.snapshot_revision, window.snapshot.revision)
+        self.assertIsNone(window.selection)
+        self.assertIsNone(window.report)
         self.assertEqual(window.frame.quote.instrument.symbol, "sz000001")
 
     def test_refresh_preserves_view_selection_and_escape_state(self):

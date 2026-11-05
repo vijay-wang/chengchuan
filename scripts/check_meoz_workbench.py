@@ -56,7 +56,7 @@ def check(symbol, folder, allow_network=False):
                 lambda: (
                     window.frame is not None
                     and window.snapshot.series.interval == period.code
-                    and window.report is not None
+                    and window.snapshot is not None
                     and window.runner.active is None
                     and window.market_runner.active is None
                     and window.overview_runner.active is None

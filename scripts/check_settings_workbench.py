@@ -44,7 +44,7 @@ def check(folder):
         deadline = time.monotonic() + 30
         while not (
             window.frame
-            and window.report
+            and window.snapshot
             and window.market_runner.active is None
             and window.runner.active is None
         ):

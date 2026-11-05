@@ -33,12 +33,14 @@ from PySide6.QtWidgets import (
 )
 
 from chengchuan import APP_NAME, __version__
-from chengchuan.application.errors import StorageError
+from chengchuan.application.chart_history import merge_chart_frames
+from chengchuan.application.errors import MarketError, StorageError
 from chengchuan.application.market_refresh import MarketRefreshController, market_checkpoint
 from chengchuan.application.microstructure import analyze_orders
 from chengchuan.application.quote_metrics import details_from_frame
 from chengchuan.application.research import clock_seconds, research_stock_symbol
 from chengchuan.application.settings import SettingsSaveError, SettingsService
+from chengchuan.application.startup import startup_target
 from chengchuan.domain.calendar import CalendarUnavailable
 from chengchuan.domain.market import Instrument, instrument_symbol, is_index
 from chengchuan.domain.models import SHANGHAI, IndexRange, SeriesKind
@@ -46,6 +48,7 @@ from chengchuan.domain.periods import PERIODS, chart_period
 from chengchuan.ui import theme
 from chengchuan.ui.book_stream import BookStreamRunner
 from chengchuan.ui.chart import MarketChart
+from chengchuan.ui.chart_history import ChartHistoryController
 from chengchuan.ui.chart_orders import ChartOrderController
 from chengchuan.ui.company import CompanyWorkspace
 from chengchuan.ui.date_navigator import DateNavigator
@@ -140,6 +143,7 @@ class MainWindow(QMainWindow):
         self.online_interval = "day"
         self.frame = None
         self.history_date = None
+        self._last_stock = startup_target(state, getattr(market, "intervals", ("day", "minute")))
         self.current_path = None
         self.market_runner = network_runner_factory(self) if market else None
         self.overview_runner = network_runner_factory(self) if market else None
@@ -235,7 +239,6 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+,"), self, activated=self.open_settings)
         if state.get("splitter") and len(state["splitter"]) == 3:
             self.splitter.setSizes(state["splitter"])
-        self._saved_state = state
         self.refresh_timer = QTimer(self)
         self.refresh_timer.setInterval(self.preferences.refresh_seconds * 1000)
         self.refresh_timer.timeout.connect(self._auto_refresh)
@@ -372,6 +375,10 @@ class MainWindow(QMainWindow):
         self.ohlc.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         layout.addWidget(self.ohlc)
         self.chart = MarketChart()
+        self.chart_history = ChartHistoryController(
+            self.chart, self._history_ready, self.network_runner_factory, self
+        )
+        self.chart_history.status.connect(lambda text: self.status.setText(text))
         self.chart.range_selected.connect(self.analyze_selection)
         self.chart.user_range_selected.connect(
             lambda: self.research_tabs.setCurrentWidget(self.analysis_view)
@@ -685,6 +692,7 @@ class MainWindow(QMainWindow):
             self.render_report(self.report)
 
     def _reset_display(self):
+        self.chart_history.reset()
         self._clear_micro()
         self.runner.cancel()
         self.snapshot = self.selection = self.report = None
@@ -777,25 +785,28 @@ class MainWindow(QMainWindow):
             reference_closes=self._chart_references(),
         )
         self.report = None
-        if preserve and old_selection is None:
-            self.chart.clear_selection()
-            return
-        count = min(11 if period.daily else 121, len(bars))
-        selection = IndexRange(len(bars) - count, len(bars))
+        selection = None
         if preserve and old_snapshot and old_selection:
             indices = {b.timestamp: i for i, b in enumerate(bars)}
             first = old_snapshot.series.bars[old_selection.start].timestamp
             last = old_snapshot.series.bars[old_selection.stop - 1].timestamp
             if first in indices and last in indices:
                 selection = IndexRange(indices[first], indices[last] + 1)
-        elif self._saved_state.get("revision") == snapshot.revision:
-            try:
-                restored = IndexRange(*self._saved_state["selection"])
-                if restored.stop <= len(bars):
-                    selection = restored
-            except (KeyError, ValueError, TypeError):
-                pass
-        self.chart.set_selection(selection)
+        if selection:
+            self.chart.set_selection(selection)
+        else:
+            self.clear_selection()
+
+    def restore_last_stock(self, symbol=None, interval=None):
+        saved = dict(last_stock_symbol=self._last_stock[0], last_stock_interval=self._last_stock[1])
+        target, period = startup_target(
+            saved, getattr(self.market, "intervals", ("day", "minute")), symbol, interval
+        )
+        self.open_stock(target, period, refresh=True)
+
+    def _history_ready(self, frame):
+        self.history_date = frame.as_of
+        self._market_ready(frame, browse=True)
 
     def _chart_references(self):
         if self.frame is None:
@@ -876,7 +887,7 @@ class MainWindow(QMainWindow):
         if not automatic and (not self._overview_requested or refresh and as_of is None):
             self._request_overview(refresh)
 
-    def _market_ready(self, frame):
+    def _market_ready(self, frame, browse=False):
         series = frame.snapshot.series
         if (series.symbol, series.interval, frame.as_of) != (
             self.online_symbol,
@@ -885,6 +896,13 @@ class MainWindow(QMainWindow):
         ):
             return
         preserve = self.frame is not None
+        if preserve and self.chart_history.expanded and not browse:
+            try:
+                frame = merge_chart_frames(self.frame, frame)
+            except MarketError as exc:
+                self._market_failed(str(exc))
+                return
+            series = frame.snapshot.series
         day = series.bars[-1].timestamp.astimezone(SHANGHAI).date()
         if self._l2_tape is not None and (self._l2_tape.symbol, self._l2_tape.day) != (
             series.symbol,
@@ -898,6 +916,8 @@ class MainWindow(QMainWindow):
             self._clear_micro()
             self._pending_chart_days = remembered
         self.frame = frame
+        if not is_index(series.symbol):
+            self._last_stock = (series.symbol, series.interval)
         self.chart_orders.restore_days(
             {
                 d: value
@@ -916,6 +936,7 @@ class MainWindow(QMainWindow):
                 else:
                     self._replay_l2(self.micro_panel.cutoff.time().toPython())
         self._show_snapshot(frame.snapshot, preserve)
+        self.chart_history.set_frame(self.market, frame)
         self.watch_button.setEnabled(True)
         self._frame_status()
         self._request_details(self._details_refresh)
@@ -924,7 +945,7 @@ class MainWindow(QMainWindow):
             and self.funds_panel.pages.currentIndex() == 0
         ):
             self._request_funds(self._details_refresh)
-        if self.history_date:
+        if self.history_date and not browse:
             self._focus_history_date(self.history_date)
         pending, self._pending_research_focus = self._pending_research_focus, None
         if pending and pending[0] == series.symbol:
@@ -1599,6 +1620,7 @@ class MainWindow(QMainWindow):
         self.status.setText("选区已清除  ·  当前行情保持不变")
 
     def closeEvent(self, event):
+        self.chart_history.shutdown()
         self.company_page.shutdown()
         self.research_page.shutdown()
         self.book_stream.shutdown()
@@ -1623,7 +1645,11 @@ class MainWindow(QMainWindow):
             self.book_runner.shutdown()
             self.chart_days_runner.shutdown()
         self.runner.shutdown()
-        state = {"splitter": self.splitter.sizes()}
+        state = {
+            "splitter": self.splitter.sizes(),
+            "last_stock_symbol": self._last_stock[0],
+            "last_stock_interval": self._last_stock[1],
+        }
         if self.market:
             state.update(
                 symbol=self.online_symbol,
@@ -1632,11 +1658,6 @@ class MainWindow(QMainWindow):
             )
             if self.market_sources:
                 state["provider"] = self.source_box.currentData()
-        if self.snapshot and self.selection:
-            state.update(
-                revision=self.snapshot.revision,
-                selection=[self.selection.start, self.selection.stop],
-            )
         try:
             self.workspace.save("main", state)
         except (OSError, ValueError, StorageError) as exc:

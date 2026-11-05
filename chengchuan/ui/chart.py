@@ -7,6 +7,7 @@ from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPicture
 from PySide6.QtWidgets import QGraphicsView, QVBoxLayout, QWidget
 
+from chengchuan.application.chart_history import chart_offset
 from chengchuan.application.chart_tools import locate_date
 from chengchuan.domain.models import SHANGHAI, IndexRange, MarketSnapshot, SeriesKind
 from chengchuan.domain.periods import chart_period
@@ -80,11 +81,42 @@ class Candles(pg.GraphicsObject):
         return self.bounds
 
 
+class HistoryViewBox(pg.ViewBox):
+    """Observe the intended gesture before ViewBox clips it to existing data."""
+
+    range_requested = Signal(object)
+
+    def __init__(self):
+        self._gesture = False
+        super().__init__()
+
+    def wheelEvent(self, event, axis=None):
+        self._gesture = True
+        try:
+            super().wheelEvent(event, axis)
+        finally:
+            self._gesture = False
+
+    def mouseDragEvent(self, event, axis=None):
+        self._gesture = True
+        try:
+            super().mouseDragEvent(event, axis)
+        finally:
+            self._gesture = False
+
+    def setRange(self, rect=None, xRange=None, yRange=None, **kwargs):
+        desired = xRange if xRange is not None else ((rect.left(), rect.right()) if rect else None)
+        super().setRange(rect=rect, xRange=xRange, yRange=yRange, **kwargs)
+        if self._gesture and desired is not None:
+            self.range_requested.emit(tuple(desired))
+
+
 class MarketChart(QWidget):
     range_selected = Signal(object)
     user_range_selected = Signal()
     hover_text = Signal(str)
     snapshot_changed = Signal(object)
+    history_requested = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -95,8 +127,8 @@ class MarketChart(QWidget):
         self._updating = False
         self.volume_headroom = 1.08
         self.axis = TradingAxis()
-        self.price = pg.PlotWidget()
-        self.volume = pg.PlotWidget(axisItems={"bottom": self.axis})
+        self.price = pg.PlotWidget(viewBox=HistoryViewBox())
+        self.volume = pg.PlotWidget(viewBox=HistoryViewBox(), axisItems={"bottom": self.axis})
         self.volume.setXLink(self.price)
         self.price.hideAxis("bottom")
         self.volume.setMaximumHeight(160)
@@ -105,6 +137,7 @@ class MarketChart(QWidget):
         self.price.showGrid(x=True, y=True, alpha=0.13)
         self.volume.showGrid(y=True, alpha=0.1)
         for plot in (self.price, self.volume):
+            plot.getViewBox().range_requested.connect(self._history_range)
             # InfiniteLine's clipped bounds + translucent child widgets can leave
             # stale pixels at view/axis edges with Qt's minimal dirty rectangles.
             # Coalesce complete plot repaints; cached candles and analysis stay intact.
@@ -136,6 +169,8 @@ class MarketChart(QWidget):
             brush=pg.mkBrush(76, 155, 157, 28), pen=pg.mkPen("#488d91"), movable=False
         )
         self.region.sigRegionChangeFinished.connect(self._region_finished)
+        self.region.hide()
+        self.volume_region.hide()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -181,6 +216,9 @@ class MarketChart(QWidget):
             == (snapshot.series.symbol, snapshot.series.interval, snapshot.series.kind)
         )
         old_range = self.price.getViewBox().viewRange()[0] if preserve_view else None
+        if incremental and old_range:
+            shift = chart_offset(previous, snapshot.series)
+            old_range = [value + shift for value in old_range]
         self._updating = True
         if not incremental:
             self.cursor.hide()
@@ -285,6 +323,7 @@ class MarketChart(QWidget):
         if not incremental:
             self.price.addItem(self.region)
             self.volume.addItem(self.volume_region)
+            self.clear_selection()
         self.cursor.attach(
             snapshot.series, reference_closes, baseline_price, vwap_points, preserve=incremental
         )
@@ -305,6 +344,18 @@ class MarketChart(QWidget):
         self._fit_visible()
         self._updating = False
         self.snapshot_changed.emit(snapshot)
+
+    def _history_range(self, bounds):
+        if self.snapshot is not None and not self._updating:
+            self.history_requested.emit(bounds)
+
+    def set_view_range(self, left, right):
+        if self.snapshot is None:
+            return
+        count = len(self.snapshot.series.bars)
+        width = max(min(2, count), min(right - left, count))
+        left = max(-0.5, min(left, count - 0.5 - width))
+        self.price.setXRange(left, left + width, padding=0)
 
     def focus_date(self, day):
         if self.snapshot is None:

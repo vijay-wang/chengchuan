@@ -137,7 +137,6 @@ class MarketDashboardDesktopTests(unittest.TestCase):
                 w.frame
                 and w.snapshot.series.symbol == symbol
                 and w.snapshot.series.interval == interval
-                and w.report
                 and w.runner.active is None
                 and w.market_runner.active is None
                 and w.details_runner.active is None
