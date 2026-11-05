@@ -6,17 +6,17 @@ import time
 from datetime import date
 from pathlib import Path
 
-from PySide6.QtCore import QPointF
+from PySide6.QtCore import QEvent, QPointF, Qt
+from PySide6.QtGui import QMouseEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
-from chengchuan.application.microstructure import analyze_orders, select_bands
+from chengchuan.application.microstructure import select_bands
 from chengchuan.application.services import AnalysisService
 from chengchuan.domain.microstructure import OrderFilter
 from chengchuan.infrastructure.legacy import LegacyAnalysisEngine, LegacyJsonRepository
 from chengchuan.infrastructure.market_sources import ConfiguredMarketSources
-from chengchuan.infrastructure.meoz_client import MeozClient, MeozStore
-from chengchuan.infrastructure.microstructure import fetch_tape
+from chengchuan.infrastructure.meoz_client import MeozStore
 from chengchuan.infrastructure.workspace import SqliteWorkspaceRepository
 from chengchuan.ui.window import MainWindow
 
@@ -52,17 +52,25 @@ def check(folder, symbol, day):
             raise RuntimeError("截图保存失败")
 
     try:
-        window.open_stock(symbol, "minute", as_of=day)
+        window.open_stock(symbol, "day", as_of=day)
         wait(lambda: window.frame is not None and window.market_runner.active is None)
-        tape = fetch_tape(MeozClient(offline=True), symbol, day)
         start = time.perf_counter()
-        analysis = analyze_orders(tape)
+        window._request_l2_tape()
+        wait(lambda: window._l2_analysis is not None and window.l2_analysis_runner.active is None)
         elapsed = time.perf_counter() - start
-        window._l2_tape = tape
-        window._l2_analysis_ready(analysis)
+        analysis = window._l2_analysis
+        window.period.setCurrentIndex(window.period.findData("minute"))
+        wait(lambda: window.frame is not None and window.market_runner.active is None)
+        if window._l2_analysis is not analysis:
+            raise RuntimeError("同股同日切换周期不得丢失已加载逐笔")
+        window.research_tabs.setCurrentWidget(window.micro_panel)
+        window.micro_panel.tabs.setCurrentWidget(window.micro_panel.restored_page)
+        capture(window, "right-inline-reconstruction.png")
         window._expand_micro()
         panel = window.micro_dialog.panel
         panel.tabs.setCurrentWidget(panel.restored_page)
+        capture(window.micro_dialog, "inline-reconstruction.png")
+        panel.restored_views.setCurrentIndex(1)
         capture(window.micro_dialog, "restored-dark-table.png")
         panel.restored_filters.unfilled.setChecked(False)
         panel.restored_filters.cancelled.setChecked(False)
@@ -71,13 +79,15 @@ def check(folder, symbol, day):
             i for i, o in enumerate(panel._visible_restored) if o.side == "B" and o.trade_count == 3
         )
         panel._show_fills(panel.restored_model.index(selected, 0))
-        capture(panel.matches_dialog, "matched-order-cells.png")
-        panel.matches_dialog.close()
+        capture(window.micro_dialog, "matched-order-cells.png")
         window.micro_dialog.hide()
         window.chart.clear_selection()
+        window._clear_micro()
         controller = window.chart_orders
         controller.show_minute.setChecked(True)
         controller.show_marks.setChecked(True)
+        wait(lambda: window._l2_analysis is not None and window.l2_analysis_runner.active is None)
+        tape, analysis = window._l2_tape, window._l2_analysis
         app.processEvents()
         controller._render_markers()
         if not controller.marker_spots:
@@ -91,7 +101,19 @@ def check(folder, symbol, day):
         index = max(set(visible), key=visible.count)
         bounds = window.chart.price.getViewBox().viewRange()[1]
         point = window.chart.price.getViewBox().mapViewToScene(QPointF(index, sum(bounds) / 2))
-        window.chart.cursor.move(point, window.chart.price)
+        local = window.chart.price.mapFromScene(point)
+        app.sendEvent(
+            window.chart.price.viewport(),
+            QMouseEvent(
+                QEvent.Type.MouseMove,
+                QPointF(local),
+                QPointF(window.chart.price.viewport().mapToGlobal(local)),
+                Qt.MouseButton.NoButton,
+                Qt.MouseButton.NoButton,
+                Qt.KeyboardModifier.NoModifier,
+            ),
+        )
+        app.processEvents()
         if not controller.overlay.isVisible():
             raise RuntimeError(
                 "分钟浮层未显示："
@@ -139,7 +161,7 @@ def check(folder, symbol, day):
             symbol=tape.symbol,
             day=str(day),
             orders=len(tape.orders),
-            analysis_seconds=elapsed,
+            load_and_analysis_seconds=elapsed,
             minutes=len(analysis.minute_groups),
             hover_cached_ms=hover_ms,
             totals=totals,

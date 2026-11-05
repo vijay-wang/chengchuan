@@ -6,6 +6,7 @@ from datetime import datetime, time
 
 from chengchuan.domain.microstructure import (
     AmountBand,
+    ExecutionMatch,
     MinuteOrderBands,
     OrderAnalysis,
     OrderBandGroup,
@@ -112,6 +113,42 @@ def match_groups(tape, analysis, selected):
             OrderMatchGroup(counterpart, tuple(sorted(trades, key=lambda t: (t.time, t.trade_id))))
         )
     return tuple(sorted(result, key=lambda g: (g.trades[0].time, g.trades[0].trade_id)))
+
+
+def execution_matches(tape, restored, cutoff):
+    unique = {(r.side, r.exchange_id): r for r in restored if not r.ambiguous and r.exchange_id > 0}
+    return tuple(
+        ExecutionMatch(t, unique.get(("B", t.bid_id)), unique.get(("S", t.ask_id)))
+        for t in sorted(tape.trades, key=lambda t: (t.time, t.trade_id))
+        if t.time <= cutoff and t.kind.upper() in TRADE_CODES and t.price_fen > 0 and t.shares > 0
+    )
+
+
+def select_executions(analysis, filters, selected=None):
+    return tuple(
+        row
+        for row in analysis.executions
+        if (
+            filters.include_cancelled
+            or not any(o is not None and o.cancelled for o in (row.buy, row.sell))
+        )
+        and (selected is None or (row.buy if selected.side == "B" else row.sell) is selected)
+    )
+
+
+def execution_spans(rows, side):
+    """Only merge adjacent matches. Never reorder executions to join an ID."""
+    result = []
+    i = 0
+    while i < len(rows):
+        order = getattr(rows[i], side)
+        stop = i + 1
+        while order is not None and stop < len(rows) and getattr(rows[stop], side) is order:
+            stop += 1
+        if order is not None:
+            result.append((i, stop - i, order))
+        i = stop
+    return tuple(result)
 
 
 def analyze_orders(tape, cutoff=None):
@@ -238,6 +275,7 @@ def analyze_orders(tape, cutoff=None):
         tuple(MinuteOrderBands(minute, _groups(rows)) for minute, rows in sorted(minutes.items())),
         sum(r.ambiguous for r in restored),
         sum(not r.ambiguous and r.original_fen <= 0 for r in restored),
+        execution_matches(tape, restored, cutoff),
     )
 
 

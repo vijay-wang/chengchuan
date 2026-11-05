@@ -135,6 +135,12 @@ class MeozMarketProvider:
 
         return fetch_tape(self.client, symbol, day, max_pages)
 
+    def fetch_cached_microstructure(self, symbol, day, max_pages=6):
+        from chengchuan.infrastructure.microstructure import fetch_tape
+
+        cached = MeozClient(store=self.client.store, offline=True)
+        return fetch_tape(cached, symbol, day, max_pages, quote_optional=True)
+
     def stream_order_book(self, symbol, stop):
         if self.client.offline:
             raise MarketError("离线模式不建立实时订阅")

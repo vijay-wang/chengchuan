@@ -52,6 +52,16 @@ class MicroMarket(harness.ViewsMarket):
         super().__init__()
         self.tape_calls = []
         self.sector_calls = []
+        self.cache_calls = []
+        self.cached = None
+
+    def load_cached_microstructure(self, symbol, day, max_pages=6):
+        from chengchuan.application.errors import MarketError
+
+        self.cache_calls.append((symbol, day))
+        if self.cached is None:
+            raise MarketError("没有逐笔缓存")
+        return replace(self.cached, symbol=symbol)
 
     def load_sector(self, kind, code, name, refresh=False):
         self.sector_calls.append((kind, code))
@@ -220,48 +230,46 @@ class MicrostructureDesktopTests(unittest.TestCase):
         panel.restored_filters.unfilled.setChecked(False)
         self.assertEqual(panel.restored_model.rowCount(), 4)
         panel._show_fills(panel.restored_model.index(0, 0))
-        dialog = panel.matches_dialog
-        self.assertEqual(dialog.order.exchange_id, 1)
-        self.assertEqual(dialog.model.rowCount(), 3)
-        self.assertEqual(dialog.table.rowSpan(0, 0), 3)
-        self.assertEqual(dialog.table.rowSpan(0, 2), 1)
-        self.assertIn("20.00元 × 100股", dialog.model.rows[0][1])
-        dialog.close()
+        view = panel.inline_matches
+        self.assertIs(panel.restored_views.currentWidget(), view)
+        self.assertEqual(view.selected.exchange_id, 1)
+        self.assertEqual(view.model.rowCount(), 3)
+        self.assertEqual(view.table.rowSpan(0, 4), 3)
+        self.assertEqual(view.table.rowSpan(0, 3), 1)
+        self.assertEqual(view.model.index(0, 1).data(), "20.00")
+        self.assertEqual(view.model.index(0, 2).data(), "1")
 
     def test_sell_anchor_merges_right_column_and_pagination_has_bounded_rows(self):
         from chengchuan.application.microstructure import analyze_orders
-        from chengchuan.ui.order_matches import OrderMatchDialog
+        from chengchuan.ui.order_matches import InlineReconstruction
 
         source = tape(
             orders=[order(10, "S", shares=30100), order(1, shares=30100)],
             trades=[trade(i + 1, bid=1, ask=10, shares=100) for i in range(301)],
         )
         a = analyze_orders(source)
-        selected = next(o for o in a.restored if o.side == "S")
-        dialog = OrderMatchDialog(source, a, selected, self.window)
-        dialog.show()
-        self.assertEqual(dialog.model.rowCount(), 300)
-        self.assertEqual(dialog.table.rowSpan(0, 2), 300)
-        self.assertEqual(dialog.table.rowSpan(0, 0), 300)
-        dialog.next.click()
-        self.assertEqual(dialog.model.rowCount(), 1)
-        self.assertFalse(dialog.next.isEnabled())
-        self.assertTrue(dialog.previous.isEnabled())
-        dialog.previous.click()
-        self.assertEqual(dialog.table.rowSpan(0, 2), 300)
-        dialog.close()
+        view = InlineReconstruction(self.window)
+        view.set_analysis(a, self.window.micro_panel.restored_filters.value())
+        self.assertEqual(view.model.rowCount(), 300)
+        self.assertEqual(view.table.rowSpan(0, 4), 300)
+        self.assertEqual(view.table.rowSpan(0, 3), 300)
+        view.next.click()
+        self.assertEqual(view.model.rowCount(), 1)
+        self.assertFalse(view.next.isEnabled())
+        self.assertTrue(view.previous.isEnabled())
+        view.previous.click()
+        self.assertEqual(view.table.rowSpan(0, 3), 300)
 
-    def test_parent_close_stops_chart_timer_and_closes_match_dialog(self):
+    def test_parent_close_stops_chart_timer_and_hides_inline_reconstruction(self):
         w = self.window
         w._l2_ready(sample_tape(self.day))
         self.wait_until(lambda: w._l2_analysis is not None)
         w._expand_micro()
         panel = w.micro_dialog.panel
         panel._show_fills(panel.restored_model.index(0, 0))
-        dialog = panel.matches_dialog
         w.chart_orders._schedule_markers()
         w.close()
-        self.assertFalse(dialog.isVisible())
+        self.assertFalse(panel.inline_matches.isVisible())
         self.assertFalse(w.chart_orders.timer.isActive())
 
     def test_minute_hover_and_multicolor_marks_are_local_and_clear_on_switch(self):
@@ -304,6 +312,129 @@ class MicrostructureDesktopTests(unittest.TestCase):
         self.assertEqual(controller.marker_spots, [])
         self.assertEqual(self.market.tape_calls, [])
 
+    def test_read_daily_then_choose_minute_preserves_data_and_real_mouse_hover(self):
+        from PySide6.QtCore import QEvent, QPointF
+        from PySide6.QtGui import QMouseEvent
+
+        w = self.window
+        w._request_l2_tape()
+        self.wait_until(lambda: w._l2_analysis is not None)
+        analysis, source = w._l2_analysis, w._l2_tape
+        w.period.setCurrentIndex(w.period.findData("minute"))
+        self.wait_until(lambda: self.opened() and w.chart.snapshot.series.interval == "minute")
+        self.assertIs(w._l2_analysis, analysis)
+        self.assertIs(w._l2_tape, source)
+        c = w.chart_orders
+        c.show_minute.setChecked(True)
+        c.show_marks.setChecked(True)
+        c.band_checks[3].setChecked(True)
+        self.wait_until(lambda: bool(c.marker_spots))
+        bounds = w.chart.price.getViewBox().viewRange()[1]
+        point = w.chart.price.getViewBox().mapViewToScene(QPointF(0, sum(bounds) / 2))
+        local = w.chart.price.mapFromScene(point)
+        self.app.sendEvent(
+            w.chart.price.viewport(),
+            QMouseEvent(
+                QEvent.Type.MouseMove,
+                QPointF(local),
+                QPointF(w.chart.price.viewport().mapToGlobal(local)),
+                Qt.MouseButton.NoButton,
+                Qt.MouseButton.NoButton,
+                Qt.KeyboardModifier.NoModifier,
+            ),
+        )
+        self.wait_until(lambda: c.overlay.isVisible())
+        self.assertIn("100–200万", c.overlay.text())
+        self.assertEqual(len(self.market.tape_calls), 1)
+        self.assertEqual(self.market.cache_calls, [])
+
+    def test_enable_annotations_loads_local_cache_once_without_paid_query(self):
+        w = self.window
+        self.market.cached = sample_tape(self.day)
+        w.open_stock("002318", "minute")
+        self.wait_until(self.opened)
+        c = w.chart_orders
+        c.show_marks.setChecked(True)
+        c.band_checks[3].setChecked(True)
+        c.show_minute.setChecked(True)
+        self.wait_until(lambda: w._l2_analysis is not None and bool(c.marker_spots))
+        for _ in range(3):
+            c.show_marks.setChecked(False)
+            c.show_marks.setChecked(True)
+        self.assertEqual(len(self.market.cache_calls), 1)
+        self.assertEqual(self.market.tape_calls, [])
+
+    def test_next_trading_day_refresh_discards_previous_day_orders(self):
+        from datetime import timedelta
+
+        w = self.window
+        w._l2_ready(sample_tape(self.day))
+        self.wait_until(lambda: w._l2_analysis is not None)
+        frame = w.frame
+        bars = tuple(
+            replace(b, timestamp=b.timestamp + timedelta(days=1))
+            for b in frame.snapshot.series.bars
+        )
+        next_frame = replace(
+            frame,
+            snapshot=replace(
+                frame.snapshot,
+                revision="next-day",
+                series=replace(frame.snapshot.series, bars=bars),
+            ),
+        )
+        w._market_ready(next_frame)
+        self.assertIsNone(w._l2_analysis)
+        self.assertIsNone(w.chart_orders.analysis)
+
+    def test_missing_cache_explains_reason_in_hover_without_retries(self):
+        w = self.window
+        w.open_stock("002318", "minute")
+        self.wait_until(self.opened)
+        c = w.chart_orders
+        c.show_minute.setChecked(True)
+        self.wait_until(lambda: w.l2_runner.active is None and bool(self.market.cache_calls))
+        c._hover(0)
+        self.assertTrue(c.overlay.isVisible())
+        self.assertIn("读取逐笔", c.overlay.text())
+        self.assertNotIn("0笔", c.overlay.text())
+        for _ in range(3):
+            c.show_marks.setChecked(True)
+            c.show_marks.setChecked(False)
+        self.assertEqual(len(self.market.cache_calls), 1)
+        self.assertEqual(self.market.tape_calls, [])
+
+    def test_marker_rail_is_painted_at_volume_top_with_nonoverlapping_colors(self):
+        from PySide6.QtGui import QColor
+
+        w = self.window
+        self.market.cached = sample_tape(self.day)
+        w.open_stock("002318", "minute")
+        self.wait_until(self.opened)
+        c = w.chart_orders
+        c.show_marks.setChecked(True)
+        c.band_checks[0].setChecked(True)
+        c.band_checks[3].setChecked(True)
+        self.wait_until(lambda: w._l2_analysis is not None and len(c.marker_spots) >= 2)
+        self.app.processEvents()
+        shots = w.chart.volume.viewport().grab().toImage()
+        from PySide6.QtCore import QPointF
+
+        for spot in c.marker_spots:
+            p = w.chart.volume.mapFromScene(
+                w.chart.volume.getViewBox().mapViewToScene(QPointF(*spot["pos"]))
+            )
+            color = shots.pixelColor(p)
+            expected = QColor(spot["brush"])
+            self.assertLess(
+                sum(abs(a - b) for a, b in zip(color.getRgb()[:3], expected.getRgb()[:3])), 25
+            )
+        first, second = c.marker_spots[:2]
+        self.assertEqual(first["pos"][1], second["pos"][1])
+        self.assertLessEqual(
+            first["pos"][0] + first["size"][0] / 2, second["pos"][0] - second["size"][0] / 2 + 1e-9
+        )
+
     def test_partial_data_disables_minute_overlay_and_markers(self):
         from chengchuan.application.microstructure import analyze_orders
 
@@ -317,7 +448,9 @@ class MicrostructureDesktopTests(unittest.TestCase):
         controller.show_marks.setChecked(True)
         controller._render_markers()
         controller._hover(0)
-        self.assertFalse(controller.overlay.isVisible())
+        self.assertTrue(controller.overlay.isVisible())
+        self.assertIn("分页未齐", controller.overlay.text())
+        self.assertNotIn("0笔", controller.overlay.text())
         self.assertEqual(controller.marker_spots, [])
         self.assertIn("分页未齐", controller.hint.text())
 

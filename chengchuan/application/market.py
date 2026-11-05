@@ -303,6 +303,12 @@ class MarketService:
             raise MarketError("当前来源不支持在线五档订阅")
         return self.provider.stream_order_book(stock_symbol(symbol), stop)
 
+    def load_cached_microstructure(self, symbol, day, max_pages=6):
+        fetch = getattr(self.provider, "fetch_cached_microstructure", None)
+        if not self.supports_microstructure or not callable(fetch) or type(day) is not date:
+            raise MarketError("当前来源没有该日逐笔缓存")
+        return fetch(stock_symbol(symbol), day, max_pages)
+
     def load_microstructure_file(self, path):
         if self.tape_repository is None:
             raise MarketError("当前环境未配置逐笔文件导入")

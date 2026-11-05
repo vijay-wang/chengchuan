@@ -9,17 +9,21 @@ from unittest.mock import Mock, patch
 from chengchuan.application.errors import MarketError
 from chengchuan.application.microstructure import (
     analyze_orders,
+    execution_spans,
     match_groups,
     order_queue,
     select_bands,
+    select_executions,
 )
 from chengchuan.domain.microstructure import OrderEvent, OrderFilter, OrderTape, TradeEvent
 from chengchuan.domain.models import SHANGHAI
-from chengchuan.infrastructure.meoz_client import ApiResult, page_metadata
+from chengchuan.infrastructure.meoz_client import ApiResult, MeozClient, MeozStore, page_metadata
+from chengchuan.infrastructure.meoz_market import MeozMarketProvider
 from chengchuan.infrastructure.meoz_stream import STREAM_FIELDS, parse_stream_book, request_ticket
 from chengchuan.infrastructure.microstructure import (
     JsonOrderTapeRepository,
     fen,
+    fetch_tape,
     integer,
     load_pages,
     parse_book,
@@ -69,6 +73,37 @@ def tape(orders=None, trades=None, complete=True):
 
 
 class OriginalOrderTests(unittest.TestCase):
+    def test_inline_executions_keep_chronology_and_only_merge_adjacent_ids(self):
+        source = tape(
+            orders=[order(1, shares=300), order(2, shares=100), order(10, "S", shares=400)],
+            trades=[
+                trade(1, bid=1, shares=100, seconds=1),
+                trade(2, bid=2, shares=100, seconds=2),
+                trade(3, bid=1, shares=100, seconds=3),
+            ],
+        )
+        a = analyze_orders(source)
+        rows = select_executions(a, OrderFilter(True, True))
+        self.assertEqual([r.trade.trade_id for r in rows], [1, 2, 3])
+        self.assertEqual(
+            [(start, count) for start, count, _ in execution_spans(rows, "buy")],
+            [(0, 1), (1, 1), (2, 1)],
+        )
+        self.assertEqual(
+            [(start, count) for start, count, _ in execution_spans(rows, "sell")], [(0, 3)]
+        )
+
+    def test_inline_cancel_filter_and_ambiguous_counterparts_keep_real_trade_distinction(self):
+        source = tape(
+            orders=[order(1, shares=300), order(10, "S", shares=400), order(10, "S", shares=400)],
+            trades=[trade(1, shares=100), trade(2, ask=0, kind="C")],
+        )
+        a = analyze_orders(source)
+        rows = select_executions(a, OrderFilter(True, True))
+        self.assertEqual(len(rows), 1)
+        self.assertIsNone(rows[0].sell)
+        self.assertEqual(select_executions(a, OrderFilter(True, False)), ())
+
     def test_independent_unfilled_and_cancelled_filters_keep_original_amount(self):
         source = tape(
             orders=[
@@ -267,6 +302,45 @@ class OriginalOrderTests(unittest.TestCase):
 
 
 class TickAdapterTests(unittest.TestCase):
+    def test_cached_loader_never_reads_credentials_or_calls_http_on_cache_miss(self):
+        with tempfile.TemporaryDirectory() as folder:
+            store = MeozStore(Path(folder) / "cache.sqlite")
+            provider = MeozMarketProvider(MeozClient(store=store, offline=False))
+            before = store.usage()
+            with (
+                patch(
+                    "chengchuan.infrastructure.meoz_client.private_key",
+                    side_effect=AssertionError("不应读取凭据"),
+                ),
+                patch(
+                    "chengchuan.infrastructure.meoz_client.urlopen",
+                    side_effect=AssertionError("不应联网"),
+                ),
+            ):
+                with self.assertRaises(MarketError):
+                    provider.fetch_cached_microstructure("002318", DAY)
+            self.assertEqual(store.usage(), before)
+
+    def test_cached_bands_can_load_without_quotes_but_network_quote_errors_are_not_hidden(self):
+        for offline in (True, False):
+            client = Mock(offline=offline)
+            empty = ApiResult(
+                (),
+                NOW,
+                True,
+                "https://example.invalid",
+                page=dict(has_more=False, next_cursor=None, tradedate="20261104"),
+            )
+            client.query.side_effect = [empty, empty, MarketError("缺少十档缓存")]
+            if offline:
+                result = fetch_tape(client, "002318", DAY, quote_optional=True)
+                self.assertTrue(result.orders_complete and result.trades_complete)
+                self.assertFalse(result.quotes_complete)
+                self.assertEqual(result.quotes, ())
+            else:
+                with self.assertRaises(MarketError):
+                    fetch_tape(client, "002318", DAY, quote_optional=True)
+
     def test_times_and_large_identifiers_keep_precision(self):
         self.assertEqual(record_time(DAY, "093000123").microsecond, 123000)
         self.assertEqual(record_time(DAY, "2026-11-04T01:30:00+00:00").hour, 9)

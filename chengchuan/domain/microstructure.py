@@ -162,6 +162,13 @@ class OrderMatchGroup:
 
 
 @dataclass(frozen=True)
+class ExecutionMatch:
+    trade: TradeEvent
+    buy: ReconstructedOrder | None
+    sell: ReconstructedOrder | None
+
+
+@dataclass(frozen=True)
 class OrderAnalysis:
     symbol: str
     day: date
@@ -181,3 +188,4 @@ class OrderAnalysis:
     minute_groups: tuple[MinuteOrderBands, ...] = ()
     all_ambiguous_orders: int = 0
     all_unpriced_orders: int = 0
+    executions: tuple[ExecutionMatch, ...] = ()

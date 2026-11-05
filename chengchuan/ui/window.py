@@ -121,6 +121,9 @@ class MainWindow(QMainWindow):
         self.micro_dialog = None
         self._l2_tape = self._l2_analysis = None
         self._l2_requested = None
+        self._pending_l2 = None
+        self._chart_cache_attempted = None
+        self._l2_loading_kind = None
         self.forecast_service, self.forecast_writer = forecast_service, forecast_writer
         self.forecast_panel = None
         self.network_runner_factory = network_runner_factory
@@ -138,12 +141,12 @@ class MainWindow(QMainWindow):
         if self.l2_runner:
             self.l2_runner.timeout_ms = 180000
             self.l2_runner.ready.connect(self._l2_ready)
-            self.l2_runner.failed.connect(self._micro_error)
+            self.l2_runner.failed.connect(self._l2_failed)
             self.book_runner.ready.connect(self._book_ready)
             self.book_runner.failed.connect(self._micro_error)
         self.l2_analysis_runner = LatestTaskRunner(self)
         self.l2_analysis_runner.ready.connect(self._l2_analysis_ready)
-        self.l2_analysis_runner.failed.connect(self._micro_error)
+        self.l2_analysis_runner.failed.connect(self._l2_failed)
         self.book_stream = BookStreamRunner(self)
         self.book_stream.ready.connect(self._book_ready)
         self.book_stream.status.connect(self._micro_status)
@@ -339,6 +342,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.date_nav)
         self.chart_orders = ChartOrderController(self.chart, self)
         self.chart_orders.requested.connect(lambda: self._request_l2_tape(6))
+        self.chart_orders.cache_requested.connect(self._ensure_chart_orders)
         layout.addWidget(self.chart_orders.controls)
         self.coverage = label("", "eyebrow", True)
         layout.addWidget(self.coverage)
@@ -697,6 +701,13 @@ class MainWindow(QMainWindow):
             self.status.setText(str(exc))
             return
         interval = interval or self.period.currentData()
+        retained = (
+            (self._l2_tape, self._l2_analysis)
+            if symbol == self.online_symbol
+            and self._l2_tape is not None
+            and (as_of is None or as_of == self._l2_tape.day)
+            else None
+        )
         if not automatic:
             self._refresh_controller.reset()
         if symbol != self.online_symbol:
@@ -722,6 +733,7 @@ class MainWindow(QMainWindow):
             self.funds_runner.cancel()
             self.frame = None
             self._reset_display()
+            self._pending_l2 = retained
             self._loading = True
             self.stock_title.setText(f"{symbol[2:]} · 正在获取行情")
         if switching or self.frame is None:
@@ -755,7 +767,22 @@ class MainWindow(QMainWindow):
         ):
             return
         preserve = self.frame is not None
+        day = series.bars[-1].timestamp.astimezone(SHANGHAI).date()
+        if self._l2_tape is not None and (self._l2_tape.symbol, self._l2_tape.day) != (
+            series.symbol,
+            day,
+        ):
+            self._clear_micro()
         self.frame = frame
+        if self._pending_l2 is not None:
+            tape, analysis = self._pending_l2
+            self._pending_l2 = None
+            if tape.symbol == series.symbol and tape.day == day:
+                self._l2_tape = tape
+                if analysis is not None:
+                    self._l2_analysis_ready(analysis)
+                else:
+                    self._replay_l2(self.micro_panel.cutoff.time().toPython())
         self._show_snapshot(frame.snapshot, preserve)
         self.watch_button.setEnabled(True)
         self._frame_status()
@@ -953,10 +980,49 @@ class MainWindow(QMainWindow):
             self.book_runner.cancel()
         self.l2_analysis_runner.cancel()
         self._l2_tape = self._l2_analysis = self._l2_requested = None
+        self._pending_l2 = None
+        self._l2_loading_kind = None
         self.chart_orders.clear()
         if hasattr(self, "micro_panel"):
             for panel in self._micro_panels():
                 panel.clear()
+
+    def _ensure_chart_orders(self):
+        try:
+            symbol, day = self._micro_context()
+        except ValueError:
+            return
+        if (
+            self._l2_analysis is not None
+            or self.l2_runner.active is not None
+            or self.l2_analysis_runner.active is not None
+        ):
+            return
+        key = (getattr(self.market, "source_id", ""), symbol, day)
+        if key == self._chart_cache_attempted:
+            return
+        self._chart_cache_attempted = key
+        cached = getattr(self.market, "load_cached_microstructure", None)
+        if not callable(cached):
+            self.chart_orders.set_data_status(
+                "没有该日逐笔缓存；请点击“读取逐笔”或导入对应日期JSON。"
+            )
+            return
+        self._l2_loading_kind = "cache"
+        self._l2_requested = (symbol, day)
+        self.chart_orders.set_data_status(f"正在读取{day:%Y-%m-%d}本地逐笔缓存，不访问付费接口…")
+        self.l2_runner.submit("cached:" + symbol + str(day), None, partial(cached, symbol, day, 6))
+
+    def _l2_failed(self, message):
+        cached = self._l2_loading_kind == "cache"
+        self._l2_loading_kind = None
+        self.chart_orders.set_data_status(
+            "本地没有完整逐笔缓存；请点“读取逐笔”或导入JSON。当日历史尚未发布时可选择已发布日期。"
+            if cached
+            else "逐笔读取／分析未完成：" + message
+        )
+        if not cached:
+            self._micro_error(message)
 
     def _request_book(self):
         try:
@@ -1010,7 +1076,11 @@ class MainWindow(QMainWindow):
             self._micro_error("逐笔需切换猫爪数据源，或导入本地JSON")
             return
         self._toggle_book_stream(False)
+        self._l2_loading_kind = "network"
         self._l2_requested = (symbol, day)
+        self.chart_orders.set_data_status(
+            f"正在读取{day:%Y-%m-%d}逐笔；完成后自动显示分钟分档及标记。"
+        )
         self._micro_status(
             f"读取{day:%Y-%m-%d}已发布原始委托、成交及十档；每类最多{max_pages}页，本地优先，数据不齐不发布饼图。"
         )
@@ -1029,6 +1099,8 @@ class MainWindow(QMainWindow):
             self._micro_error("逐笔证券／日期与当前图表不符；请先切到对应日期")
             return
         self._l2_tape = tape
+        self._l2_loading_kind = None
+        self.chart_orders.set_data_status("逐笔已读入，正在本地还原及建立分钟索引…")
         self._replay_l2(self.micro_panel.cutoff.time().toPython())
 
     def _replay_l2(self, clock):
@@ -1299,9 +1371,6 @@ class MainWindow(QMainWindow):
         self.book_stream.shutdown()
         self.l2_analysis_runner.shutdown()
         self.chart_orders.shutdown()
-        for panel in self._micro_panels():
-            if panel.matches_dialog is not None:
-                panel.matches_dialog.close()
         if self.micro_dialog:
             self.micro_dialog.close()
         if self.settings_dialog is not None:

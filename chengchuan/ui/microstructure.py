@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
 from chengchuan.application.microstructure import order_queue, select_bands
 from chengchuan.ui import theme
 from chengchuan.ui.market_dashboard import value_text
-from chengchuan.ui.order_matches import OrderMatchDialog
+from chengchuan.ui.order_matches import InlineReconstruction
 from chengchuan.ui.order_widgets import COLORS, OrderFilterControls
 from chengchuan.ui.table import ValueTableModel
 from chengchuan.ui.window_geometry import MaximizableDialog
@@ -260,7 +260,6 @@ class MicrostructurePanel(QWidget):
         self.symbol = None
         self.streaming = False
         self._visible_restored = ()
-        self.matches_dialog = None
         box = QVBoxLayout(self)
         top = QHBoxLayout()
         self.snapshot_button = QPushButton("读取五档")
@@ -362,10 +361,20 @@ class MicrostructurePanel(QWidget):
         self.restored_page = QWidget()
         restored_box = QVBoxLayout(self.restored_page)
         self.restored_filters = OrderFilterControls("显示", include_cancelled=True)
+        self.restored_filters.unfilled.setToolTip(
+            "作用于原单列表；成交还原只显示实际成交，不虚构未成交记录。"
+        )
         self.restored_filters.changed.connect(self._restored_filter_changed)
         restored_box.addWidget(self.restored_filters)
-        restored_box.addWidget(QLabel("双击原单查看买卖配对格子、每笔成交价格与股数。"))
-        restored_box.addWidget(self.restored_table, 1)
+        self.restored_views = QTabWidget()
+        self.inline_matches = InlineReconstruction()
+        self.restored_views.addTab(self.inline_matches, "成交还原")
+        original_page = QWidget()
+        original_box = QVBoxLayout(original_page)
+        original_box.addWidget(QLabel("双击原单在本页定位对应成交；未成交开关用于原单列表。"))
+        original_box.addWidget(self.restored_table, 1)
+        self.restored_views.addTab(original_page, "原单列表")
+        restored_box.addWidget(self.restored_views, 1)
         self.tabs.addTab(self.restored_page, "逐笔还原")
         self.profile_table, self.profile_model = value_table(
             ("成交价", "源B量", "源S量", "未标方向量", "总量"), {0: lambda v: f"{v:.2f}"}
@@ -388,9 +397,7 @@ class MicrostructurePanel(QWidget):
     def clear(self, message="选择个股后按需读取；不会自动下载整日逐笔。"):
         self.tape = self.analysis = self.book = None
         self._visible_restored = ()
-        if self.matches_dialog is not None:
-            self.matches_dialog.close()
-            self.matches_dialog = None
+        self.inline_matches.clear()
         self.status.setText(message)
         for model in (
             self.book_model,
@@ -432,10 +439,8 @@ class MicrostructurePanel(QWidget):
         self._render_queue()
 
     def render_analysis(self, tape, analysis):
-        if self.matches_dialog is not None:
-            self.matches_dialog.close()
-            self.matches_dialog = None
         self.tape, self.analysis = tape, analysis
+        self.inline_matches.set_analysis(analysis, self.restored_filters.value())
         self.bands.render(analysis)
         self.order_model.set_rows(
             (
@@ -481,10 +486,10 @@ class MicrostructurePanel(QWidget):
         self.restored_filters_changed.emit(filters)
 
     def _render_restored(self):
+        filters = self.restored_filters.value()
+        self.inline_matches.set_filters(filters)
         self._visible_restored = (
-            tuple(r for r in self.analysis.restored if self.restored_filters.value().accepts(r))
-            if self.analysis
-            else ()
+            tuple(r for r in self.analysis.restored if filters.accepts(r)) if self.analysis else ()
         )
         self.restored_model.set_rows(
             (
@@ -548,16 +553,8 @@ class MicrostructurePanel(QWidget):
         if order.ambiguous or order.exchange_id <= 0:
             self.status.setText("该委托编号缺失或不唯一，不能展示已确认的成交关联。")
             return
-        if self.matches_dialog is not None:
-            self.matches_dialog.close()
-        dialog = OrderMatchDialog(self.tape, self.analysis, order, self)
-        self.matches_dialog = dialog
-        dialog.destroyed.connect(lambda: self._match_closed(dialog))
-        dialog.show()
-
-    def _match_closed(self, dialog):
-        if self.matches_dialog is dialog:
-            self.matches_dialog = None
+        self.inline_matches.show_order(order)
+        self.restored_views.setCurrentWidget(self.inline_matches)
 
 
 class MicrostructureDialog(MaximizableDialog):
