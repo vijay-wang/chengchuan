@@ -61,12 +61,14 @@ class MarketService:
         connection_notice="",
         offline=False,
         tape_repository=None,
+        research_service=None,
     ):
         self.provider, self.cache, self.ttl_seconds = provider, cache, ttl_seconds
         self.source_id, self.source_label = source_id, source_label
         self.connection_notice = connection_notice
         self.offline = offline
         self.tape_repository = tape_repository
+        self.research_service = research_service
         self.automatic_updates = not offline and getattr(provider, "offline", False) is not True
         intervals = getattr(provider, "intervals", None)
         self.intervals = (

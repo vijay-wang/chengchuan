@@ -2,9 +2,9 @@
 
 本地股票研究工作台：看行情、选区间、计算特征、追溯证据。
 
-![澄川五日委托分档与标记](design/chengchuan-five-day-order-signals.png)
+![澄川精选板块研究工作区](design/chengchuan-research-rotation.png)
 
-当前为**0.12多日逐笔与缩放修复版**：分时／五日／1分钟K按图中各交易日自动加载原单统计，逐日浮层、色条、状态及重试，切图复用。价格与成交量图限制在真实数据范围，缩小和平移不再撑出大片空白。保留页内还原、筛选、板块下钻、多周期与缓存，预测增强仍按P2后置。
+当前为**0.13市场研究版**：左侧新增统一研究页，包含精选板块轮动、题材证据、情绪封单、竞价对比、龙虎榜席位及热度监管，并支持本地快照、固定观察、Markdown／JSON导出。六项均已接通真实数据流程，按所选日期及接口覆盖展示，见[操作说明](docs/MEOZ_RESEARCH_WORKSPACE.md)和[验证记录](docs/VALIDATION_RESEARCH.md)。原有多日逐笔、缩放边界、多周期与缓存保留，预测增强仍为P2。
 
 **2026-11-04预测需求调整：** 后续只保留盘后、北京时间14:35两个时点预测下一交易日，优先级P2后置，排在行情、稳定性、基础指标和选区体验之后；相关Level-2／GPU增强同样后置。该预测需求调整仅更新文档，既有0.3 H1／H2代码未改动。详见[最新预测需求](docs/NEXT_DAY_FORECAST.md)及[排期](docs/ROADMAP.md)。
 
@@ -148,6 +148,8 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 - [0.10委托筛选、成交配对、分钟分档与多色标记](docs/ORDER_INSPECTION.md)
 - [0.11分钟数据保留、缓存自动加载及页内连续还原验证](docs/VALIDATION_MINUTE_INLINE.md)
 - [0.12五日逐日浮层、后台加载与缩放边界](docs/MULTIDAY_ORDERS_AND_ZOOM.md)
+- [0.13特色研究工作区、操作与数据口径](docs/MEOZ_RESEARCH_WORKSPACE.md)
+- [0.13真实接口、离屏运行与回归验证](docs/VALIDATION_RESEARCH.md)
 - [猫爪特色数据功能规划：六项研究功能、接口核对与排期](docs/MEOZ_SPECIALTY_FEATURE_PLAN.md)
 - [最新预测需求：盘后／14:35预测下一交易日，P2后置](docs/NEXT_DAY_FORECAST.md)
 - [量价联合预测原设计与0.3实施背景](docs/SHORT_HORIZON_FORECAST.md)

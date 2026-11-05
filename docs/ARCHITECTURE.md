@@ -122,6 +122,8 @@ UI新增market_dashboard视图，摘要与详情各使用一个有界后台执�
 
 0.12增加`OrderDaySummary`，仅保存证券／日期／截止／覆盖／分钟分组；独立有界进程按图中交易日顺序获取原单与成交，在子进程还原后返回摘要。UI缓存最多20日，不持有五天完整事件；关掉开关、切股或关闭取消队列，重复重试不重复排队，逐日错误不清空其他结果，迟到全日摘要不覆盖人工回放。价格及成交量ViewBox共享真实记录边界和最大宽度。验证默认offscreen，详见[多日记录](MULTIDAY_ORDERS_AND_ZOOM.md)。
 
+0.13新增`domain/research.py`不可变题材身份／列／快照／请求，`application/research.py`编排六项研究、透明差分和导出，`infrastructure/meoz_research.py`按固定契约注册表适配供应商及分页，`research_archive.py`用SQLite schema 2追加内容版本与观察时间。共享HTTP客户端保留源元信息并支持嵌套文档，仍负责私有认证、缓存与额度。`ConfiguredMarketSources`注入独立研究服务；UI通过QStackedWidget嵌入工作区，复用虚拟表及可取消进程，不引入UI→infrastructure依赖。行情与研究拥有独立任务和数据生命周期。详见[操作与边界](MEOZ_RESEARCH_WORKSPACE.md)。
+
 ## 0.3短周期预测研究边界
 
 2026-11-04需求调整：本节记录既有0.3实现；后续开发以[下一交易日双时点需求](NEXT_DAY_FORECAST.md)为准，P2后置。模式仅盘后／14:35，均预测下一交易日。14:35需新增完整时间戳级历史视图、接收时间与标签成熟检查；当前日级`history_at`及H1／H2结果不能代表已支持14:35。模式和截止时间须进入模型、缓存、预测标识及档案，避免同日两个模式互相覆盖。

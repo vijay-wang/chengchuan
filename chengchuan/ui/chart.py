@@ -332,6 +332,27 @@ class MarketChart(QWidget):
             marker.hide()
         self.price.setXRange(max(-1, count - visible), count, padding=0.02)
 
+    def focus_time(self, stamp):
+        """Mark the closest available intraday bar of this day, without inventing a tick."""
+        if self.snapshot is None:
+            raise ValueError("请先打开行情")
+        bars = self.snapshot.series.bars
+        candidates = [
+            (i, b)
+            for i, b in enumerate(bars)
+            if b.timestamp.astimezone(SHANGHAI).date() == stamp.date()
+        ]
+        if not candidates:
+            raise ValueError("当前图中没有该事件日期的行情")
+        index, bar = min(
+            candidates, key=lambda pair: abs((pair[1].timestamp - stamp).total_seconds())
+        )
+        self.cursor.hide()
+        for marker in self.date_markers:
+            marker.setPos(index)
+            marker.show()
+        return bar.timestamp
+
     def _fit_visible(self, *args):
         if self.snapshot is None:
             return

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import partial
 from pathlib import Path
 
@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
     QGridLayout,
+    QGroupBox,
     QHBoxLayout,
     QLabel,
     QLayout,
@@ -25,6 +26,7 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QSizePolicy,
     QSplitter,
+    QStackedWidget,
     QTabWidget,
     QVBoxLayout,
     QWidget,
@@ -35,6 +37,7 @@ from chengchuan.application.errors import StorageError
 from chengchuan.application.market_refresh import MarketRefreshController, market_checkpoint
 from chengchuan.application.microstructure import analyze_orders
 from chengchuan.application.quote_metrics import details_from_frame
+from chengchuan.application.research import clock_seconds, research_stock_symbol
 from chengchuan.application.settings import SettingsSaveError, SettingsService
 from chengchuan.domain.calendar import CalendarUnavailable
 from chengchuan.domain.market import Instrument, instrument_symbol, is_index
@@ -50,6 +53,7 @@ from chengchuan.ui.market import MarketBrowser
 from chengchuan.ui.market_dashboard import IndexOverviewBar, QuoteDetailsPanel
 from chengchuan.ui.market_views import HeatmapDialog, MoneyFlowPanel
 from chengchuan.ui.microstructure import MicrostructureDialog, MicrostructurePanel
+from chengchuan.ui.research import ResearchWorkspace
 from chengchuan.ui.settings_dialog import SettingsDialog
 from chengchuan.ui.tasks import LatestTaskRunner, ProcessTaskRunner
 
@@ -189,11 +193,22 @@ class MainWindow(QMainWindow):
         outer.setSpacing(0)
         self.index_bar = IndexOverviewBar() if market else None
         if self.index_bar:
-            self.index_bar.open_requested.connect(self.open_stock)
+            self.index_bar.open_requested.connect(self._open_index_chart)
             self.index_bar.heatmap_requested.connect(self.open_heatmap)
             outer.addWidget(self.index_bar)
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
-        outer.addWidget(self.splitter, 1)
+        self.pages = QStackedWidget()
+        outer.addWidget(self.pages, 1)
+        self.pages.addWidget(self.splitter)
+        self.research_page = ResearchWorkspace(
+            getattr(market, "research_service", None), self.workspace, parent=self
+        )
+        self.research_page.back_requested.connect(
+            lambda: self.pages.setCurrentWidget(self.splitter)
+        )
+        self.research_page.stock_requested.connect(self._research_stock)
+        self.pages.addWidget(self.research_page)
+        self._pending_research_focus = None
         self._build_sidebar(catalog)
         self._build_chart_area()
         self._build_inspector()
@@ -213,7 +228,7 @@ class MainWindow(QMainWindow):
         self.refresh_timer.setInterval(self.preferences.refresh_seconds * 1000)
         self.refresh_timer.timeout.connect(self._auto_refresh)
         self.refresh_timer.start()
-        QShortcut(QKeySequence("F5"), self, activated=self.refresh_market)
+        QShortcut(QKeySequence("F5"), self, activated=self._refresh_active_page)
         if market:
             self.auto_refresh.setChecked(self.preferences.auto_refresh)
             self.auto_refresh.toggled.connect(self._auto_refresh_preference_changed)
@@ -231,6 +246,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(label("CHENGCHUAN", "brandEnglish"))
         layout.addSpacing(8)
         layout.addWidget(label("研究工作台", "sectionTitle"))
+        self.research_button = QPushButton("市场研究  ·  板块／题材／席位")
+        self.research_button.clicked.connect(self.open_research)
+        layout.addWidget(self.research_button)
         if self.market:
             self.browser = MarketBrowser(
                 self.market, self.workspace, self.network_runner_factory, self
@@ -402,6 +420,7 @@ class MainWindow(QMainWindow):
         self.index_bar.reset()
         self.browser.set_market(market)
         self.market = market
+        self.research_page.set_service(getattr(market, "research_service", None))
         self.source_box.blockSignals(True)
         self.source_box.setCurrentIndex(self.source_box.findData(market.source_id))
         self.source_box.blockSignals(False)
@@ -418,6 +437,47 @@ class MainWindow(QMainWindow):
 
     def configure_market_key(self):
         self.open_settings("data", prefer_meoz=True)
+
+    def open_research(self):
+        self.pages.setCurrentWidget(self.research_page)
+        self.research_page.enter(
+            self.online_symbol if self.online_symbol and not is_index(self.online_symbol) else ""
+        )
+
+    def _open_index_chart(self, symbol):
+        self.pages.setCurrentWidget(self.splitter)
+        self.open_stock(symbol)
+
+    def _refresh_active_page(self):
+        if self.pages.currentWidget() is self.research_page:
+            self.research_page.refresh_current()
+        else:
+            self.refresh_market()
+
+    def open_theme_evidence(self):
+        self.pages.setCurrentWidget(self.research_page)
+        self.research_page.open_evidence(
+            self.online_symbol if self.online_symbol and not is_index(self.online_symbol) else ""
+        )
+
+    def _research_stock(self, symbol, day, clock):
+        try:
+            as_of = datetime.strptime(day, "%Y%m%d").date() if day else None
+            instrument = research_stock_symbol(symbol)
+        except ValueError:
+            self.research_page.status.setText("该记录没有可识别的股票／日期")
+            return
+        self.pages.setCurrentWidget(self.splitter)
+        self.open_stock(instrument, "minute", as_of=as_of)
+        seconds = clock_seconds(clock)
+        self._pending_research_focus = (
+            (
+                instrument,
+                datetime.combine(as_of, datetime.min.time(), SHANGHAI) + timedelta(seconds=seconds),
+            )
+            if as_of and seconds is not None
+            else None
+        )
 
     def open_settings(self, page="data", prefer_meoz=False):
         if self.settings_dialog is not None:
@@ -500,6 +560,20 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.selected_window)
         self.summary = label("等待选择", "summary", True)
         layout.addWidget(self.summary)
+        evidence_box = QGroupBox("题材证据")
+        evidence_box.setCheckable(True)
+        evidence_box.setChecked(False)
+        evidence_layout = QVBoxLayout(evidence_box)
+        evidence_hint = label("查询源内题材关联、三方原文与收盘排名。", "muted", True)
+        evidence_button = QPushButton("查看本股题材证据")
+        evidence_button.clicked.connect(self.open_theme_evidence)
+        evidence_layout.addWidget(evidence_hint)
+        evidence_layout.addWidget(evidence_button)
+        evidence_box.toggled.connect(evidence_hint.setVisible)
+        evidence_box.toggled.connect(evidence_button.setVisible)
+        evidence_hint.hide()
+        evidence_button.hide()
+        layout.addWidget(evidence_box)
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         content = QWidget()
@@ -821,6 +895,15 @@ class MainWindow(QMainWindow):
             self._request_funds(self._details_refresh)
         if self.history_date:
             self._focus_history_date(self.history_date)
+        pending, self._pending_research_focus = self._pending_research_focus, None
+        if pending and pending[0] == series.symbol:
+            try:
+                located = self.chart.focus_time(pending[1])
+                self.status.setText(
+                    f"研究事件 {pending[1]:%H:%M:%S} · 标记最近可用分钟 {located:%H:%M}"
+                )
+            except ValueError as exc:
+                self.status.setText(str(exc))
 
     def _frame_status(self):
         frame = self.frame
@@ -1485,6 +1568,7 @@ class MainWindow(QMainWindow):
         self.status.setText("选区已清除  ·  当前行情保持不变")
 
     def closeEvent(self, event):
+        self.research_page.shutdown()
         self.book_stream.shutdown()
         self.l2_analysis_runner.shutdown()
         self.chart_orders.shutdown()

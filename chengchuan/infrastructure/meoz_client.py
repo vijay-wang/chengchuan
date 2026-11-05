@@ -79,6 +79,42 @@ class ApiResult:
     url: str
     notice: str = ""
     page: dict | None = None
+    metadata: dict | None = None
+    document: dict | None = None
+
+
+def api_result(payload, fetched, cached, url, notice="", structured=False):
+    """Keep source timestamps separate from local fetch time, including nested responses."""
+    if not isinstance(payload, dict) or payload.get("code") != 200:
+        raise MarketError("猫爪返回无效业务响应")
+    data = payload.get("data")
+    if data is not None and not isinstance(data, dict):
+        raise MarketError("猫爪响应数据结构变化")
+    data = data or {}
+    return ApiResult(
+        () if structured else decode_rows(payload),
+        datetime.fromtimestamp(fetched, timezone.utc),
+        cached,
+        url,
+        notice,
+        page_metadata(payload),
+        {k: v for k, v in data.items() if k not in ("fields", "items")}
+        if not structured
+        else {
+            k: data[k]
+            for k in (
+                "updated_at",
+                "published_at",
+                "synced_at",
+                "tradedate",
+                "total",
+                "limit",
+                "offset",
+            )
+            if k in data
+        },
+        data if structured else None,
+    )
 
 
 def page_metadata(payload):
@@ -159,7 +195,8 @@ class MeozStore:
             return None
         payload = json.loads(row[1])
         # Empty successful batches can be published later; never freeze them permanently.
-        if not (payload.get("data") or {}).get("items") and now - row[0] >= 300:
+        data = payload.get("data") or {}
+        if (not data or "items" in data and not data["items"]) and now - row[0] >= 300:
             return None
         return payload, row[0]
 
@@ -286,7 +323,7 @@ class MeozClient:
         self.store = store or MeozStore()
         self.offline = offline
 
-    def peek(self, api, params, fields="", service="live"):
+    def peek(self, api, params, fields="", service="live", structured=False):
         """Read a previously stored response without credentials, reservations or HTTP."""
         body = dict(apiname=api, params=params)
         if fields:
@@ -296,15 +333,24 @@ class MeozClient:
         if cached is None:
             return None
         payload, fetched = cached
-        return ApiResult(
-            decode_rows(payload),
-            datetime.fromtimestamp(fetched, timezone.utc),
+        return api_result(
+            payload,
+            fetched,
             True,
             LIVE_URLS[0] if service == "live" else HISTORY_URL,
-            page=page_metadata(payload),
+            structured=structured,
         )
 
-    def query(self, api, params, fields="", service="live", max_age=180, min_fetched=None):
+    def query(
+        self,
+        api,
+        params,
+        fields="",
+        service="live",
+        max_age=180,
+        min_fetched=None,
+        structured=False,
+    ):
         if service not in ("live", "history"):
             raise ValueError("猫爪服务类型无效")
         url = LIVE_URLS[0] if service == "live" else HISTORY_URL
@@ -319,23 +365,10 @@ class MeozClient:
             if not stale:
                 raise MarketError("离线缓存缺少此接口／日期的数据")
             payload, fetched = stale
-            return ApiResult(
-                decode_rows(payload),
-                datetime.fromtimestamp(fetched, timezone.utc),
-                True,
-                url,
-                "离线读取本地已存数据",
-                page=page_metadata(payload),
-            )
+            return api_result(payload, fetched, True, url, "离线读取本地已存数据", structured)
         if cached:
             payload, fetched = cached
-            return ApiResult(
-                decode_rows(payload),
-                datetime.fromtimestamp(fetched, timezone.utc),
-                True,
-                url,
-                page=page_metadata(payload),
-            )
+            return api_result(payload, fetched, True, url, structured=structured)
         key_value = private_key()
         # Failure suppression changes when a user changes credentials; cached public data is reusable.
         failure_key = cache_key + hashlib.sha256(key_value.encode()).hexdigest()[:12]
@@ -344,14 +377,7 @@ class MeozClient:
         except MarketError as exc:
             if stale:
                 payload, fetched = stale
-                return ApiResult(
-                    decode_rows(payload),
-                    datetime.fromtimestamp(fetched, timezone.utc),
-                    True,
-                    url,
-                    clean_error(exc),
-                    page=page_metadata(payload),
-                )
+                return api_result(payload, fetched, True, url, clean_error(exc), structured)
             raise
         if slot > now:
             time.sleep(slot - now)
@@ -374,51 +400,43 @@ class MeozClient:
                 raise MarketError(
                     f"猫爪接口{api}：{code} " + clean_error(payload.get("message", "请求失败"))
                 )
-            rows = decode_rows(payload)
-            page_metadata(payload)
+            api_result(payload, now, False, url, structured=structured)
             # A server is never allowed to reflect a credential into our public cache.
             if key_value in raw.decode("utf-8", errors="replace"):
                 raise MarketError("猫爪响应包含敏感认证信息，拒绝缓存")
         except HTTPError as exc:
             retry_after = exc.headers.get("Retry-After", "60")
             seconds = int(retry_after) if retry_after.isdigit() else 60
-            cooldown = 3600 if exc.code in (401, 403) else max(60, min(3600, seconds))
-            message = f"猫爪接口{api}：HTTP {exc.code}；请检查套餐、额度或稍后重试"
+            cooldown = 3600 if exc.code in (401, 403, 410) else max(60, min(3600, seconds))
+            hint = (
+                "请检查接口地址或查看供应商说明"
+                if exc.code == 410
+                else "请检查套餐、额度或稍后重试"
+            )
+            try:
+                detail = json.loads(exc.read(4096))
+                if isinstance(detail, dict) and isinstance(detail.get("message"), str):
+                    hint = clean_error(detail["message"])
+            except (OSError, ValueError, TypeError, AttributeError):
+                pass
+            message = f"猫爪接口{api}：HTTP {exc.code}；" + hint
             exc.close()
             self.store.finish(failure_key, request_id, error=message, cooldown=cooldown)
             if stale:
                 payload, fetched = stale
-                return ApiResult(
-                    decode_rows(payload),
-                    datetime.fromtimestamp(fetched, timezone.utc),
-                    True,
-                    url,
-                    message,
-                    page=page_metadata(payload),
-                )
+                return api_result(payload, fetched, True, url, message, structured)
             raise MarketError(message) from None
         except (OSError, URLError, ValueError, TypeError, AttributeError, MarketError) as exc:
             message = clean_error(exc)
             self.store.finish(failure_key, request_id, error=message, cooldown=cooldown)
             if stale:
                 payload, fetched = stale
-                return ApiResult(
-                    decode_rows(payload),
-                    datetime.fromtimestamp(fetched, timezone.utc),
-                    True,
-                    url,
-                    "更新失败，保留原数据：" + message,
-                    page=page_metadata(payload),
+                return api_result(
+                    payload, fetched, True, url, "更新失败，保留原数据：" + message, structured
                 )
             raise MarketError(message) from None
         # The lease/failure key is credential-specific; the response key contains no credential.
         fetched = self.store.finish(
             failure_key, request_id, payload=payload, response_key=cache_key
         )
-        return ApiResult(
-            rows,
-            datetime.fromtimestamp(fetched, timezone.utc),
-            False,
-            url,
-            page=page_metadata(payload),
-        )
+        return api_result(payload, fetched, False, url, structured=structured)

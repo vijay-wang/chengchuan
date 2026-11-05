@@ -8,6 +8,8 @@ from pathlib import Path
 
 from test_meoz import DAYS, minute_rows
 
+from chengchuan.domain.periods import PERIODS
+
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 try:
@@ -25,7 +27,7 @@ try:
         MarketSnapshot,
         SeriesKind,
     )
-    from chengchuan.domain.periods import PERIODS, chart_period
+    from chengchuan.domain.periods import chart_period
     from chengchuan.infrastructure.legacy import LegacyAnalysisEngine, LegacyJsonRepository
     from chengchuan.infrastructure.meoz_market import parse_rows
     from chengchuan.infrastructure.workspace import SqliteWorkspaceRepository

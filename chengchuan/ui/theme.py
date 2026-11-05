@@ -48,6 +48,10 @@ QScrollArea { border: none; background: transparent; }
 QScrollBar:vertical { background: transparent; width: 7px; margin: 0; }
 QScrollBar::handle:vertical { background: #33475d; border-radius: 3px; min-height: 28px; }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QScrollBar:horizontal { background: #101a27; height: 7px; margin: 0; border: none; }
+QScrollBar::handle:horizontal { background: #33475d; border-radius: 3px; min-width: 28px; }
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: transparent; }
 QSplitter::handle { background: #203044; width: 1px; height: 1px; }
 QToolTip { background: #213348; color: #dce6f0; border: 1px solid #445b72; }
 QTabWidget::pane { border: none; }
