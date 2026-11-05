@@ -159,9 +159,11 @@ class MeozStore:
                     if "locked" not in str(exc).lower() or attempt == 5:
                         raise
                     time.sleep(0.02 * 2**attempt)
-            if con.execute("PRAGMA user_version").fetchone()[0] > 1:
+            version = con.execute("PRAGMA user_version").fetchone()[0]
+            if version > 1:
                 raise StorageError("猫爪缓存来自更高版本")
-            con.executescript("""
+            if version < 1:
+                con.executescript("""
                 CREATE TABLE IF NOT EXISTS responses (
                     id TEXT PRIMARY KEY, fetched REAL NOT NULL, data TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS requests (
@@ -177,7 +179,7 @@ class MeozStore:
                 CREATE TABLE IF NOT EXISTS daily_state (
                     symbol TEXT PRIMARY KEY, fetched REAL NOT NULL, checked_day TEXT NOT NULL);
                 PRAGMA user_version=1;
-            """)
+                """)
             with con:
                 yield con
         except sqlite3.Error as exc:

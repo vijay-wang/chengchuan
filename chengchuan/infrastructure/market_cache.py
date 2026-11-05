@@ -8,6 +8,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from chengchuan.application.errors import StorageError
+from chengchuan.application.market_payload import series_payload
 from chengchuan.domain.market import Instrument, MarketFrame, Quote
 from chengchuan.domain.models import MarketBar, MarketSeries, MarketSnapshot, SeriesKind
 from chengchuan.infrastructure.dashboard_codec import decode_dashboard, encode_dashboard
@@ -17,7 +18,7 @@ def encode_frame(frame):
     return json.dumps(
         {
             "version": 3,
-            "series": asdict(frame.snapshot.series),
+            "series": series_payload(frame.snapshot.series),
             "revision": frame.snapshot.revision,
             "source": frame.snapshot.source,
             "notes": frame.snapshot.quality_notes,

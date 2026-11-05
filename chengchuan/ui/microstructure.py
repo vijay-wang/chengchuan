@@ -396,6 +396,7 @@ class MicrostructurePanel(QWidget):
 
     def clear(self, message="选择个股后按需读取；不会自动下载整日逐笔。"):
         self.tape = self.analysis = self.book = None
+        self._restored_key = None
         self._visible_restored = ()
         self.inline_matches.clear()
         self.status.setText(message)
@@ -439,6 +440,8 @@ class MicrostructurePanel(QWidget):
         self._render_queue()
 
     def render_analysis(self, tape, analysis):
+        if self.tape is tape and self.analysis is analysis:
+            return
         self.tape, self.analysis = tape, analysis
         self.inline_matches.set_analysis(analysis, self.restored_filters.value())
         self.bands.render(analysis)
@@ -487,6 +490,10 @@ class MicrostructurePanel(QWidget):
 
     def _render_restored(self):
         filters = self.restored_filters.value()
+        key = (id(self.analysis), filters)
+        if getattr(self, "_restored_key", None) == key:
+            return
+        self._restored_key = key
         self.inline_matches.set_filters(filters)
         self._visible_restored = (
             tuple(r for r in self.analysis.restored if filters.accepts(r)) if self.analysis else ()

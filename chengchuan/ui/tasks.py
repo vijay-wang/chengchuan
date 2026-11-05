@@ -88,13 +88,23 @@ class LatestTaskRunner(QObject):
         self.pool.waitForDone(3000)
 
 
-def _process_call(connection, function):
-    """Only trusted, locally constructed callables cross this private process pipe."""
+def _process_loop(connection):
+    """Reuse imports between local tasks. No result/function is retained while idle."""
     try:
-        try:
-            connection.send((True, function(), ""))
-        except Exception as exc:
-            connection.send((False, str(exc), traceback.format_exc()))
+        while True:
+            try:
+                token, function = connection.recv()
+            except (EOFError, OSError):
+                break
+            try:
+                result = function()
+            except Exception as exc:
+                connection.send((token, False, str(exc), traceback.format_exc()))
+            else:
+                connection.send((token, True, result, ""))
+                del result
+            finally:
+                del function
     finally:
         connection.close()
 
@@ -106,33 +116,50 @@ class ProcessTaskRunner(QObject):
     failed = Signal(str)
     busy = Signal(bool)
 
-    def __init__(self, parent=None, timeout_ms=18000, task_label="行情"):
+    def __init__(self, parent=None, timeout_ms=18000, task_label="行情", idle_ms=10000):
         super().__init__(parent)
         self.context = multiprocessing.get_context("spawn")
         self.active = None
+        self._worker = None
+        self._generation = self._jobs = 0
         self.connection = None
         self.closed = False
         self.timeout_ms = timeout_ms
         self.task_label = task_label
         self.timer = QTimer(self)
-        self.timer.setInterval(30)
+        self.timer.setInterval(16)
         self.timer.timeout.connect(self._poll)
+        self.idle_timer = QTimer(self)
+        self.idle_timer.setSingleShot(True)
+        self.idle_timer.setInterval(idle_ms)
+        self.idle_timer.timeout.connect(self._retire)
 
     def submit(self, revision, selection, function):
         if self.closed:
             return
         self.cancel()
-        receive, send = self.context.Pipe(duplex=False)
-        process = self.context.Process(target=_process_call, args=(send, function), daemon=True)
+        self.idle_timer.stop()
         try:
-            process.start()
+            if self._worker is None or not self._worker.is_alive() or self._jobs >= 32:
+                self._retire()
+                receive, send = self.context.Pipe(duplex=True)
+                process = self.context.Process(target=_process_loop, args=(send,), daemon=True)
+                try:
+                    process.start()
+                except Exception:
+                    receive.close()
+                    raise
+                finally:
+                    send.close()
+                self._worker, self.connection, self._jobs = process, receive, 0
+            self._generation += 1
+            self.connection.send((self._generation, function))
         except Exception as exc:
-            receive.close()
-            send.close()
+            self._retire()
             self.failed.emit(f"无法启动{self.task_label}任务：" + str(exc))
             return
-        send.close()
-        self.active, self.connection = process, receive
+        self.active = self._worker
+        self._jobs += 1
         self.started = time.monotonic()
         self.busy.emit(True)
         self.timer.start()
@@ -141,11 +168,19 @@ class ProcessTaskRunner(QObject):
         if self.active is None:
             return
         if self.connection.poll():
+            token = self._generation
             try:
-                ok, result, details = self.connection.recv()
+                token, ok, result, details = self.connection.recv()
+                if token != self._generation:
+                    return
             except (EOFError, OSError):
                 ok, result, details = False, f"{self.task_label}任务意外退出，请重试", ""
-            self.cancel()
+            self.timer.stop()
+            self.active = None
+            self.idle_timer.start()
+            self.busy.emit(False)
+            if token != self._generation:
+                return
             if not ok:
                 log.error("%s任务失败：%s\n%s", self.task_label, result, details)
             (self.ready if ok else self.failed).emit(result)
@@ -159,7 +194,18 @@ class ProcessTaskRunner(QObject):
 
     def cancel(self):
         self.timer.stop()
-        process, self.active = self.active, None
+        self.idle_timer.stop()
+        self._generation += 1
+        if self.active is not None:
+            self._retire()
+        elif self._worker is not None:
+            self.idle_timer.start()
+        self.busy.emit(False)
+
+    def _retire(self):
+        self.idle_timer.stop()
+        self.timer.stop()
+        process, self._worker, self.active = self._worker, None, None
         if process is not None:
             if process.is_alive():
                 process.terminate()
@@ -172,8 +218,8 @@ class ProcessTaskRunner(QObject):
         if self.connection is not None:
             self.connection.close()
             self.connection = None
-        self.busy.emit(False)
 
     def shutdown(self):
         self.closed = True
-        self.cancel()
+        self._retire()
+        self.busy.emit(False)

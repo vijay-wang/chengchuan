@@ -1,12 +1,11 @@
 """Bounded adjacent chart pages and deterministic merges, without GUI or vendor imports."""
 
-import hashlib
-import json
-from dataclasses import asdict, replace
+from dataclasses import replace
 from datetime import datetime, timedelta
 
 from chengchuan.application.chart_tools import period_key
 from chengchuan.application.errors import MarketError
+from chengchuan.application.market_payload import market_revision
 from chengchuan.domain.models import SHANGHAI
 from chengchuan.domain.periods import chart_period
 
@@ -48,9 +47,7 @@ def merge_chart_frames(current, page, newer=True):
     baseline = dict(refs).get(series.bars[0].timestamp.astimezone(SHANGHAI).date())
     if baseline is None:
         baseline = current.baseline_price if series.bars[0] == a.bars[0] else page.baseline_price
-    revision = hashlib.sha256(
-        json.dumps([asdict(series), vwap, baseline, refs], default=str, sort_keys=True).encode()
-    ).hexdigest()
+    revision = market_revision(series, vwap, baseline, refs)
     flows = {f.timestamp: f for frame in ordered for f in frame.snapshot.flows}
     snapshot = replace(
         base.snapshot,

@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from chengchuan.application.errors import StorageError
+from chengchuan.application.memory_cache import MemoryCache
 from chengchuan.domain.market import Instrument, instrument_symbol
 
 
@@ -23,6 +24,8 @@ class MarketBrowser(QWidget):
     def __init__(self, market, workspace, runner_factory, parent=None):
         super().__init__(parent)
         self.market, self.workspace = market, workspace
+        self.cache = MemoryCache(capacity=64, max_weight=2000)
+        self._search_query = None
         self.runner = runner_factory(self)
         self.runner.ready.connect(self._searched)
         self.runner.failed.connect(self._failed)
@@ -73,6 +76,8 @@ class MarketBrowser(QWidget):
     def set_market(self, market):
         self.timer.stop()
         self.runner.cancel()
+        self.cache.clear()
+        self._search_query = None
         self.market = market
         self.results.clear()
         self.results.hide()
@@ -106,11 +111,19 @@ class MarketBrowser(QWidget):
         query = self.search.text().strip()
         if not query:
             return
+        self._search_query = query
+        cached = self.cache.get(query.casefold(), max_age=60)
+        if cached is not None:
+            self.runner.cancel()
+            self._searched(cached, remember=False)
+            return
         self.hint.setText("正在搜索沪深A股…")
         self.results.clear()
         self.runner.submit(query, None, partial(self.market.search, query))
 
-    def _searched(self, result):
+    def _searched(self, result, remember=True):
+        if remember and self._search_query:
+            self.cache.put(self._search_query.casefold(), result, max(1, len(result.items)))
         self.results.clear()
         for instrument in result.items:
             self._add_item(self.results, instrument)

@@ -1,5 +1,6 @@
 """Company dossier workspace with lazy sections, shared virtual tables and local curves."""
 
+from dataclasses import replace
 from datetime import datetime
 from functools import partial
 
@@ -33,6 +34,7 @@ from chengchuan.application.company import (
     external_url,
     statement_matrix,
 )
+from chengchuan.application.memory_cache import MemoryCache, bundle_weight, cached_bundle
 from chengchuan.application.research import numeric, research_stock_symbol
 from chengchuan.domain.company import COMPANY_SECTIONS, CompanyRequest
 from chengchuan.domain.models import SHANGHAI
@@ -72,6 +74,7 @@ class CompanyWorkspace(QWidget):
         super().__init__(parent)
         self.service, self.bundle, self.active_request = service, None, None
         self.views, self.cards, self.names = {}, [], {}
+        self.cache = MemoryCache(capacity=24, max_weight=240000)
         self.section = "overview"
         self.url_opener = open_url or QDesktopServices.openUrl
         self.runner = (
@@ -241,6 +244,7 @@ class CompanyWorkspace(QWidget):
 
     def set_service(self, service):
         self.runner.cancel()
+        self.cache.clear()
         self.names.clear()
         self.service, self.bundle, self.active_request = service, None, None
         self.tabs.clear()
@@ -305,12 +309,22 @@ class CompanyWorkspace(QWidget):
             refresh,
         )
         self.active_request = request
+        cached = (
+            self.cache.get(replace(request, refresh=False), max_age=60) if not refresh else None
+        )
+        if cached is not None:
+            self.runner.cancel()
+            self.render_bundle(cached_bundle(cached, request))
+            self.status.setText("会话缓存 · " + self.status.text())
+            return
         self.status.setText("正在后台读取本分类；已有资料保留，切条件可取消。")
         self.runner.submit(str(request), None, partial(self.service.run, request))
 
     def _ready(self, bundle):
         if bundle.request != self.active_request:
             return
+        if all(t.meta.complete for t in bundle.tables):
+            self.cache.put(replace(bundle.request, refresh=False), bundle, bundle_weight(bundle))
         self.render_bundle(bundle)
 
     def render_bundle(self, bundle):

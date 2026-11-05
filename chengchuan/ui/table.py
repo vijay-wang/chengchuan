@@ -16,11 +16,16 @@ class ValueTableModel(QAbstractTableModel):
         self.rows = ()
         self.source_rows = ()
         self.header_tips = header_tips or {}
+        self._sort = None
 
     def set_rows(self, rows):
+        rows = tuple(rows)
+        if rows == self.source_rows:
+            return
         self.beginResetModel()
-        self.rows = tuple(rows)
+        self.rows = rows
         self.source_rows = self.rows
+        self._sort = None
         self.endResetModel()
 
     def rowCount(self, parent=QModelIndex()):
@@ -51,6 +56,9 @@ class ValueTableModel(QAbstractTableModel):
             return QColor(theme.UP if value >= 0 else theme.DOWN)
 
     def sort(self, column, order=Qt.SortOrder.AscendingOrder):
+        if self._sort == (column, order):
+            return
+        self._sort = column, order
         if column < 0:
             self.layoutAboutToBeChanged.emit()
             self.rows = self.source_rows

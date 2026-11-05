@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
 )
 
 from chengchuan.application.errors import StorageError
+from chengchuan.application.memory_cache import MemoryCache, bundle_weight, cached_bundle
 from chengchuan.application.research import MODULES, clock_seconds, export_research, numeric
 from chengchuan.domain.research import ResearchRequest
 from chengchuan.ui import theme
@@ -144,7 +145,18 @@ class ResearchDataView(QTableView):
         self.update_table(table)
 
     def update_table(self, table, text=""):
+        previous = getattr(self, "table", None)
+        unchanged = (
+            previous is not None
+            and previous.rows == table.rows
+            and previous.columns == table.columns
+            and previous.document == table.document
+            and getattr(self, "_filter_text", None) == text
+        )
         self.table = table
+        if unchanged:
+            return
+        self._filter_text = text
         self.document_view.setPlainText(table.document)
         self.document_view.setVisible(bool(table.document) and not table.columns)
         signature = tuple((c.key, c.label, c.unit, c.description) for c in table.columns)
@@ -209,6 +221,7 @@ class ResearchWorkspace(QWidget):
         self.module, self.bundle, self.active_request = "rotation", None, None
         self.views, self.history = {}, []
         self._context = 0
+        self.cache = MemoryCache(capacity=16, max_weight=240000)
         self.runner = (
             runner_factory(self)
             if runner_factory
@@ -381,6 +394,7 @@ class ResearchWorkspace(QWidget):
 
     def set_service(self, service):
         self.runner.cancel()
+        self.cache.clear()
         self._context += 1
         self.service, self.bundle, self.active_request = service, None, None
         self.history.clear()
@@ -459,25 +473,32 @@ class ResearchWorkspace(QWidget):
         old = self.active_request
         if old and old.module == request.module and old.level == request.level:
             request = replace(request, action=old.action, code=old.code, seat=old.seat)
-        self._submit(request)
+        self._submit(request, force=True)
 
     def _controls_changed(self, *_):
         if self.service is not None:
             self.runner.cancel()
             self.status.setText("查询条件已改变；点击查询更新。当前表格仍为上次研究结果。")
 
-    def _submit(self, request):
+    def _submit(self, request, force=False):
         if not self.service:
             return
         self.runner.cancel()
         self._context += 1
         self.active_request = request
+        cached = self.cache.get(request, max_age=30) if not force else None
+        if cached is not None:
+            self._ready(cached_bundle(cached), remember=False)
+            self.status.setText("会话缓存 · " + self.status.text())
+            return
         self.status.setText("正在后台查询；已有表格保持显示，可切换模块取消。")
         self.runner.submit(str(self._context), None, partial(self.service.run, request))
 
-    def _ready(self, bundle):
+    def _ready(self, bundle, remember=True):
         if bundle.request != self.active_request:
             return
+        if remember and all(t.meta.complete for t in bundle.tables):
+            self.cache.put(bundle.request, bundle, bundle_weight(bundle))
         if self.bundle and self.bundle.request != bundle.request:
             self.history.append(self.bundle)
             self.history = self.history[-8:]

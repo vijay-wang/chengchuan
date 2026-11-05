@@ -1,11 +1,10 @@
 """MeoZ daily history and real minute OHLC shared by twelve chart views."""
 
-import hashlib
-import json
-from dataclasses import asdict, replace
+from dataclasses import replace
 from datetime import date, datetime, time, timedelta, timezone
 
 from chengchuan.application.errors import MarketError
+from chengchuan.application.market_payload import market_revision
 from chengchuan.application.market_refresh import cache_confirmation, market_checkpoint
 from chengchuan.application.resampling import calendar_bars, minute_bars
 from chengchuan.domain.calendar import CalendarUnavailable
@@ -68,7 +67,10 @@ def parse_rows(rows, symbol, intraday=False):
         if float(row["close"]) <= 0:
             skipped += 1
             continue
-        day = datetime.strptime(str(row["tradedate"]), "%Y%m%d")
+        raw_date = str(row["tradedate"])
+        if len(raw_date) != 8 or not raw_date.isdecimal():
+            raise ValueError("无效交易日期")
+        day = datetime.fromisoformat(f"{raw_date[:4]}-{raw_date[4:6]}-{raw_date[6:]}")
         clock = str(row["trademin"]).zfill(4) if intraday else "1500"
         stamp = day.replace(hour=int(clock[:2]), minute=int(clock[2:]), tzinfo=SHANGHAI)
         bars.append(
@@ -551,11 +553,7 @@ class MeozMarketProvider:
             for r in daily_rows
             if r.get("pre_close") is not None and float(r["pre_close"]) > 0
         )
-        revision = hashlib.sha256(
-            json.dumps(
-                [asdict(series), vwap, baseline, references], default=str, sort_keys=True
-            ).encode()
-        ).hexdigest()
+        revision = market_revision(series, vwap, baseline, references)
         snapshot = MarketSnapshot(
             revision, series, quality_notes=tuple(notes), source="猫爪／猫头鹰数据"
         )

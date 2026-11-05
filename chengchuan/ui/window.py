@@ -37,6 +37,7 @@ from chengchuan.application.chart_history import merge_chart_frames
 from chengchuan.application.errors import MarketError, StorageError
 from chengchuan.application.market_refresh import MarketRefreshController, market_checkpoint
 from chengchuan.application.microstructure import analyze_orders
+from chengchuan.application.navigation import NavigationCache, chart_fresh
 from chengchuan.application.quote_metrics import details_from_frame
 from chengchuan.application.research import clock_seconds, research_stock_symbol
 from chengchuan.application.settings import SettingsSaveError, SettingsService
@@ -140,12 +141,17 @@ class MainWindow(QMainWindow):
         self.forecast_panel = None
         self.network_runner_factory = network_runner_factory
         self.online_symbol = None
+        self.navigation_cache = NavigationCache()
+        self._details_requested = None
         self.online_interval = "day"
         self.frame = None
         self.history_date = None
         self._last_stock = startup_target(state, getattr(market, "intervals", ("day", "minute")))
         self.current_path = None
         self.market_runner = network_runner_factory(self) if market else None
+        self.preview_runner = LatestTaskRunner(self)
+        self.preview_runner.ready.connect(self._disk_preview_ready)
+        self.preview_runner.failed.connect(lambda _: None)
         self.overview_runner = network_runner_factory(self) if market else None
         self.details_runner = network_runner_factory(self) if market else None
         self.funds_runner = network_runner_factory(self) if market else None
@@ -428,6 +434,7 @@ class MainWindow(QMainWindow):
         self._persist_preferences()
 
     def _install_market(self, market):
+        self.preview_runner.cancel()
         self._clear_micro()
         symbol, interval, day = self.online_symbol, self.online_interval, self.history_date
         self.market_runner.cancel()
@@ -442,6 +449,7 @@ class MainWindow(QMainWindow):
         self.index_bar.reset()
         self.browser.set_market(market)
         self.market = market
+        self.navigation_cache.clear()
         self.research_page.set_service(getattr(market, "research_service", None))
         self.company_page.set_service(getattr(market, "company_service", None))
         self.source_box.blockSignals(True)
@@ -692,6 +700,7 @@ class MainWindow(QMainWindow):
             self.render_report(self.report)
 
     def _reset_display(self):
+        self.preview_runner.cancel()
         self.chart_history.reset()
         self._clear_micro()
         self.runner.cancel()
@@ -881,13 +890,44 @@ class MainWindow(QMainWindow):
             if as_of is None
             else partial(self.market.load, symbol, interval, refresh, as_of=as_of)
         )
-        self.market_runner.submit(
-            symbol + interval + (as_of.isoformat() if as_of else ""), None, task
+        preview = (
+            self.navigation_cache.preview(symbol, interval, as_of)
+            if switching or not automatic and not refresh
+            else None
         )
+        self.preview_runner.cancel()
+        if preview is not None:
+            self.market_runner.cancel()
+            self._market_ready(preview, preview=True)
+        elif callable(getattr(self.market, "cached_frame", None)):
+            self.preview_runner.submit(
+                str((symbol, interval, as_of)),
+                None,
+                partial(self.market.cached_frame, symbol, interval, as_of),
+            )
+        if refresh or preview is None or not chart_fresh(preview, self.market):
+            self.market_runner.submit(
+                symbol + interval + (as_of.isoformat() if as_of else ""), None, task
+            )
+            if preview is not None:
+                self.status.setText("已显示缓存行情，正在后台检查更新…")
         if not automatic and (not self._overview_requested or refresh and as_of is None):
-            self._request_overview(refresh)
+            QTimer.singleShot(0, partial(self._request_overview, refresh))
 
-    def _market_ready(self, frame, browse=False):
+    def _disk_preview_ready(self, frame):
+        if frame is None or self.frame is not None:
+            return
+        if (frame.snapshot.series.symbol, frame.snapshot.series.interval, frame.as_of) != (
+            self.online_symbol,
+            self.online_interval,
+            self.history_date,
+        ):
+            return
+        self.navigation_cache.remember(frame)
+        self._market_ready(frame, preview=True)
+        self.status.setText("已显示本地缓存，正在后台检查更新…")
+
+    def _market_ready(self, frame, browse=False, preview=False):
         series = frame.snapshot.series
         if (series.symbol, series.interval, frame.as_of) != (
             self.online_symbol,
@@ -896,6 +936,8 @@ class MainWindow(QMainWindow):
         ):
             return
         preserve = self.frame is not None
+        if not preview and not browse:
+            self.navigation_cache.remember(frame)
         if preserve and self.chart_history.expanded and not browse:
             try:
                 frame = merge_chart_frames(self.frame, frame)
@@ -939,7 +981,9 @@ class MainWindow(QMainWindow):
         self.chart_history.set_frame(self.market, frame)
         self.watch_button.setEnabled(True)
         self._frame_status()
-        self._request_details(self._details_refresh)
+        context = (id(self.market), self.online_symbol, self.history_date)
+        if not preview or not self._details_refresh:
+            QTimer.singleShot(0, partial(self._deferred_details, context, self._details_refresh))
         if (
             self.research_tabs.currentWidget() is self.funds_panel
             and self.funds_panel.pages.currentIndex() == 0
@@ -1075,7 +1119,11 @@ class MainWindow(QMainWindow):
                 for i in range(self.browser.watchlist.count())
             )
             self.heatmap_dialog = HeatmapDialog(
-                self.market, symbols, self.network_runner_factory, self
+                self.market,
+                symbols,
+                self.network_runner_factory,
+                self,
+                cache=self.navigation_cache.panels,
             )
             self.heatmap_dialog.finished.connect(self._heatmap_closed)
             self.heatmap_dialog.open_requested.connect(self.open_stock)
@@ -1372,7 +1420,8 @@ class MainWindow(QMainWindow):
             return
         self._l2_analysis = analysis
         for panel in self._micro_panels():
-            panel.render_analysis(self._l2_tape, analysis)
+            if panel is self.micro_panel or panel.isVisible():
+                panel.render_analysis(self._l2_tape, analysis)
         self.funds_panel.order_bands.render(analysis)
         self.chart_orders.set_analysis(analysis)
         self._ensure_chart_orders()
@@ -1451,17 +1500,47 @@ class MainWindow(QMainWindow):
         if self.frame is None or getattr(self.market, "supports_details", False) is not True:
             return
         symbol, day = self.online_symbol, self.history_date
+        key = (symbol, day)
+        cached = self.navigation_cache.details.get(key)
+        if (
+            cached is not None
+            and cached.day
+            == self.frame.snapshot.series.bars[-1].timestamp.astimezone(SHANGHAI).date()
+        ):
+            self._latest_details = cached
+            self.quote_panel.render(cached)
+            age = (datetime.now(SHANGHAI) - cached.retrieved_at).total_seconds()
+            if not refresh and (
+                getattr(self.market, "automatic_updates", True) is False
+                or 0 <= age < (180 if cached.complete else 15)
+                or day
+                and day < datetime.now(SHANGHAI).date()
+                and cached.complete
+            ):
+                return
+        if (
+            self.details_runner.active is not None
+            and self._details_requested == key
+            and not refresh
+        ):
+            return
+        self._details_requested = key
         self.details_runner.submit(
             symbol + "@" + str(day),
             None,
             partial(self.market.load_details, symbol, as_of=day, refresh=refresh),
         )
 
+    def _deferred_details(self, context, refresh):
+        if context == (id(self.market), self.online_symbol, self.history_date):
+            self._request_details(refresh)
+
     def _details_ready(self, details):
         if self.frame is not None and (details.symbol, details.as_of) == (
             self.online_symbol,
             self.history_date,
         ):
+            self.navigation_cache.details.put((details.symbol, details.as_of), details)
             self._latest_details = details
             self.quote_panel.render(details)
 
@@ -1620,6 +1699,7 @@ class MainWindow(QMainWindow):
         self.status.setText("选区已清除  ·  当前行情保持不变")
 
     def closeEvent(self, event):
+        self.preview_runner.shutdown()
         self.chart_history.shutdown()
         self.company_page.shutdown()
         self.research_page.shutdown()

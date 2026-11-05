@@ -48,11 +48,13 @@ class SqliteResearchArchive:
             if self.path.exists() and self.path.stat().st_size > 256_000_000:
                 raise StorageError("研究档案已达256MB，请导出并管理本地档案")
             con = sqlite3.connect(self.path, timeout=5)
-            con.execute("PRAGMA journal_mode=WAL")
+            if con.execute("PRAGMA journal_mode").fetchone()[0] != "wal":
+                con.execute("PRAGMA journal_mode=WAL")
             version = con.execute("PRAGMA user_version").fetchone()[0]
             if version > 2:
                 raise StorageError("研究档案来自更高版本")
-            con.executescript("""
+            if version < 2:
+                con.executescript("""
                 CREATE TABLE IF NOT EXISTS snapshots (
                     scope TEXT NOT NULL, revision TEXT NOT NULL,
                     seen REAL NOT NULL, business_day TEXT NOT NULL, payload TEXT NOT NULL,
@@ -61,8 +63,7 @@ class SqliteResearchArchive:
                 CREATE TABLE IF NOT EXISTS observations (
                     scope TEXT NOT NULL, seen REAL NOT NULL, revision TEXT NOT NULL,
                     PRIMARY KEY(scope,seen));
-            """)
-            if version < 2:
+                """)
                 con.execute(
                     "INSERT OR IGNORE INTO observations SELECT scope,seen,revision FROM snapshots"
                 )

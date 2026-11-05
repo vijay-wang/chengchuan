@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from collections import OrderedDict
 from math import ceil, floor
 
 import pyqtgraph as pg
 from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPicture
-from PySide6.QtWidgets import QGraphicsView, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QGraphicsItem, QGraphicsView, QVBoxLayout, QWidget
 
 from chengchuan.application.chart_history import chart_offset
 from chengchuan.application.chart_tools import locate_date
@@ -45,18 +46,43 @@ class TradingAxis(pg.AxisItem):
 
 
 class Candles(pg.GraphicsObject):
-    """缓存一次绘图指令；不为每根K线创建一个Qt对象。"""
+    """Lazy pictures: start at 128 bars, adapt to keep the whole chart within 64 chunks."""
+
+    chunk_size = 128
 
     def __init__(self, bars):
         super().__init__()
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemUsesExtendedStyleOption)
         self.bounds = QRectF()
+        self.bars = ()
+        self.pictures = OrderedDict()
         self.set_bars(bars)
 
     def set_bars(self, bars):
         self.prepareGeometryChange()
-        self.picture = QPicture()
-        painter = QPainter(self.picture)
-        for i, bar in enumerate(bars):
+        size = 128
+        while ceil(len(bars) / size) > 64:
+            size *= 2
+        if size != self.chunk_size:
+            self.pictures.clear()
+            self.chunk_size = size
+        for block in tuple(self.pictures):
+            start = block * self.chunk_size
+            if self.bars[start : start + self.chunk_size] != bars[start : start + self.chunk_size]:
+                self.pictures.pop(block)
+        self.bars = bars
+        low, high = min(b.low for b in bars), max(b.high for b in bars)
+        self.bounds = QRectF(-0.5, low, len(bars), max(0.01, high - low))
+        self.update()
+
+    def _picture(self, block):
+        if block in self.pictures:
+            self.pictures.move_to_end(block)
+            return self.pictures[block]
+        picture = QPicture()
+        painter = QPainter(picture)
+        start = block * self.chunk_size
+        for i, bar in enumerate(self.bars[start : start + self.chunk_size], start):
             color = theme.UP if bar.close >= bar.open else theme.DOWN
             pen = pg.mkPen(color, width=1)
             pen.setCosmetic(True)
@@ -70,12 +96,16 @@ class Candles(pg.GraphicsObject):
                     QRectF(i - 0.29, min(bar.open, bar.close), 0.58, abs(bar.close - bar.open))
                 )
         painter.end()
-        low, high = min(b.low for b in bars), max(b.high for b in bars)
-        self.bounds = QRectF(-0.5, low, len(bars), max(0.01, high - low))
-        self.update()
+        self.pictures[block] = picture
+        if len(self.pictures) > 64:
+            self.pictures.popitem(last=False)
+        return picture
 
     def paint(self, painter, option, widget=None):
-        painter.drawPicture(0, 0, self.picture)
+        left = max(0, floor(option.exposedRect.left())) // self.chunk_size
+        right = min(len(self.bars) - 1, ceil(option.exposedRect.right())) // self.chunk_size
+        for block in range(left, right + 1):
+            painter.drawPicture(0, 0, self._picture(block))
 
     def boundingRect(self):
         return self.bounds
@@ -126,6 +156,8 @@ class MarketChart(QWidget):
         self._drag_start = None
         self._updating = False
         self.volume_headroom = 1.08
+        self._volume_window = None
+        self._volume_brushes = (pg.mkBrush(theme.UP), pg.mkBrush(theme.DOWN))
         self.axis = TradingAxis()
         self.price = pg.PlotWidget(viewBox=HistoryViewBox())
         self.volume = pg.PlotWidget(viewBox=HistoryViewBox(), axisItems={"bottom": self.axis})
@@ -267,6 +299,9 @@ class MarketChart(QWidget):
                 self._vwap_line = self.price.plot(
                     pen=pg.mkPen("#e2bb66", width=1.3), connect="finite"
                 )
+                for line in (self._price_line, self._vwap_line):
+                    line.setClipToView(True)
+                    line.setDownsampling(auto=True, method="peak")
                 self._baseline_line = pg.InfiniteLine(
                     angle=0, pen=pg.mkPen("#65758b", style=Qt.PenStyle.DashLine)
                 )
@@ -305,20 +340,10 @@ class MarketChart(QWidget):
                         plot.addItem(line)
                         self._day_lines.append((plot, line))
                 self._day_positions = positions
-        colors = [
-            pg.mkBrush(
-                theme.UP
-                if b.close >= (b.open if b.open is not None else bars[max(0, i - 1)].close)
-                else theme.DOWN
-            )
-            for i, b in enumerate(bars)
-        ]
         if not incremental:
             self._volume_item = pg.BarGraphItem(x=[], height=[], width=0.58, pen=None)
             self.volume.addItem(self._volume_item)
-        self._volume_item.setOpts(
-            x=list(range(len(bars))), height=[b.volume_shares / 10000 for b in bars], brushes=colors
-        )
+        self._volume_window = None
         self.volume.setLabel("right", "万股")
         if not incremental:
             self.price.addItem(self.region)
@@ -341,7 +366,7 @@ class MarketChart(QWidget):
             self.price.setXRange(max(-1, len(bars) - visible), len(bars), padding=0.02)
         else:
             self.price.setXRange(*old_range, padding=0)
-        self._fit_visible()
+        self._fit_visible(force=True)
         self._updating = False
         self.snapshot_changed.emit(snapshot)
 
@@ -404,14 +429,31 @@ class MarketChart(QWidget):
             marker.show()
         return bar.timestamp
 
-    def _fit_visible(self, *args):
-        if self.snapshot is None:
+    def _fit_visible(self, *args, force=False):
+        if self.snapshot is None or self._updating and not force:
             return
         left, right = self.price.getViewBox().viewRange()[0]
         all_bars = self.snapshot.series.bars
         start = max(0, min(len(all_bars) - 1, floor(left)))
         stop = max(start + 1, min(len(all_bars), ceil(right) + 1))
         bars = all_bars[start:stop]
+        window = (max(0, start - 80), min(len(all_bars), stop + 80))
+        if window != self._volume_window:
+            a, b = window
+            self._volume_item.setOpts(
+                x=list(range(a, b)),
+                height=[bar.volume_shares / 10000 for bar in all_bars[a:b]],
+                brushes=[
+                    self._volume_brushes[
+                        0
+                        if bar.close
+                        >= (bar.open if bar.open is not None else all_bars[max(0, i - 1)].close)
+                        else 1
+                    ]
+                    for i, bar in enumerate(all_bars[a:b], a)
+                ],
+            )
+            self._volume_window = window
         low = min(b.low if b.low is not None else b.close for b in bars)
         high = max(b.high if b.high is not None else b.close for b in bars)
         extra = [self._vwap[b.timestamp] for b in bars if b.timestamp in self._vwap]

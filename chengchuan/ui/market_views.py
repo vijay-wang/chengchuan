@@ -1,5 +1,6 @@
 """Native market heatmap and money-flow views; no vendor or database access."""
 
+from dataclasses import replace
 from functools import partial
 
 from PySide6.QtCore import QEvent, QRectF, Qt, Signal
@@ -23,6 +24,7 @@ from PySide6.QtWidgets import (
 )
 
 from chengchuan.application.market_views import layout_tiles
+from chengchuan.application.memory_cache import MemoryCache
 from chengchuan.domain.models import SHANGHAI
 from chengchuan.domain.sectors import SectorSnapshot
 from chengchuan.ui import theme
@@ -139,9 +141,12 @@ class HeatmapCanvas(QWidget):
 class HeatmapDialog(MaximizableDialog):
     open_requested = Signal(str)
 
-    def __init__(self, market, watchlist=(), runner_factory=ProcessTaskRunner, parent=None):
+    def __init__(
+        self, market, watchlist=(), runner_factory=ProcessTaskRunner, parent=None, cache=None
+    ):
         super().__init__(parent)
         self.market, self.watchlist = market, frozenset(watchlist)
+        self.cache = cache if cache is not None else MemoryCache(capacity=24, max_weight=40000)
         self.snapshot = None
         self.sector = None
         self._sector_requested = None
@@ -321,7 +326,7 @@ class HeatmapDialog(MaximizableDialog):
         )
         self._resize_map()
 
-    def _open_sector(self, code):
+    def _open_sector(self, code, refresh=False):
         if self.snapshot is None or self.snapshot.kind == "stocks":
             return
         if getattr(self.market, "supports_sector", False) is not True:
@@ -329,11 +334,23 @@ class HeatmapDialog(MaximizableDialog):
             return
         tile = next(t for t in self.snapshot.tiles if t.code == code)
         self._sector_requested = (self.snapshot.kind, code)
+        key = ("sector", self.snapshot.kind, code, self.snapshot.day)
+        cached = self.cache.get(key, max_age=30) if not refresh else None
+        if cached is not None:
+            self.runner.cancel()
+            self._ready(replace(cached, cached=True), remember=False)
+            return
         self.status.setText("正在获取" + tile.name + "成份；复用同日行情和资金缓存…")
         self.runner.submit(
             "sector:" + code,
             None,
-            partial(self.market.load_sector, self.snapshot.kind, code, tile.name),
+            partial(
+                self.market.load_sector,
+                self.snapshot.kind,
+                code,
+                tile.name,
+                **({"refresh": True} if refresh else {}),
+            ),
         )
 
     def _back(self):
@@ -346,7 +363,7 @@ class HeatmapDialog(MaximizableDialog):
 
     def load(self, unused=None, *, refresh=False):
         if self.sector is not None and refresh:
-            self._open_sector(self.sector.code)
+            self._open_sector(self.sector.code, refresh=True)
             return
         self.sector = None
         self._sector_requested = None
@@ -359,20 +376,33 @@ class HeatmapDialog(MaximizableDialog):
         if self.snapshot is None or self.snapshot.kind != kind:
             self.snapshot = None
             self.canvas.set_tiles(())
+        cached = self.cache.get(("heatmap", kind), max_age=30) if not refresh else None
+        if cached is not None:
+            self.runner.cancel()
+            self._ready(replace(cached, cached=True), remember=False)
+            return
         self.status.setText("正在加载；已有画面保留，优先读取缓存…")
         self.runner.submit(kind, None, partial(self.market.load_heatmap, kind, refresh=refresh))
 
-    def _ready(self, snapshot):
+    def _ready(self, snapshot, remember=True):
         if isinstance(snapshot, SectorSnapshot):
             if (snapshot.kind, snapshot.code) != self._sector_requested:
                 return
             self.sector = snapshot
+            if remember and snapshot.complete:
+                self.cache.put(
+                    ("sector", snapshot.kind, snapshot.code, self.snapshot.day),
+                    snapshot,
+                    len(snapshot.members),
+                )
             self.back.show()
             self._filter()
             return
         if snapshot.kind != self.kind.currentData():
             return
         self.snapshot = snapshot
+        if remember and snapshot.complete:
+            self.cache.put(("heatmap", snapshot.kind), snapshot, len(snapshot.tiles))
         self._filter()
 
     def _filter(self, unused=None):

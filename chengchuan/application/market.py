@@ -6,6 +6,7 @@ from typing import Protocol
 
 from chengchuan.application.errors import MarketError, StorageError
 from chengchuan.application.market_refresh import cache_confirmation
+from chengchuan.application.navigation import derive_frame
 from chengchuan.application.settings import SettingsInfo
 from chengchuan.domain.market import (
     Instrument,
@@ -164,6 +165,45 @@ class MarketService:
         except StorageError as exc:
             cache_notice = str(exc)
         return replace(frame, notice="；".join(filter(None, [frame.notice, cache_notice])))
+
+    def cached_frame(self, symbol, interval, as_of=None):
+        """Fast local preview, called off the GUI thread; never calls a provider or credentials."""
+        symbol = instrument_symbol(symbol)
+        chart_period(interval)
+        if interval not in self.intervals:
+            return None
+        if as_of is not None and (
+            type(as_of) is not date
+            or as_of > datetime.now(SHANGHAI).date()
+            or not self.supports_history
+        ):
+            return None
+        try:
+            exact = self.cache.load(symbol, interval, as_of)
+            if exact is not None:
+                if (exact.snapshot.series.symbol, exact.snapshot.series.interval, exact.as_of) != (
+                    symbol,
+                    interval,
+                    as_of,
+                ):
+                    return None
+                return replace(exact, cached=True, notice=exact.notice + "；先显示本地已存行情。")
+            for base in ("day", "min1", "five_day"):
+                if base == interval:
+                    continue
+                frame = self.cache.load(symbol, base, as_of)
+                if (
+                    frame
+                    and (frame.snapshot.series.symbol, frame.snapshot.series.interval, frame.as_of)
+                    == (symbol, base, as_of)
+                    and len(frame.snapshot.series.bars) <= 12000
+                ):
+                    converted = derive_frame(frame, interval)
+                    if converted is not None:
+                        return converted
+        except StorageError:
+            return None
+        return None
 
     def load_overview(self, refresh=False):
         if not self.supports_overview:
