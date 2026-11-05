@@ -92,6 +92,8 @@ GUI窗口缓存与腾讯分库存储，序列化格式兼容旧版，并保留�
 
 ## 节点及范围
 
+2026-11-05另核对猫爪核心127项接口目录及31份特色契约，形成[六项特色数据规划](MEOZ_SPECIALTY_FEATURE_PLAN.md)。部分首批接口已抽查，嵌套详情及其他模块仍需实施联调；当前程序未接入这些新功能。源更新时间、仅最新截面／仅当日序列与历史回填必须保留，旗舰DDX及盘口辅助不可直接当作盘中时点数据。
+
 0.12依据用户测试阶段偏好，图中各交易日的分钟原单摘要正常在线补取，复用缓存并逐日顺序执行；离线来源仍不联网。只取委托与成交撤单，不额外读取十档。五日真实复验新增原单17、成交17次，本机账本6→40，后续回放40→40；供应商硬限及错误冷却仍有效，见[验证](MULTIDAY_ORDERS_AND_ZOOM.md)。
 
 已核对的契约：[日线](https://meoz.cn/docs/query/stock/daily)、[交易日历](https://meoz.cn/docs/query/calendar/recent-list)、[日内1分钟](https://t.meoz.cn/docs/query/stock/minute)、[历史1分钟](https://t.meoz.cn/docs/query/history/stock/minute)。日内使用深圳官方HTTPS节点，历史使用普通历史节点；没有跨服务拼接或擅自改用VIP。

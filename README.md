@@ -148,6 +148,7 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 - [0.10委托筛选、成交配对、分钟分档与多色标记](docs/ORDER_INSPECTION.md)
 - [0.11分钟数据保留、缓存自动加载及页内连续还原验证](docs/VALIDATION_MINUTE_INLINE.md)
 - [0.12五日逐日浮层、后台加载与缩放边界](docs/MULTIDAY_ORDERS_AND_ZOOM.md)
+- [猫爪特色数据功能规划：六项研究功能、接口核对与排期](docs/MEOZ_SPECIALTY_FEATURE_PLAN.md)
 - [最新预测需求：盘后／14:35预测下一交易日，P2后置](docs/NEXT_DAY_FORECAST.md)
 - [量价联合预测原设计与0.3实施背景](docs/SHORT_HORIZON_FORECAST.md)
 - [历史逐日预测与准确率验证方案](docs/FORECAST_VALIDATION.md)（已实现诊断回放，完整验证仍待完成）
