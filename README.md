@@ -4,11 +4,13 @@
 
 ![澄川公司资料与三表对比](design/chengchuan-company-statements.png)
 
-当前为**0.15性能优化版**：切股、切周期和指数优先显示会话／本地缓存，再后台更新；公共任务复用进程，K线按可见块绘制。实测与边界见[性能优化记录](docs/PERFORMANCE_OPTIMIZATION.md)。公司工作区包含概览、财务指标、三表对比、股东股本、分红、业绩披露、公告和问董秘。可按披露日／版本查看、切换原值曲线并导出研究卡；未核定单位明确按原值呈现，见[操作说明](docs/COMPANY_INFORMATION.md)及[验证记录](docs/VALIDATION_COMPANY_INFORMATION.md)。原市场研究、行情、逐笔、多周期与缓存保留，预测增强仍为P2。
+当前为**0.16 CPU次日预测研究版**：新增63项量价、技术、支撑压力、成交分布和行为代理特征，以及相似日／正则逻辑回归／历史频率融合。右侧“次日预测”分别支持盘后和14:35，提供方向、OHLC情景、逐日回测及导出；数据不足或模型分歧时不预测。使用方式与实际验证见[CPU次日预测](docs/CPU_NEXT_DAY_FORECAST.md)。
+
+0.15的性能优化继续保留：切股、切周期和指数优先显示会话／本地缓存，再后台更新；公共任务复用进程，K线按可见块绘制。实测与边界见[性能优化记录](docs/PERFORMANCE_OPTIMIZATION.md)。公司工作区包含概览、财务指标、三表对比、股东股本、分红、业绩披露、公告和问董秘。可按披露日／版本查看、切换原值曲线并导出研究卡；未核定单位明确按原值呈现，见[操作说明](docs/COMPANY_INFORMATION.md)及[验证记录](docs/VALIDATION_COMPANY_INFORMATION.md)。原市场研究、行情、逐笔、多周期与缓存保留。
 
 **0.14.1交互更新：** 重新打开时恢复上次个股和周期并读取最新可用数据；默认不选区。缩小或拖动到图表边缘时，猫爪源按需补充相邻日期；历史图也可向右继续浏览已发布数据。到达可用边界时贴合数据，不留大片空白。详见[启动恢复与图表补数](docs/CHART_RESUME_AND_HISTORY.md)。
 
-**2026-11-04预测需求调整：** 后续只保留盘后、北京时间14:35两个时点预测下一交易日，优先级P2后置，排在行情、稳定性、基础指标和选区体验之后；相关Level-2／GPU增强同样后置。该预测需求调整仅更新文档，既有0.3 H1／H2代码未改动。详见[最新预测需求](docs/NEXT_DAY_FORECAST.md)及[排期](docs/ROADMAP.md)。
+**2026-11-06预测任务恢复：** 按最新指示启动CPU预测增强，只预测下一交易日；GPU暂不使用。旧0.3 H1／H2研究模块与记录保留，桌面默认使用0.16双时点模块。14:35必须有连续真实分钟数据，不用盘后数据代替；现有本地分钟覆盖不足时会明确提示。见[需求](docs/NEXT_DAY_FORECAST.md)。
 
 ## 启动桌面
 
@@ -153,7 +155,7 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 - [0.13特色研究工作区、操作与数据口径](docs/MEOZ_RESEARCH_WORKSPACE.md)
 - [0.13真实接口、离屏运行与回归验证](docs/VALIDATION_RESEARCH.md)
 - [猫爪特色数据功能规划：六项研究功能、接口核对与排期](docs/MEOZ_SPECIALTY_FEATURE_PLAN.md)
-- [最新预测需求：盘后／14:35预测下一交易日，P2后置](docs/NEXT_DAY_FORECAST.md)
+- [最新预测需求：盘后／14:35预测下一交易日](docs/NEXT_DAY_FORECAST.md)
 - [量价联合预测原设计与0.3实施背景](docs/SHORT_HORIZON_FORECAST.md)
 - [历史逐日预测与准确率验证方案](docs/FORECAST_VALIDATION.md)（已实现诊断回放，完整验证仍待完成）
 - [架构、性能与稳定性约束](docs/ARCHITECTURE.md)
