@@ -21,7 +21,6 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QMainWindow,
-    QProgressBar,
     QPushButton,
     QScrollArea,
     QSizePolicy,
@@ -1654,26 +1653,6 @@ class MainWindow(QMainWindow):
             box.addWidget(value)
             grid.addWidget(card, i // 2, i % 2)
         self.results.addLayout(grid)
-        self.results.addWidget(label("阶段候选与支持证据", "eyebrow"))
-        for finding in report.findings:
-            frame = QFrame()
-            frame.setObjectName("finding")
-            box = QVBoxLayout(frame)
-            box.setContentsMargins(11, 10, 11, 10)
-            box.setSpacing(7)
-            heading = QHBoxLayout()
-            heading.addWidget(label(finding.label))
-            heading.addStretch()
-            heading.addWidget(label(f"{finding.evidence_score}", "brandEnglish"))
-            box.addLayout(heading)
-            progress = QProgressBar()
-            progress.setRange(0, 100)
-            progress.setValue(finding.evidence_score)
-            progress.setTextVisible(False)
-            box.addWidget(progress)
-            if finding.evidence:
-                box.addWidget(label("；".join(finding.evidence[:2]), "muted", True))
-            self.results.addWidget(frame)
         self.results.addWidget(label("数据与分析口径", "eyebrow"))
         for note in report.notes:
             self.results.addWidget(label("· " + note, "muted", True))

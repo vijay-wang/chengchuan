@@ -13,7 +13,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 try:
     from PySide6.QtCore import QPointF, Qt
     from PySide6.QtTest import QTest
-    from PySide6.QtWidgets import QApplication
+    from PySide6.QtWidgets import QApplication, QLabel, QProgressBar
 
     from chengchuan.application.services import AnalysisService
     from chengchuan.domain.models import IndexRange
@@ -162,6 +162,11 @@ class DesktopTests(unittest.TestCase):
                 self.wait_until(lambda: window.report is not None and window.runner.active is None)
                 self.assertEqual(window.selection, IndexRange(10, 21))
                 self.assertEqual(window.report.selection, IndexRange(10, 21))
+                self.assertEqual(window.report.findings, ())
+                self.assertIn("区间基础统计", window.summary.text())
+                texts = [label.text() for label in window.analysis_view.findChildren(QLabel)]
+                self.assertFalse(any("阶段候选" in text or "支持证据" in text for text in texts))
+                self.assertFalse(window.analysis_view.findChildren(QProgressBar))
                 QTest.keyClick(window, Qt.Key.Key_Escape)
                 self.app.processEvents()
                 self.assertIsNone(window.selection)

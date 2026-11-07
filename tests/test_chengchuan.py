@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import patch
 
 from chengchuan.application.errors import StorageError
 from chengchuan.application.services import AnalysisService, RequestGate
@@ -150,12 +151,37 @@ class FoundationTests(unittest.TestCase):
             if b.timestamp.day >= 19 and b.timestamp.month == 10 or b.timestamp.month == 11
         ]
         selection = IndexRange(selected[0], selected[-1] + 1)
-        report = AnalysisService(LegacyAnalysisEngine()).run(snapshot, selection)
+        with patch("flowradar.core.analyze") as classifier:
+            report = AnalysisService(LegacyAnalysisEngine()).run(snapshot, selection)
+        classifier.assert_not_called()
         prior = json.loads((ROOT / "reports/jiuli_20261019_1102.json").read_text())
         metrics = {m.key: m for m in report.metrics}
-        self.assertAlmostEqual(metrics["return"].value, prior["metrics"]["return_pct"])
+        for key, prior_key in (
+            ("return", "return_pct"),
+            ("amount", "amount_yuan"),
+            ("volume", "volume_shares"),
+            ("vwap", "vwap"),
+            ("relative", "relative_return_pct"),
+        ):
+            self.assertAlmostEqual(metrics[key].value, prior["metrics"][prior_key])
         self.assertIsNone(metrics["institutional"].value)
-        self.assertEqual(report.summary, prior["summary"])
+        self.assertEqual(report.findings, ())
+        self.assertIn("区间基础统计", report.summary)
+        self.assertFalse(any("阶段" in note for note in report.notes))
+
+    def test_interval_removal_keeps_legacy_forecast_stage_inputs(self):
+        import json
+
+        from chengchuan.infrastructure.forecast_stage import LegacyStageProvider
+
+        snapshot = LegacyJsonRepository().load(ROOT / "reports/jiuli_20261019_1102.dataset.json")
+        prior = json.loads((ROOT / "reports/jiuli_20261019_1102.json").read_text())
+        provider = LegacyStageProvider()
+        expected = {s["name"]: s["evidence_score"] for s in prior["stages"]}
+        self.assertEqual(
+            provider.scores(snapshot, prior["observations"]),
+            tuple(expected[label] for label in provider.labels),
+        )
 
     def test_dependency_boundaries(self):
         forbidden = {

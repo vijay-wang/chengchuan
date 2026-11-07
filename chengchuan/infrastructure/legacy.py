@@ -9,7 +9,6 @@ from chengchuan.domain.market import is_index
 from chengchuan.domain.models import (
     SHANGHAI,
     AnalysisReport,
-    Finding,
     IndexRange,
     MarketBar,
     MarketSeries,
@@ -18,7 +17,7 @@ from chengchuan.domain.models import (
     OrderSizeFlow,
     SeriesKind,
 )
-from flowradar.core import Bar, Dataset, Flow, analyze
+from flowradar.core import Bar, Dataset, Flow
 
 
 def _stamp(value: str):
@@ -94,61 +93,42 @@ def _legacy_bars(series):
     ]
 
 
+def legacy_dataset(snapshot):
+    """Convert an explicit legacy research input; interval statistics do not use it."""
+    series = snapshot.series
+    flows = [
+        Flow(
+            f.timestamp.astimezone(SHANGHAI).replace(tzinfo=None).isoformat(),
+            f.main_yuan,
+            f.small_yuan,
+            f.medium_yuan,
+            f.large_yuan,
+            f.super_yuan,
+        )
+        for f in snapshot.flows
+    ]
+    return Dataset(
+        series.symbol,
+        series.name,
+        series.interval,
+        _legacy_bars(series),
+        flows,
+        _legacy_bars(snapshot.benchmark),
+        quality_notes=list(snapshot.quality_notes),
+    )
+
+
 class LegacyAnalysisEngine:
-    version = "flowradar-heuristic-v0.1-unvalidated/adapter-2"
+    version = "interval-statistics-v1/adapter-3"
 
     def analyze(self, snapshot: MarketSnapshot, selection: IndexRange) -> AnalysisReport:
-        series = snapshot.series
-        if is_index(series.symbol) or series.interval not in ("day", "minute"):
-            return self._period_statistics(snapshot, selection)
-        flows = [
-            Flow(
-                f.timestamp.astimezone(SHANGHAI).replace(tzinfo=None).isoformat(),
-                f.main_yuan,
-                f.small_yuan,
-                f.medium_yuan,
-                f.large_yuan,
-                f.super_yuan,
-            )
-            for f in snapshot.flows
-        ]
-        data = Dataset(
-            series.symbol,
-            series.name,
-            series.interval,
-            _legacy_bars(series),
-            flows,
-            _legacy_bars(snapshot.benchmark),
-            quality_notes=list(snapshot.quality_notes),
-        )
-        selected = data.bars[selection.start : selection.stop]
-        result = analyze(data, selected[0].timestamp, selected[-1].timestamp)
-        m = result["metrics"]
-        metrics = (
-            Metric("return", "区间涨跌", m["return_pct"], "%"),
-            Metric("amount", "区间成交额", m["amount_yuan"], "元"),
-            Metric("vwap", "区间成交均价", m["vwap"], "价格"),
-            Metric("relative", "相对基准", m["relative_return_pct"], "百分点"),
-            Metric("volume", "区间成交量", m["volume_shares"], "股"),
-            Metric("institutional", "机构净买入", None, "元", "无法识别"),
-        )
-        findings = tuple(
-            Finding(s["name"], s["evidence_score"], tuple(s["evidence"])) for s in result["stages"]
-        )
-        return AnalysisReport(
-            snapshot.revision,
-            selection,
-            result["summary"],
-            metrics,
-            findings,
-            tuple(result["quality_notes"]),
-            self.version,
-        )
-
-    def _period_statistics(self, snapshot, selection):
         bars = snapshot.series.bars[selection.start : selection.stop]
         previous = snapshot.series.bars[selection.start - 1] if selection.start else None
-        reference = previous.close if previous else (bars[0].open or bars[0].close)
+        use_previous = previous is not None and (
+            snapshot.series.interval != "minute" or is_index(snapshot.series.symbol)
+        )
+        reference = previous.close if use_previous else (bars[0].open or bars[0].close)
+        window_return = (bars[-1].close / reference - 1) * 100
         volume = sum(b.volume_shares for b in bars)
         amount = (
             sum(b.amount_yuan for b in bars)
@@ -156,7 +136,7 @@ class LegacyAnalysisEngine:
             else None
         )
         metrics = (
-            Metric("return", "区间涨跌", (bars[-1].close / reference - 1) * 100, "%"),
+            Metric("return", "区间涨跌", window_return, "%"),
             Metric("amount", "区间成交额", amount, "元"),
             Metric(
                 "vwap",
@@ -167,19 +147,48 @@ class LegacyAnalysisEngine:
                 "价格",
                 "指数不适用" if is_index(snapshot.series.symbol) else "缺少数据",
             ),
-            Metric("relative", "相对基准", None, "百分点"),
+            Metric(
+                "relative",
+                "相对基准",
+                self._relative_return(snapshot, bars, window_return),
+                "百分点",
+            ),
             Metric("volume", "区间成交量", volume, "股"),
             Metric("institutional", "机构净买入", None, "元", "无法识别"),
         )
         return AnalysisReport(
             snapshot.revision,
             selection,
-            "指数展示区间基础统计，未套用个股阶段规则。"
-            if is_index(snapshot.series.symbol)
-            else "当前周期展示区间基础统计；阶段规则尚未在此周期核验。",
+            f"区间基础统计 · {len(bars)} 条记录",
             metrics,
             (),
             snapshot.quality_notes
-            + ("区间涨跌以选区前一条收盘价为基准；无前序时使用首条开盘／分时价。",),
+            + (
+                "区间涨跌以选区前一条收盘价为基准。"
+                if use_previous
+                else "区间涨跌以首条开盘／分时价为基准。",
+            ),
             self.version,
         )
+
+    @staticmethod
+    def _relative_return(snapshot, bars, window_return):
+        if (
+            is_index(snapshot.series.symbol)
+            or snapshot.series.interval not in ("day", "minute")
+            or snapshot.benchmark is None
+        ):
+            return None
+        benchmark = snapshot.benchmark.bars
+        selected = tuple(
+            b for b in benchmark if bars[0].timestamp <= b.timestamp <= bars[-1].timestamp
+        )
+        if len(selected) < 2:
+            return None
+        previous = tuple(b for b in benchmark if b.timestamp < bars[0].timestamp)
+        reference = (
+            previous[-1].close
+            if previous and snapshot.series.interval == "day"
+            else (selected[0].open or selected[0].close)
+        )
+        return window_return - (selected[-1].close / reference - 1) * 100

@@ -40,10 +40,6 @@ QListWidget::item { border-radius: 6px; padding: 13px 11px; margin: 3px 0; }
 QListWidget::item:selected { background: #20374a; color: #e6f7f3; }
 QListWidget::item:hover { background: #192c3e; }
 QFrame#metric { background: #142233; border: 1px solid #233548; border-radius: 7px; }
-QFrame#finding { background: #132130; border: 1px solid #24364a; border-radius: 6px; }
-QProgressBar { height: 4px; min-height: 4px; max-height: 4px; background: #24364a;
-               border: none; border-radius: 2px; }
-QProgressBar::chunk { background: #5ad7bf; border-radius: 2px; }
 QScrollArea { border: none; background: transparent; }
 QScrollBar:vertical { background: transparent; width: 7px; margin: 0; }
 QScrollBar::handle:vertical { background: #33475d; border-radius: 3px; min-height: 28px; }
