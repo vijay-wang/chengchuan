@@ -649,11 +649,9 @@ class MainWindow(QMainWindow):
         self.research_tabs.currentChanged.connect(self._research_tab_changed)
         if self.forecast_service:
             from chengchuan.ui.nextday_panel import NextDayPanel
-            from chengchuan.ui.two_up_panel import TwoUpPanel
 
             next_day = getattr(self.forecast_service, "next_day", False)
-            two_up = getattr(self.forecast_service, "two_up", False)
-            panel_class = TwoUpPanel if two_up else NextDayPanel if next_day else ForecastPanel
+            panel_class = NextDayPanel if next_day else ForecastPanel
             self.forecast_panel = panel_class(
                 self.forecast_service, report_writer=self.forecast_writer
             )
@@ -662,9 +660,7 @@ class MainWindow(QMainWindow):
             forecast_layout = QVBoxLayout(forecast_view)
             forecast_layout.setContentsMargins(14, 10, 14, 12)
             forecast_layout.addWidget(self.forecast_panel)
-            self.research_tabs.addTab(
-                forecast_view, "两连涨预测" if two_up else "次日预测" if next_day else "量价预测"
-            )
+            self.research_tabs.addTab(forecast_view, "次日预测" if next_day else "量价预测")
         shell.addWidget(self.research_tabs)
         self.splitter.addWidget(inspector)
 

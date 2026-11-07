@@ -36,16 +36,16 @@ def main(argv=None):
     except ImportError:
         parser.exit(2, "缺少图表依赖，请执行：python -m pip install -e '.[desktop]'\n")
     from chengchuan.application.errors import StorageError
+    from chengchuan.application.nextday import NextDayService
     from chengchuan.application.services import AnalysisService
     from chengchuan.application.settings import SettingsService
-    from chengchuan.application.two_up import TwoUpService
     from chengchuan.domain.market import instrument_symbol
     from chengchuan.infrastructure.forecast_input import ForecastSnapshotRepository
     from chengchuan.infrastructure.forecast_journal import SqliteForecastJournal
     from chengchuan.infrastructure.legacy import LegacyAnalysisEngine
     from chengchuan.infrastructure.market_sources import ConfiguredMarketSources
-    from chengchuan.infrastructure.two_up_inputs import CachedTwoUpInputs
-    from chengchuan.infrastructure.two_up_reports import write_run
+    from chengchuan.infrastructure.nextday_inputs import CachedNextDayInputs
+    from chengchuan.infrastructure.nextday_reports import write_run
     from chengchuan.infrastructure.workspace import SqliteWorkspaceRepository
 
     app = QApplication.instance() or QApplication([])
@@ -95,10 +95,10 @@ def main(argv=None):
             market_sources=market_sources,
             settings_service=settings_service,
             initial_provider=args.provider,
-            forecast_service=TwoUpService(
+            forecast_service=NextDayService(
                 journal=SqliteForecastJournal(state_dir / "forecast.sqlite"),
-                input_loader=CachedTwoUpInputs().history,
-                pool_loader=CachedTwoUpInputs().pool,
+                minute_loader=CachedNextDayInputs().minutes,
+                context_loader=CachedNextDayInputs().context,
             ),
             forecast_writer=write_run,
         )
