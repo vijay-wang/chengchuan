@@ -14,6 +14,7 @@ from chengchuan.domain.models import SHANGHAI, IndexRange, MarketSnapshot, Serie
 from chengchuan.domain.periods import chart_period
 from chengchuan.ui import theme
 from chengchuan.ui.chart_cursor import ChartCursor
+from chengchuan.ui.chart_drawings import ChartDrawings
 
 pg.setConfigOptions(antialias=True, background=theme.BACKGROUND, foreground=theme.MUTED)
 
@@ -147,8 +148,9 @@ class MarketChart(QWidget):
     hover_text = Signal(str)
     snapshot_changed = Signal(object)
     history_requested = Signal(object)
+    day_activated = Signal(object)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, drawing_book=None):
         super().__init__(parent)
         self.snapshot = None
         self._vwap = {}
@@ -165,7 +167,8 @@ class MarketChart(QWidget):
         self.price.hideAxis("bottom")
         self.volume.setMaximumHeight(160)
         self.volume.setMinimumHeight(80)
-        self.price.setMinimumHeight(240)
+        self.price.setMinimumHeight(100)
+        self.setMinimumHeight(180)
         self.price.showGrid(x=True, y=True, alpha=0.13)
         self.volume.showGrid(y=True, alpha=0.1)
         for plot in (self.price, self.volume):
@@ -208,6 +211,7 @@ class MarketChart(QWidget):
         layout.setSpacing(0)
         layout.addWidget(self.price, 4)
         layout.addWidget(self.volume, 1)
+        self.drawings = ChartDrawings(self, drawing_book)
 
     def reset(self):
         self.cursor.hide()
@@ -502,6 +506,29 @@ class MarketChart(QWidget):
         kind = event.type()
         if kind in (QEvent.Type.FocusOut, QEvent.Type.WindowDeactivate):
             self._drag_start = None
+        if self._drag_start is None and self.drawings.handle_event(watched, event):
+            return True
+        if kind == QEvent.Type.MouseButtonDblClick:
+            if (
+                watched is self.price.viewport()
+                and event.button() == Qt.MouseButton.LeftButton
+                and not event.modifiers() & Qt.KeyboardModifier.ControlModifier
+                and self.snapshot.series.interval == "day"
+                and self.snapshot.series.kind == SeriesKind.OHLC
+            ):
+                scene = self.price.mapToScene(event.position().toPoint())
+                vb = self.price.getViewBox()
+                pos = vb.mapSceneToView(scene)
+                index = int(pos.x() + 0.5)
+                bars = self.snapshot.series.bars
+                if vb.sceneBoundingRect().contains(scene) and -0.5 <= pos.x() < len(bars) - 0.5:
+                    bar = bars[index]
+                    low = vb.mapViewToScene(QPointF(index, bar.low)).y()
+                    high = vb.mapViewToScene(QPointF(index, bar.high)).y()
+                    if min(low, high) - 6 <= scene.y() <= max(low, high) + 6:
+                        self.day_activated.emit(bar.timestamp.astimezone(SHANGHAI).date())
+                        return True
+            return super().eventFilter(watched, event)
         if kind not in (
             QEvent.Type.MouseButtonPress,
             QEvent.Type.MouseMove,

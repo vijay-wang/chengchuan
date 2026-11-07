@@ -33,6 +33,7 @@ from PySide6.QtWidgets import (
 
 from chengchuan import APP_NAME, __version__
 from chengchuan.application.chart_history import merge_chart_frames
+from chengchuan.application.drawings import DrawingBook
 from chengchuan.application.errors import MarketError, StorageError
 from chengchuan.application.market_refresh import MarketRefreshController, market_checkpoint
 from chengchuan.application.microstructure import analyze_orders
@@ -239,7 +240,7 @@ class MainWindow(QMainWindow):
         self.splitter.setCollapsible(2, False)
         self.status = label("本地研究预览 · 导入行情快照开始分析", "status")
         outer.addWidget(self.status)
-        QShortcut(QKeySequence("Escape"), self, activated=self.clear_selection)
+        QShortcut(QKeySequence("Escape"), self, activated=self._escape_chart)
         QShortcut(QKeySequence("Ctrl+O"), self, activated=self.choose_snapshot)
         QShortcut(QKeySequence("Ctrl+,"), self, activated=self.open_settings)
         if state.get("splitter") and len(state["splitter"]) == 3:
@@ -379,7 +380,11 @@ class MainWindow(QMainWindow):
         self.ohlc = label("鼠标悬停查看行情", "eyebrow")
         self.ohlc.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         layout.addWidget(self.ohlc)
-        self.chart = MarketChart()
+        self.chart = MarketChart(drawing_book=DrawingBook(self.workspace))
+        layout.addWidget(self.chart.drawings.controls)
+        self.chart.drawings.controls.show()
+        self.chart.drawings.message.connect(lambda text: self.status.setText(text))
+        self.chart.day_activated.connect(self._open_day_intraday)
         self.chart_history = ChartHistoryController(
             self.chart, self._history_ready, self.network_runner_factory, self
         )
@@ -629,9 +634,7 @@ class MainWindow(QMainWindow):
         self.results.addStretch()
         scroll.setWidget(content)
         layout.addWidget(scroll, 1)
-        layout.addWidget(
-            label("阶段为候选解释。规则分数尚未校准，\n不代表概率或真实机构持仓。", "notice", True)
-        )
+        layout.addWidget(label("统计范围以所选区间为准；缺失数据将明确标注。", "muted", True))
         self.analysis_view = analysis_view
         self.research_tabs = QTabWidget()
         self.quote_panel = QuoteDetailsPanel()
@@ -1589,6 +1592,18 @@ class MainWindow(QMainWindow):
             self.auto_refresh.setEnabled(False)
         self.date_nav.set_context(True, day, historical=True, hint=location.caption + " · 历史浏览")
 
+    def _open_day_intraday(self, day):
+        if self.snapshot is None or self.snapshot.series.interval != "day":
+            return
+        if (
+            self.market is None
+            or not getattr(self.market, "supports_history", False)
+            or "minute" not in getattr(self.market, "intervals", ("day", "minute"))
+        ):
+            self.status.setText("当前源不支持历史分时，请切换到已配置的猫爪数据源")
+            return
+        self.open_stock(self.snapshot.series.symbol, "minute", as_of=day)
+
     def return_to_latest(self):
         if self.online_symbol:
             self.open_stock(self.online_symbol, self.online_interval)
@@ -1681,7 +1696,12 @@ class MainWindow(QMainWindow):
         self.results.addStretch()
         self.status.setText("选区已清除  ·  当前行情保持不变")
 
+    def _escape_chart(self):
+        self.chart.drawings.cancel()
+        self.clear_selection()
+
     def closeEvent(self, event):
+        self.chart.drawings.shutdown()
         self.preview_runner.shutdown()
         self.chart_history.shutdown()
         self.company_page.shutdown()
