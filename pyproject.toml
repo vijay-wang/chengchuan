@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chengchuan"
-version = "0.16.0"
+version = "0.17.0"
 description = "澄川：可扩展的本地股票研究工作台"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,7 +12,8 @@ dependencies = ["tzdata>=2025.1; sys_platform == 'win32'"]
 
 [project.optional-dependencies]
 # 6.12.0 loses references to None in void Qt calls on CPython 3.10/3.11.
-desktop = ["PySide6-Essentials>=6.8,!=6.12.0,<7", "pyqtgraph>=0.13.7,<0.15", "websockets>=15,<17", "python-socks>=2.7,<3"]
+desktop = ["PySide6-Essentials>=6.8,!=6.12.0,<7", "pyqtgraph>=0.13.7,<0.15", "websockets>=15,<17", "python-socks>=2.7,<3", "scikit-learn==1.7.2"]
+prediction = ["scikit-learn==1.7.2"]
 dev = ["ruff>=0.11,<1"]
 
 [project.scripts]

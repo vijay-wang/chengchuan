@@ -4,13 +4,13 @@
 
 ![澄川公司资料与三表对比](design/chengchuan-company-statements.png)
 
-当前为**0.16 CPU次日预测研究版**：新增63项量价、技术、支撑压力、成交分布和行为代理特征，以及相似日／正则逻辑回归／历史频率融合。右侧“次日预测”分别支持盘后和14:35，提供方向、OHLC情景、逐日回测及导出；数据不足或模型分歧时不预测。使用方式与实际验证见[CPU次日预测](docs/CPU_NEXT_DAY_FORECAST.md)。
+当前为**0.17两连涨事件预测版**：只在“前日收跌或收平，随后恰好两天收涨”成立后，预测第三个交易日。右侧入口改为“两连涨预测”，只在第二天盘后确认；旧的普通次日／14:35入口已替换。允许拒判，但必须报告事件覆盖率。**80%目标尚未达到**，固定12股、按时间保留的10股114个事件测试中，未筛选候选方向命中50.9%，正式信号覆盖0%。详见[功能、口径及真实验证](docs/TWO_UP_THIRD_DAY.md)。
 
 0.15的性能优化继续保留：切股、切周期和指数优先显示会话／本地缓存，再后台更新；公共任务复用进程，K线按可见块绘制。实测与边界见[性能优化记录](docs/PERFORMANCE_OPTIMIZATION.md)。公司工作区包含概览、财务指标、三表对比、股东股本、分红、业绩披露、公告和问董秘。可按披露日／版本查看、切换原值曲线并导出研究卡；未核定单位明确按原值呈现，见[操作说明](docs/COMPANY_INFORMATION.md)及[验证记录](docs/VALIDATION_COMPANY_INFORMATION.md)。原市场研究、行情、逐笔、多周期与缓存保留。
 
 **0.14.1交互更新：** 重新打开时恢复上次个股和周期并读取最新可用数据；默认不选区。缩小或拖动到图表边缘时，猫爪源按需补充相邻日期；历史图也可向右继续浏览已发布数据。到达可用边界时贴合数据，不留大片空白。详见[启动恢复与图表补数](docs/CHART_RESUME_AND_HISTORY.md)。
 
-**2026-11-06预测任务恢复：** 按最新指示启动CPU预测增强，只预测下一交易日；GPU暂不使用。旧0.3 H1／H2研究模块与记录保留，桌面默认使用0.16双时点模块。14:35必须有连续真实分钟数据，不用盘后数据代替；现有本地分钟覆盖不足时会明确提示。见[需求](docs/NEXT_DAY_FORECAST.md)。
+**最新范围：** CPU运行；每日涨跌按猫爪可比昨收，历史价格指标按已知信息向前链接。固定候选模型及阈值仅在训练／验证期选择，最终测试不调参；旧研究档案保留，不能充当本次80%验证依据。
 
 ## 启动桌面
 
@@ -100,39 +100,20 @@ Ctrl左键拖动选择时间段，松开后计算，拖动边界调整，Esc清�
 
 工作区、自选、行情缓存和轮转日志默认保存到操作系统的应用数据目录，可用`--state-dir PATH`指定。行情缓存按股票和周期隔离，联网失败时保留原数据时间，绝不标为新行情。当前单个导入快照上限32MB。
 
-## 使用量价预测
+## 使用两连涨预测
 
-打开任意有足够历史的沪深A股日K，在右侧切换到**量价预测**：
+打开个股日K，右侧选择**两连涨预测**，指定第二天收盘日，点击“预测第三天”。前一天必须不涨；连续第三天、第四天仍上涨的日期不算新的两连涨事件。未成立、无法确认、训练不足、未通过80%验证或信号较弱时分别说明。
 
-1. 选择已完成的基准日D，点击“计算方向”。显示较昨／前2／5／20日均量、此前20／60日位置、H1／H2方向、相似日数量及不预测原因。
-2. 可勾选“基准日跟随Ctrl选区末日”，从图表选择历史D；计算使用截至D的固定历史窗口。
-3. 点击“逐日验证”，按时间重新训练并对照真实结果。目标日期严格小于“回测目标早于”的日期，分别报告价格A、量价B、阶段融合C与同样本基线。
-4. 点击“导出报告与完整对照表”，生成Markdown、JSON及CSV。后台任务可取消；行情刷新不会自动重新训练。
+“回测日期与排除项”可设置历史日期和异常排除项。“验证事件”显示成立事件、实际预测、命中率、覆盖率及同样本基线，可导出JSON／Markdown／CSV。行情刷新不自动训练，任务可取消，Ctrl选区仅用来选择日期。
 
-H1预测次交易日收盘相对D收盘的方向；H2预测两个交易日后的累计方向。至少需要61条连续有效日线提取特征，再积累40条成熟训练样本才给研究方向。平票、数据不足或日历不支持会明确不预测；相似日分布不作为未来胜率。
-
-命令行不需要Qt或API密钥：
+桌面安装已包含CPU依赖；只使用CLI可执行 `python -m pip install -e '.[prediction]'`。CLI只读已缓存数据，不自动发网络请求：
 
 ```bash
-# 在线计算，并保存输入供以后离线复算
-.venv/bin/python -m chengchuan.forecast predict --symbol 002318 \
-  --save-source .chengchuan/forecast/inputs/sz002318.json \
-  --output .chengchuan/forecast/jiuli_prediction
-
-# 历史逐日验证：11月3日及以后的目标结果全部排除
-.venv/bin/python -m chengchuan.forecast backtest \
-  --dataset .chengchuan/forecast/inputs/sz002318.json \
-  --before 2026-11-03 --output .chengchuan/forecast/jiuli_backtest
-
-# 指定历史D回放；也支持原来的.dataset.json日线文件
-.venv/bin/python -m chengchuan.forecast predict \
-  --dataset .chengchuan/forecast/inputs/sz002318.json \
-  --as-of 2026-10-29 --output .chengchuan/forecast/replay
+python -m chengchuan.two_up predict --symbol 002318 --as-of 2026-11-05
+python -m chengchuan.two_up backtest --symbol 002318 --start 2026-07-01 --before 2026-11-06
 ```
 
-CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存到工作区的`forecast.sqlite`。预测先事务归档，评价另行追加；重复运行不重复计数，冲突不会覆盖原记录。当前仅核对2025／2026沪深日历，单次最多2000条日线。除权除息、跨年日历、多年多股独立验证、概率校准及真实前瞻自动评价仍需后续补齐。
-
-已运行三只股票的固定参数诊断，结果见[回放记录](docs/VALIDATION_FORECAST.md)及[完整汇总](reports/forecast_20261103/summary.json)。这些结果不能当成已验证的未来准确率。
+原 `chengchuan.forecast` 和 `chengchuan.nextday` 命令已转到同一新任务，旧CLI参数不再使用。当前仅核对2025／2026沪深交易日历。股票及固定背景池复用本地日线、可比昨收和沪深300数据；缺失不补造，不把当前评分称为未来胜率。可先在行情页补齐缓存，研究数据批量补取须显式执行采集脚本，见[专项说明](docs/TWO_UP_THIRD_DAY.md)。
 
 ## 规划与架构
 
@@ -155,7 +136,7 @@ CLI研究账本默认保存在`.chengchuan/forecast/research.sqlite`，GUI保存
 - [0.13特色研究工作区、操作与数据口径](docs/MEOZ_RESEARCH_WORKSPACE.md)
 - [0.13真实接口、离屏运行与回归验证](docs/VALIDATION_RESEARCH.md)
 - [猫爪特色数据功能规划：六项研究功能、接口核对与排期](docs/MEOZ_SPECIALTY_FEATURE_PLAN.md)
-- [最新预测需求：盘后／14:35预测下一交易日](docs/NEXT_DAY_FORECAST.md)
+- [最新预测需求：恰好两连涨后的第三天，80%验收](docs/TWO_UP_THIRD_DAY.md)
 - [量价联合预测原设计与0.3实施背景](docs/SHORT_HORIZON_FORECAST.md)
 - [历史逐日预测与准确率验证方案](docs/FORECAST_VALIDATION.md)（已实现诊断回放，完整验证仍待完成）
 - [架构、性能与稳定性约束](docs/ARCHITECTURE.md)

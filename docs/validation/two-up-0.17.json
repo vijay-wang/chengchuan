@@ -1,0 +1,916 @@
+{
+  "selected": {
+    "model": "boost_depth2",
+    "model_id": "fc5677cab9143cf4032a538608c0dd959ab4b47a14a51cbd7ec1011229fb739b",
+    "threshold": null,
+    "train_count": 369,
+    "validation_count": 75,
+    "validation_summary": {
+      "status": "no_80_evidence",
+      "threshold": null,
+      "count": 0,
+      "accuracy": null,
+      "coverage": 0,
+      "heldout_verified": false,
+      "reason": "预先固定的候选模型和阈值均未通过验证集80%及样本／覆盖门槛",
+      "validation_count": 75,
+      "class_counts": {
+        "-1": 40,
+        "1": 34,
+        "0": 1
+      }
+    },
+    "candidates": [
+      {
+        "model": "logistic_01",
+        "all_accuracy": 0.5333333333333333,
+        "validation_count": 75,
+        "thresholds": [
+          {
+            "threshold": 0.55,
+            "count": 47,
+            "correct": 23,
+            "coverage": 0.6266666666666667,
+            "accuracy": 0.48936170212765956,
+            "wilson95": [
+              0.3527555503368215,
+              0.6275754625177314
+            ]
+          },
+          {
+            "threshold": 0.6,
+            "count": 32,
+            "correct": 16,
+            "coverage": 0.4266666666666667,
+            "accuracy": 0.5,
+            "wilson95": [
+              0.33630882869327483,
+              0.6636911713067252
+            ]
+          },
+          {
+            "threshold": 0.65,
+            "count": 23,
+            "correct": 12,
+            "coverage": 0.30666666666666664,
+            "accuracy": 0.5217391304347826,
+            "wilson95": [
+              0.32962737336427406,
+              0.7076284258335335
+            ]
+          },
+          {
+            "threshold": 0.7,
+            "count": 13,
+            "correct": 7,
+            "coverage": 0.17333333333333334,
+            "accuracy": 0.5384615384615384,
+            "wilson95": [
+              0.29143795714506004,
+              0.7679393219046169
+            ]
+          },
+          {
+            "threshold": 0.75,
+            "count": 3,
+            "correct": 2,
+            "coverage": 0.04,
+            "accuracy": 0.6666666666666666,
+            "wilson95": [
+              0.2076596008020477,
+              0.9385080552796037
+            ]
+          },
+          {
+            "threshold": 0.8,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.85,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.9,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          }
+        ]
+      },
+      {
+        "model": "logistic_1",
+        "all_accuracy": 0.5333333333333333,
+        "validation_count": 75,
+        "thresholds": [
+          {
+            "threshold": 0.55,
+            "count": 57,
+            "correct": 30,
+            "coverage": 0.76,
+            "accuracy": 0.5263157894736842,
+            "wilson95": [
+              0.3991801621874118,
+              0.6501283201887471
+            ]
+          },
+          {
+            "threshold": 0.6,
+            "count": 47,
+            "correct": 26,
+            "coverage": 0.6266666666666667,
+            "accuracy": 0.5531914893617021,
+            "wilson95": [
+              0.41245459838218734,
+              0.6858903373450472
+            ]
+          },
+          {
+            "threshold": 0.65,
+            "count": 30,
+            "correct": 15,
+            "coverage": 0.4,
+            "accuracy": 0.5,
+            "wilson95": [
+              0.33154125640533766,
+              0.6684587435946623
+            ]
+          },
+          {
+            "threshold": 0.7,
+            "count": 21,
+            "correct": 10,
+            "coverage": 0.28,
+            "accuracy": 0.47619047619047616,
+            "wilson95": [
+              0.2834400610153417,
+              0.6763046541715557
+            ]
+          },
+          {
+            "threshold": 0.75,
+            "count": 17,
+            "correct": 9,
+            "coverage": 0.22666666666666666,
+            "accuracy": 0.5294117647058824,
+            "wilson95": [
+              0.30963235060004424,
+              0.7383489355759056
+            ]
+          },
+          {
+            "threshold": 0.8,
+            "count": 6,
+            "correct": 3,
+            "coverage": 0.08,
+            "accuracy": 0.5,
+            "wilson95": [
+              0.1876163064826506,
+              0.8123836935173494
+            ]
+          },
+          {
+            "threshold": 0.85,
+            "count": 2,
+            "correct": 1,
+            "coverage": 0.02666666666666667,
+            "accuracy": 0.5,
+            "wilson95": [
+              0.09453120573423074,
+              0.9054687942657693
+            ]
+          },
+          {
+            "threshold": 0.9,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          }
+        ]
+      },
+      {
+        "model": "boost_depth2",
+        "all_accuracy": 0.6,
+        "validation_count": 75,
+        "thresholds": [
+          {
+            "threshold": 0.55,
+            "count": 70,
+            "correct": 43,
+            "coverage": 0.9333333333333333,
+            "accuracy": 0.6142857142857143,
+            "wilson95": [
+              0.4971573558930424,
+              0.7195230869846111
+            ]
+          },
+          {
+            "threshold": 0.6,
+            "count": 62,
+            "correct": 35,
+            "coverage": 0.8266666666666667,
+            "accuracy": 0.5645161290322581,
+            "wilson95": [
+              0.44092987972148767,
+              0.6805741109751094
+            ]
+          },
+          {
+            "threshold": 0.65,
+            "count": 49,
+            "correct": 27,
+            "coverage": 0.6533333333333333,
+            "accuracy": 0.5510204081632653,
+            "wilson95": [
+              0.413151082194979,
+              0.6814715893131335
+            ]
+          },
+          {
+            "threshold": 0.7,
+            "count": 43,
+            "correct": 21,
+            "coverage": 0.5733333333333334,
+            "accuracy": 0.4883720930232558,
+            "wilson95": [
+              0.3461744754671859,
+              0.632476915305507
+            ]
+          },
+          {
+            "threshold": 0.75,
+            "count": 34,
+            "correct": 17,
+            "coverage": 0.4533333333333333,
+            "accuracy": 0.5,
+            "wilson95": [
+              0.34069325645682497,
+              0.659306743543175
+            ]
+          },
+          {
+            "threshold": 0.8,
+            "count": 26,
+            "correct": 14,
+            "coverage": 0.3466666666666667,
+            "accuracy": 0.5384615384615384,
+            "wilson95": [
+              0.35457938746858797,
+              0.7124414646960878
+            ]
+          },
+          {
+            "threshold": 0.85,
+            "count": 20,
+            "correct": 11,
+            "coverage": 0.26666666666666666,
+            "accuracy": 0.55,
+            "wilson95": [
+              0.34208534245034233,
+              0.7418021417443759
+            ]
+          },
+          {
+            "threshold": 0.9,
+            "count": 12,
+            "correct": 8,
+            "coverage": 0.16,
+            "accuracy": 0.6666666666666666,
+            "wilson95": [
+              0.39062208887279953,
+              0.8618799089087867
+            ]
+          }
+        ]
+      },
+      {
+        "model": "boost_depth3",
+        "all_accuracy": 0.5466666666666666,
+        "validation_count": 75,
+        "thresholds": [
+          {
+            "threshold": 0.55,
+            "count": 70,
+            "correct": 38,
+            "coverage": 0.9333333333333333,
+            "accuracy": 0.5428571428571428,
+            "wilson95": [
+              0.42698259205475575,
+              0.6542725740243641
+            ]
+          },
+          {
+            "threshold": 0.6,
+            "count": 61,
+            "correct": 33,
+            "coverage": 0.8133333333333334,
+            "accuracy": 0.5409836065573771,
+            "wilson95": [
+              0.41724048130756475,
+              0.6598706770614424
+            ]
+          },
+          {
+            "threshold": 0.65,
+            "count": 57,
+            "correct": 31,
+            "coverage": 0.76,
+            "accuracy": 0.543859649122807,
+            "wilson95": [
+              0.41590685979119335,
+              0.6662739441690716
+            ]
+          },
+          {
+            "threshold": 0.7,
+            "count": 46,
+            "correct": 24,
+            "coverage": 0.6133333333333333,
+            "accuracy": 0.5217391304347826,
+            "wilson95": [
+              0.3813741307280403,
+              0.6587531056595433
+            ]
+          },
+          {
+            "threshold": 0.75,
+            "count": 43,
+            "correct": 24,
+            "coverage": 0.5733333333333334,
+            "accuracy": 0.5581395348837209,
+            "wilson95": [
+              0.41107614452824104,
+              0.6956669016082949
+            ]
+          },
+          {
+            "threshold": 0.8,
+            "count": 37,
+            "correct": 21,
+            "coverage": 0.49333333333333335,
+            "accuracy": 0.5675675675675675,
+            "wilson95": [
+              0.4091418109016808,
+              0.7132828072284269
+            ]
+          },
+          {
+            "threshold": 0.85,
+            "count": 28,
+            "correct": 16,
+            "coverage": 0.37333333333333335,
+            "accuracy": 0.5714285714285714,
+            "wilson95": [
+              0.3907078562746876,
+              0.734914528758763
+            ]
+          },
+          {
+            "threshold": 0.9,
+            "count": 17,
+            "correct": 10,
+            "coverage": 0.22666666666666666,
+            "accuracy": 0.5882352941176471,
+            "wilson95": [
+              0.3600544264299978,
+              0.7838894320978518
+            ]
+          }
+        ]
+      },
+      {
+        "model": "extra_trees",
+        "all_accuracy": 0.5733333333333334,
+        "validation_count": 75,
+        "thresholds": [
+          {
+            "threshold": 0.55,
+            "count": 30,
+            "correct": 16,
+            "coverage": 0.4,
+            "accuracy": 0.5333333333333333,
+            "wilson95": [
+              0.36142299619873297,
+              0.6976761109230025
+            ]
+          },
+          {
+            "threshold": 0.6,
+            "count": 14,
+            "correct": 7,
+            "coverage": 0.18666666666666668,
+            "accuracy": 0.5,
+            "wilson95": [
+              0.26799202452413634,
+              0.7320079754758637
+            ]
+          },
+          {
+            "threshold": 0.65,
+            "count": 4,
+            "correct": 3,
+            "coverage": 0.05333333333333334,
+            "accuracy": 0.75,
+            "wilson95": [
+              0.30064184258240184,
+              0.9544127391902995
+            ]
+          },
+          {
+            "threshold": 0.7,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.75,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.8,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.85,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.9,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          }
+        ]
+      },
+      {
+        "model": "majority",
+        "all_accuracy": 0.5333333333333333,
+        "validation_count": 75,
+        "thresholds": [
+          {
+            "threshold": 0.55,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.6,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.65,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.7,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.75,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.8,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.85,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          },
+          {
+            "threshold": 0.9,
+            "count": 0,
+            "correct": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "wilson95": null
+          }
+        ]
+      }
+    ]
+  },
+  "summary": {
+    "candidate_days": 850,
+    "confirmed_events": 114,
+    "unknown_condition_days": 0,
+    "not_event_days": 736,
+    "trained_events": 114,
+    "called_events": 0,
+    "scored_events": 0,
+    "correct": 0,
+    "accuracy": null,
+    "coverage": 0.0,
+    "label_coverage": 1.0,
+    "wilson95": null,
+    "day_block95": null,
+    "unique_target_dates": 0,
+    "target_accuracy": 0.8,
+    "point_target_met": false,
+    "reliability_gate_passed": false,
+    "acceptance": "80%目标未达到或证据不足",
+    "always_up_accuracy": null,
+    "always_down_accuracy": null,
+    "diagnostic_candidate_accuracy": 0.5087719298245614,
+    "diagnostic_candidate_count": 114,
+    "actual_classes": {
+      "-1": 58,
+      "0": 1,
+      "1": 55
+    },
+    "status_counts": {
+      "not_event": 736,
+      "no_80_evidence": 114
+    },
+    "monthly": [
+      {
+        "month": "2026-07",
+        "events": 33,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "month": "2026-08",
+        "events": 30,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "month": "2026-09",
+        "events": 23,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "month": "2026-10",
+        "events": 24,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "month": "2026-11",
+        "events": 4,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      }
+    ],
+    "by_stock": [
+      {
+        "symbol": "sh600030",
+        "events": 9,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "symbol": "sh600036",
+        "events": 14,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "symbol": "sh600519",
+        "events": 11,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "symbol": "sh600900",
+        "events": 12,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "symbol": "sh601318",
+        "events": 15,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "symbol": "sh601899",
+        "events": 13,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "symbol": "sz000333",
+        "events": 14,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "symbol": "sz000651",
+        "events": 11,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "symbol": "sz002475",
+        "events": 6,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      },
+      {
+        "symbol": "sz300308",
+        "events": 9,
+        "scored": 0,
+        "accuracy": null,
+        "coverage": 0.0
+      }
+    ]
+  },
+  "elapsed_seconds": 6.198,
+  "requests_added": 0,
+  "code_unchanged": true,
+  "declaration": {
+    "task": "frozen_final_exact_two_up",
+    "declared_at": "2026-11-06T21:46:24.127719+08:00",
+    "config": {
+      "target_accuracy": 0.8,
+      "min_train": 80,
+      "min_validation": 40,
+      "min_signals": 30,
+      "min_coverage": 0.1,
+      "excluded_dates": []
+    },
+    "model_version": "exact-two-up-cpu-selection-v1",
+    "candidates": [
+      "logistic_01",
+      "logistic_1",
+      "boost_depth2",
+      "boost_depth3",
+      "extra_trees",
+      "majority"
+    ],
+    "thresholds": [
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9
+    ],
+    "code_sha256": {
+      "chengchuan/domain/two_up.py": "1a621cfbf731c3664bd2b30ddaabd6c6cb2eea84ae2888b35a7d52c8c6286854",
+      "chengchuan/application/two_up.py": "5c637ee0a56d75acdad9ead2315cbfb4a35f875dad8395e69aa719158763b339",
+      "chengchuan/application/two_up_learning.py": "359c203f018e47c928bedca1b6f1c10265479659015b979ff90e35044d76dec7",
+      "chengchuan/application/two_up_metrics.py": "b030e596d3588bfc90febd6cc1935c22aa5ed2cca43a2993487ccc614dd2b4f3",
+      "chengchuan/application/nextday_features.py": "207681bde425675a6f74384c4b3d8c32fa6a20f57c72c355bbdc83fbcd2070b8",
+      "scripts/check_two_up_research.py": "26d1cfc5e429ccb342ef66f6ebd276ac838e9d7edfdbed21294dbec61022114b"
+    },
+    "protocol": {
+      "protocol_version": 1,
+      "declared_at": "2026-11-06T21:40:33.543608+08:00",
+      "event_version": "exactly-two-up-comparable-close-v1",
+      "target_version": "third-session-comparable-return-v1",
+      "universe": [
+        [
+          "sz002318",
+          "久立特材"
+        ],
+        [
+          "sz300750",
+          "宁德时代"
+        ],
+        [
+          "sh600519",
+          "贵州茅台"
+        ],
+        [
+          "sz000333",
+          "美的集团"
+        ],
+        [
+          "sh600036",
+          "招商银行"
+        ],
+        [
+          "sh601318",
+          "中国平安"
+        ],
+        [
+          "sh600900",
+          "长江电力"
+        ],
+        [
+          "sh601899",
+          "紫金矿业"
+        ],
+        [
+          "sz002475",
+          "立讯精密"
+        ],
+        [
+          "sz300308",
+          "中际旭创"
+        ],
+        [
+          "sh600030",
+          "中信证券"
+        ],
+        [
+          "sz000651",
+          "格力电器"
+        ]
+      ],
+      "development_only_symbols": [
+        "sz002318",
+        "sz300750"
+      ],
+      "final_holdout_symbols": [
+        "sh600519",
+        "sz000333",
+        "sh600036",
+        "sh601318",
+        "sh600900",
+        "sh601899",
+        "sz002475",
+        "sz300308",
+        "sh600030",
+        "sz000651"
+      ],
+      "source_start": "2025-01-01",
+      "source_end": "2026-11-05",
+      "training_target_before": "2026-04-01",
+      "validation_origin_from": "2026-04-01",
+      "validation_target_before": "2026-07-01",
+      "final_origin_from": "2026-07-01",
+      "final_target_before": "2026-11-06",
+      "config": {
+        "target_accuracy": 0.8,
+        "min_train": 80,
+        "min_validation": 40,
+        "min_signals": 30,
+        "min_coverage": 0.1,
+        "excluded_dates": []
+      },
+      "candidates": [
+        "logistic_C0.1",
+        "logistic_C1",
+        "hist_gradient_depth2",
+        "hist_gradient_depth3",
+        "extra_trees_depth5",
+        "majority"
+      ],
+      "threshold_candidates": [
+        0.55,
+        0.6,
+        0.65,
+        0.7,
+        0.75,
+        0.8,
+        0.85,
+        0.9
+      ],
+      "source_contract": {
+        "operation_id": "reference_stock_daily",
+        "api": "daily",
+        "service": "live",
+        "document_version": "1.0.52",
+        "url": "https://meoz.cn/docs/query/stock/daily",
+        "previous_close": "前复权可比昨收价"
+      },
+      "max_query_batches": 3,
+      "max_symbols_per_batch": 4,
+      "fetch": true,
+      "selection_note": "预先固定的存续熟悉股票研究样本，非全A股代表或无幸存偏差样本",
+      "leakage_policy": "同一日期所有股票同分区；最终新十股得分不用于候选或阈值选择",
+      "source_status": "事后重建，无逐条原始接收时间；此脚本不查看事件结果或模型分数"
+    },
+    "holdout_symbols": [
+      "sh600519",
+      "sz000333",
+      "sh600036",
+      "sh601318",
+      "sh600900",
+      "sh601899",
+      "sz002475",
+      "sz300308",
+      "sh600030",
+      "sz000651"
+    ],
+    "training_target_before": "2026-04-01",
+    "validation_origin_from": "2026-04-01",
+    "validation_target_before": "2026-07-01",
+    "test_origin_from": "2026-07-01",
+    "test_target_before": "2026-11-06",
+    "acceptance": "point>=80%, scored>=100, distinct target dates>=30, coverage>=10%, Wilson and date-block lower bounds>=80%",
+    "inputs": {
+      "sh600900-raw.json": "f7b9f53ccbe95f7cf15d2d603ad6bdf00b235c2e7cd5270880424098fa8b71af",
+      "sh601899-raw.json": "e75b0c132267b5631c1bc40123fdfb728b3fa2e221ae72a478c59c039e9827e7",
+      "sz000333-raw.json": "92c38e7b35c4394839a28c5514809cd5d3f54b5f4dcdb6b6c7ec05cc86a4eb9d",
+      "sz000651-raw.json": "a77f0233b26bb423eaa59e3814658f9d19a30a340cdc0b756d4af097f4eb60ec",
+      "sz300308-raw.json": "d85affae9769eb55f3027201b152b5a4929c47c1a5b1e4021c8b164ef758b784",
+      "sh600519-raw.json": "f8f6c1fadc516ec138482c8f60d130500093334f3388827309ae6813ac6fd57d",
+      "sz002475-raw.json": "05ddfc2ecef8a97a365caeb6836c8d4c826da3fba0299068659ae10000d68c0d",
+      "sh600036-raw.json": "845e84e881e03ca77e310c6cfa10a28986a7548de78d90076f43a83a19a92a2f",
+      "sh600030-raw.json": "b70232c8ffb48a3f804253ee42d061f5dc267856e514838a381e71a51e53d3aa",
+      "sz002318-raw.json": "e1f10c319c30bc31c8350acaa0a021c6c95cfa4d92c72c72ca398e5b269264e8",
+      "sh601318-raw.json": "42c359a29a53f17e5276e917ac3c6212c4029e9bdeac63517ce73fdf591f713b",
+      "sz300750-raw.json": "d15e317f394c42943dad264e874173ea50a95004c89e28b02b96c63d4657f1c9"
+    }
+  },
+  "engineering": {
+    "source_tests": {
+      "run": 392,
+      "failed": 0,
+      "skipped": 0
+    },
+    "targeted_tests": {
+      "run": 22,
+      "failed": 0
+    },
+    "installed_cpu_wheel_tests": {
+      "run": 392,
+      "failed": 0,
+      "skipped": 108,
+      "reason": "未安装Qt；源码目录采集脚本不在wheel内"
+    },
+    "installed_cli_prediction_and_exports": true,
+    "desktop": {
+      "platform": "offscreen",
+      "prediction_seconds": 5.07,
+      "as_of": "2026-11-03",
+      "status": "no_80_evidence",
+      "backtest_events": 4,
+      "export_and_cancel": true
+    },
+    "wheel": "chengchuan-0.17.0-py3-none-any.whl",
+    "wheel_sha256": "49e008a91a6c124382d40b468502f81b070e9a8d145677a9d297247d921ded2d",
+    "wheel_python_sources_match": 107,
+    "release_model_version": "exact-two-up-cpu-selection-v2",
+    "post_audit_validation_denominator": {
+      "confirmed": 75,
+      "usable": 75,
+      "retrained": false
+    },
+    "after_frozen_research": "修正依赖注入、无效目标基准、UTF-8导出；补充正式信号标签覆盖验收、缓存收盘成熟检查、验证完整事件分母、接收时间归档及成熟样本指纹。未重选模型或阈值，原冻结v1源码保留。"
+  }
+}
